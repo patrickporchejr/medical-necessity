@@ -6,7 +6,7 @@ The agent reads a synthetic patient chart over FHIR, matches the requested servi
 
 **Why prior auth.** It's the highest-friction administrative workflow in US healthcare, it has an unambiguous ROI story (denial rate, A/R days), CMS electronic PA requirements tighten through 2027, and it structurally requires a human approver — which makes it the right shape for demonstrating human-in-the-loop clinical AI.
 
-**Data.** All patient data is Synthea-generated synthetic FHIR R4. No PHI touches this repo, which means no BAA, and no de-identification review.
+**Data.** All patient data is Synthea-generated synthetic FHIR R4 (a fixed-seed cohort of adults with rheumatoid arthritis). No PHI touches this repo, which means no BAA, and no de-identification review.
 
 ## Architecture
 <img width="831" height="581" alt="image" src="https://github.com/user-attachments/assets/8defb40f-0eec-4b05-adb4-253ee0c14ff4" />
@@ -84,9 +84,9 @@ medical-necessity/
 │
 ├── data/
 │   ├── synthea/                   # generated FHIR R4 bundles (gitignored)
-│   ├── generate.sh                # Synthea invocation + seed
+│   ├── generate.sh                # Synthea invocation + seed, keeps RA patients
 │   └── payer_criteria/
-│       └── mri_lumbar_spine.yaml  # one service line, hardcoded on purpose
+│       └── adalimumab_ra.yaml     # one service line, hardcoded on purpose
 │
 ├── evals/
 │   ├── dataset.py                 # cases + ground truth from Synthea
@@ -114,7 +114,7 @@ medical-necessity/
 
 ```bash
 cp .env.example .env               # add provider keys
-./data/generate.sh                 # Synthea → FHIR R4 bundles
+./data/generate.sh                 # Synthea → FHIR R4 bundles (needs Docker; ~30 min for 30 patients)
 docker compose up
 ```
 

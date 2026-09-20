@@ -1,0 +1,43 @@
+# One service line, hardcoded on purpose.
+# Synthetic payer policy for a TNF-inhibitor (adalimumab) in rheumatoid arthritis.
+# Modeled on the step-therapy shape of real specialty-drug policies.
+service: Adalimumab (TNF inhibitor) for rheumatoid arthritis
+
+criteria:
+  - id: ra_diagnosis
+    description: Confirmed diagnosis of rheumatoid arthritis.
+    evidence:
+      - resource: Condition
+        code: { system: SNOMED-CT, code: "69896004" }   # Rheumatoid arthritis (disorder)
+
+  - id: dmard_trial
+    description: >
+      Trial of methotrexate (a conventional DMARD) for at least 3 months
+      with inadequate response.
+    min_duration_days: 90
+    evidence:
+      - resource: MedicationRequest
+        code: { system: RxNorm, code: "105585" }        # Methotrexate 2.5 MG Oral Tablet
+
+  - id: active_disease
+    description: >
+      Documented active disease despite therapy: joint pain, stiffness,
+      or swelling recorded in the clinical notes.
+    evidence:
+      - resource: DocumentReference
+
+  # The two screening criteria below are real-world requirements that Synthea's RA
+  # module does not generate labs for. They are kept on purpose: the chart cannot
+  # support them, so `verify` must flag them as unsupported rather than let the
+  # agent assert them.
+  - id: tb_screening
+    description: Negative tuberculosis screening documented before starting a biologic.
+    evidence:
+      - resource: Observation
+        code: { system: LOINC, code: "71774-4" }        # TB IGRA
+
+  - id: hepatitis_b_screening
+    description: Hepatitis B screening documented before starting a biologic.
+    evidence:
+      - resource: Observation
+        code: { system: LOINC, code: "5195-3" }         # HBsAg
