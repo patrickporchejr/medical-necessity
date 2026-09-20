@@ -23,6 +23,10 @@ def list_patients(store: FhirStore) -> list[PatientSummary]:
     return store.patients()
 
 
+def get_patient(store: FhirStore, patient_id: str) -> PatientSummary:
+    return store.chart(patient_id).patient
+
+
 def search_conditions(
     store: FhirStore, patient_id: str, code: str | None = None
 ) -> list[ConditionRecord]:

@@ -157,6 +157,7 @@ async def test_contract_over_mcp_protocol(fhir_dir, tmp_path):
         names = {t.name for t in (await client.list_tools()).tools}
         assert names == {
             "list_patients",
+            "get_patient",
             "search_conditions",
             "search_medication_requests",
             "search_observations",

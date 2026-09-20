@@ -36,6 +36,11 @@ def build_server(fhir_dir: Path, criteria_dir: Path, **fastmcp_kwargs) -> FastMC
         return tools.list_patients(store)
 
     @mcp.tool()
+    def get_patient(patient_id: str) -> PatientSummary:
+        """One patient's id, name, birth date and gender."""
+        return tools.get_patient(store, patient_id)
+
+    @mcp.tool()
     def search_conditions(patient_id: str, code: str | None = None) -> list[ConditionRecord]:
         """Conditions for a patient, oldest first. `code` filters on the exact code value
         (e.g. SNOMED "69896004" for rheumatoid arthritis); omit it for all conditions."""
