@@ -76,8 +76,10 @@ medical-necessity/
 │   │   │   ├── client.py          # provider-agnostic interface
 │   │   │   └── prompts/
 │   │   ├── mcp/
-│   │   │   ├── server.py          # FastMCP server
-│   │   │   └── tools.py           # FHIR read tools exposed to the agent
+│   │   │   ├── server.py          # FastMCP server (streamable HTTP, :8001)
+│   │   │   ├── tools.py           # FHIR read tools exposed to the agent
+│   │   │   ├── models.py          # typed tool results; id + resource_type = the citation
+│   │   │   └── store.py           # lazy per-patient loader over the Synthea bundles
 │   │   └── audit/
 │   │       └── log.py
 │   └── tests/
