@@ -1,0 +1,17 @@
+services:
+  api:
+    build: ./api
+    env_file: .env
+    ports: ["8000:8000"]
+    volumes: ["./api:/srv"]
+  mcp:
+    build: ./api
+    env_file: .env
+    command: python -m app.mcp.server
+    ports: ["8001:8001"]
+    volumes: ["./api:/srv", "./data:/data"]
+  web:
+    build: ./web
+    ports: ["3000:3000"]
+    volumes: ["./web:/app", "/app/node_modules", "/app/.next"]
+    depends_on: [api]
