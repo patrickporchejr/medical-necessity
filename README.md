@@ -8,11 +8,8 @@ The agent reads a synthetic patient chart over FHIR, matches the requested servi
 
 **Data.** All patient data is Synthea-generated synthetic FHIR R4. No PHI touches this repo, which means no BAA, and no de-identification review.
 
----
-
 ## Architecture
-
-
+<img width="831" height="581" alt="image" src="https://github.com/user-attachments/assets/8defb40f-0eec-4b05-adb4-253ee0c14ff4" />
 
 ### The PHI boundary
 
@@ -137,16 +134,3 @@ Named so the omissions read as decisions rather than gaps:
 - **No real payer integration.** No X12 278 generation, no clearinghouse. One payer's criteria, in YAML.
 - **No real EHR.** Synthea only. A real deployment substitutes a SMART on FHIR backend service client behind the same MCP interface — which is the point of putting MCP there.
 - **No write-back.** The packet leaves as a document, not an order.
-
-## What I'd do differently at a real customer
-
-<!-- Write this section last, after the evals run. It's the part that reads as
-     experience rather than exercise. Cover at minimum:
-     - where the re-ID vault would actually live under their security review
-     - why the criteria YAML doesn't survive contact with a real payer
-     - what the silent-mode rollout would look like before any reviewer sees output
-     - which acceptance criteria you'd negotiate before writing any code -->
-
-```
-
-```
