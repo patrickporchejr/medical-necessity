@@ -14,6 +14,7 @@ from app.phi.dates import shift_iso_dates
 
 ID_ARGS = {"patient_id": "PATIENT", "document_id": "DOCUMENTREFERENCE"}
 PASSTHROUGH_ARGS = {"code", "limit"}
+RESOURCE_TYPES = {"Condition", "MedicationRequest", "Observation", "DocumentReference"}
 
 
 class ToolCallError(RuntimeError):
@@ -65,6 +66,16 @@ class PhiGateway:
                 real[key] = original
             elif key in PASSTHROUGH_ARGS:
                 real[key] = value
+            elif key == "resource_type":
+                if value not in RESOURCE_TYPES:
+                    raise PermissionError(f"Unsupported resource_type {value!r}")
+                real[key] = value
+            elif key == "resource_id":
+                kind = str(arguments.get("resource_type", "")).upper()
+                original = vault.original(value) if isinstance(value, str) else None
+                if original is None or vault.kind(value) != kind:
+                    raise PermissionError("resource_id must be a placeholder of the stated resource_type")
+                real[key] = original
             else:
                 raise PermissionError(f"Argument {key!r} has no PHI rule")
         return real
