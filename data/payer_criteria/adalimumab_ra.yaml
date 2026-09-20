@@ -25,6 +25,7 @@ criteria:
       or swelling recorded in the clinical notes.
     evidence:
       - resource: DocumentReference
+        keywords: [joint pain, joint swelling, joint stiffness]
 
   # The two screening criteria below are real-world requirements that Synthea's RA
   # module does not generate labs for. They are kept on purpose: the chart cannot

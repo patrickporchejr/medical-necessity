@@ -10,6 +10,7 @@ from typing import Any
 from mcp import ClientSession
 
 from app.phi.anonymize import Anonymizer
+from app.phi.dates import shift_iso_dates
 
 ID_ARGS = {"patient_id": "PATIENT", "document_id": "DOCUMENTREFERENCE"}
 PASSTHROUGH_ARGS = {"code", "limit"}
@@ -29,6 +30,14 @@ class PhiGateway:
         """Register a real patient id (e.g. from a new case) and return its placeholder."""
         await self._learn_patient(patient_id)
         return self.anonymizer.pseudonym("PATIENT", patient_id)
+
+    def shift_date(self, patient_id: str, iso_date: str) -> str:
+        """Move a real date (e.g. the as-of date) into this patient's shifted timeline, so it
+        can be compared with the shifted dates in their results."""
+        vault = self.anonymizer.vault
+        if vault.kind(patient_id) != "PATIENT":
+            raise PermissionError("patient_id must be a placeholder issued by this gateway")
+        return shift_iso_dates(iso_date, vault.date_offset(vault.original(patient_id)))
 
     async def list_tools(self):
         return await self._session.list_tools()
