@@ -1,5 +1,6 @@
 from datetime import date
 from pathlib import Path
+from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -7,8 +8,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
+    llm_provider: Literal["anthropic", "gemini"] = "anthropic"
     anthropic_api_key: str = ""
-    openai_api_key: str = ""
+    anthropic_model: str = "claude-opus-5"
+    gemini_api_key: str = ""
+    gemini_model: str = "gemini-3.8-flash"
     langsmith_api_key: str = ""
 
     # <repo>/data locally, /data in the containers (compose mounts ./data there).

@@ -112,4 +112,5 @@ class CaseState(BaseModel):
     as_of: str | None = None  # the as-of date on this patient's shifted timeline
     evidence: list[CriterionEvidence] = []
     packet: Packet | None = None
+    assembled_by: str | None = None  # provider:model that drafted the packet
     verification: Verification | None = None
