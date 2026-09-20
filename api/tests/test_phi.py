@@ -296,6 +296,21 @@ async def test_gateway_tool_errors_are_scrubbed(phi_dir):
         assert PID not in str(err.value) and "no-such-doc" not in str(err.value)
 
 
+@pytest.mark.anyio
+async def test_gateway_shifts_a_real_date_onto_the_patients_timeline(phi_dir):
+    from mcp.shared.memory import create_connected_server_and_client_session
+
+    fhir, criteria = phi_dir
+    async with create_connected_server_and_client_session(build_server(fhir, criteria)._mcp_server) as session:
+        gateway = PhiGateway(session, Anonymizer(Vault()))
+        patient = await gateway.adopt_patient(PID)
+        [cond] = await gateway.call_tool("search_conditions", {"patient_id": patient, "code": "69896004"})
+        shifted = gateway.shift_date(patient, "2022-01-01")  # c1's real onset date
+        assert shifted == cond["onset_date"][:10]
+        with pytest.raises(PermissionError):
+            gateway.shift_date(PID, "2022-01-01")  # a real id is not accepted
+
+
 # --- real cohort (skipped where it has not been generated) ------------------------------------
 
 needs_cohort = pytest.mark.skipif(

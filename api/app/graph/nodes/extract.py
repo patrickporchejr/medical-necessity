@@ -6,6 +6,7 @@ the gateway it is handed; it never sees a raw MCP session.
 """
 
 import re
+from datetime import date
 from typing import Any, Protocol
 
 from app.graph.criteria import Criteria, Criterion, EvidenceSpec
@@ -16,6 +17,7 @@ SEARCH_TOOLS = {
     "MedicationRequest": "search_medication_requests",
     "Observation": "search_observations",
 }
+ONGOING = {"active"}
 DATE_KEYS = ("onset_date", "authored_on", "effective_date")
 OBSERVATION_LIMIT = 5
 
@@ -31,15 +33,30 @@ LONG_LINE = 200
 class ChartGateway(Protocol):
     async def call_tool(self, name: str, arguments: dict[str, Any]) -> Any: ...
 
-
-async def extract(state: CaseState, gateway: ChartGateway, criteria: Criteria) -> dict[str, Any]:
-    evidence = [await _gather(c, state.patient_id, gateway) for c in criteria.criteria]
-    return {"service": criteria.service, "evidence": evidence}
+    def shift_date(self, patient_id: str, iso_date: str) -> str: ...
 
 
-async def _gather(criterion: Criterion, patient_id: str, gateway: ChartGateway) -> CriterionEvidence:
+async def extract(
+    state: CaseState, gateway: ChartGateway, criteria: Criteria, as_of: date
+) -> dict[str, Any]:
+    """`as_of` is a real date; it is moved onto the patient's shifted timeline here, so the
+    day counts are right and no real date enters the state."""
+    as_of_shifted = gateway.shift_date(state.patient_id, as_of.isoformat())
+    evidence = [
+        await _gather(c, state.patient_id, gateway, date.fromisoformat(as_of_shifted))
+        for c in criteria.criteria
+    ]
+    return {"service": criteria.service, "as_of": as_of_shifted, "evidence": evidence}
+
+
+async def _gather(
+    criterion: Criterion, patient_id: str, gateway: ChartGateway, as_of: date
+) -> CriterionEvidence:
     result = CriterionEvidence(
-        criterion_id=criterion.id, description=criterion.description, queries=[]
+        criterion_id=criterion.id,
+        description=criterion.description,
+        min_duration_days=criterion.min_duration_days,
+        queries=[],
     )
     for spec in criterion.evidence:
         if spec.resource == "DocumentReference":
@@ -51,17 +68,21 @@ async def _gather(criterion: Criterion, patient_id: str, gateway: ChartGateway) 
             args["limit"] = OBSERVATION_LIMIT
         result.queries.append(f"{spec.resource} {spec.code.system} {spec.code.code}")
         records = await gateway.call_tool(SEARCH_TOOLS[spec.resource], args)
-        result.items += [_item(record) for record in records]
+        result.items += [_item(record, as_of) for record in records]
     return result
 
 
-def _item(record: dict[str, Any]) -> EvidenceItem:
+def _item(record: dict[str, Any], as_of: date) -> EvidenceItem:
+    when = next((record[k] for k in DATE_KEYS if record.get(k)), None)
+    status = record.get("status") or record.get("clinical_status")
+    days = (as_of - date.fromisoformat(when[:10])).days if when and status in ONGOING else None
     return EvidenceItem(
         ref=ResourceRef(resource_type=record["resource_type"], id=record["id"]),
         label=record["code"].get("display") or record["code"]["code"],
-        date=next((record[k] for k in DATE_KEYS if record.get(k)), None),
-        status=record.get("status") or record.get("clinical_status"),
+        date=when,
+        status=status,
         value=record.get("value"),
+        days_in_effect=days,
     )
 
 
