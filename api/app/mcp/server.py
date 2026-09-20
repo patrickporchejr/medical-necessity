@@ -1,5 +1,6 @@
 import re
 from pathlib import Path
+from typing import Literal
 
 from mcp.server.fastmcp import FastMCP
 
@@ -61,6 +62,16 @@ def build_server(fhir_dir: Path, criteria_dir: Path, **fastmcp_kwargs) -> FastMC
         """Observations (labs, vitals) for a patient matching an exact LOINC `code`, oldest
         first. `code` is required. Returns the most recent `limit` matches."""
         return tools.search_observations(store, patient_id, code, limit)
+
+    @mcp.tool()
+    def get_resource(
+        patient_id: str,
+        resource_type: Literal["Condition", "MedicationRequest", "Observation", "DocumentReference"],
+        resource_id: str,
+    ) -> tools.ResourceRecord:
+        """Look up one record by type and id, within one patient's chart. Errors if the id is
+        not in that patient's chart. For a note's text use `read_document`."""
+        return tools.get_resource(store, patient_id, resource_type, resource_id)
 
     @mcp.tool()
     def list_documents(patient_id: str) -> list[DocumentMetadata]:

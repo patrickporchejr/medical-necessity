@@ -49,6 +49,16 @@ def search_observations(
     return _matching(store.chart(patient_id).observations, code)[-limit:]
 
 
+ResourceRecord = ConditionRecord | MedicationRequestRecord | ObservationRecord | DocumentMetadata
+
+
+def get_resource(
+    store: FhirStore, patient_id: str, resource_type: str, resource_id: str
+) -> ResourceRecord:
+    """Resolve one citation. Scoped to the patient: another patient's id does not resolve."""
+    return store.chart(patient_id).find(resource_type, resource_id)
+
+
 def list_documents(store: FhirStore, patient_id: str) -> list[DocumentMetadata]:
     return store.chart(patient_id).documents
 

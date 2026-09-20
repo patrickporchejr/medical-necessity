@@ -39,6 +39,16 @@ class Chart:
     observations: list[ObservationRecord] = field(default_factory=list)
     documents: list[DocumentMetadata] = field(default_factory=list)
     document_text: dict[str, str] = field(default_factory=dict)
+    _index: dict[tuple[str, str], Any] | None = field(default=None, repr=False)
+
+    def find(self, resource_type: str, resource_id: str) -> Any:
+        if self._index is None:
+            records = [*self.conditions, *self.medication_requests, *self.observations, *self.documents]
+            self._index = {(r.resource_type, r.id): r for r in records}
+        record = self._index.get((resource_type, resource_id))
+        if record is None:
+            raise NotFound(f"No {resource_type} {resource_id} for patient {self.patient.id}")
+        return record
 
 
 class FhirStore:

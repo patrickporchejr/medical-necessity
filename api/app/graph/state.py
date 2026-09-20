@@ -63,14 +63,47 @@ class CriterionEvidence(BaseModel):
 
 
 class Assertion(BaseModel):
+    """A statement about one criterion.
+
+    kind "evidence" says the chart meets it and must cite what shows that. kind "gap" says
+    the chart does not establish it, and cites nothing. Without "gap" the only way to state
+    an unsupported criterion would be to fabricate evidence for it.
+    """
+
     criterion_id: str
+    kind: Literal["evidence", "gap"] = "evidence"
     text: str
-    citations: list[ResourceRef]
+    citations: list[ResourceRef] = []
 
 
 class Packet(BaseModel):
     service: str
     assertions: list[Assertion]
+
+
+class CitationCheck(BaseModel):
+    ref: ResourceRef
+    exists: bool  # resolves to a resource in this patient's chart
+    supports: bool  # ...and that resource bears on the assertion's criterion
+    reason: str | None = None
+
+
+class VerifiedAssertion(BaseModel):
+    assertion: Assertion
+    supported: bool
+    checks: list[CitationCheck] = []
+    reasons: list[str] = []
+
+
+class Verification(BaseModel):
+    """Every assertion with its verdict. Nothing is dropped: unsupported ones are flagged."""
+
+    assertions: list[VerifiedAssertion]
+    unaddressed: list[str]  # criteria the packet never mentions
+
+    @property
+    def flagged(self) -> list[VerifiedAssertion]:
+        return [a for a in self.assertions if not a.supported]
 
 
 class CaseState(BaseModel):
@@ -79,3 +112,4 @@ class CaseState(BaseModel):
     as_of: str | None = None  # the as-of date on this patient's shifted timeline
     evidence: list[CriterionEvidence] = []
     packet: Packet | None = None
+    verification: Verification | None = None

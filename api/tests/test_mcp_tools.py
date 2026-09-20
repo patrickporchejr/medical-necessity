@@ -119,6 +119,16 @@ def test_documents_list_and_read(store):
     assert doc.text == NOTE and doc.id == "d1"
 
 
+def test_get_resource_is_scoped_to_the_patient(store):
+    cond = tools.get_resource(store, PID, "Condition", "c1")
+    assert (cond.id, cond.patient_id, cond.code.code) == ("c1", PID, "69896004")
+    assert tools.get_resource(store, PID, "DocumentReference", "d1").author == "Dr. Who"
+    with pytest.raises(NotFound):
+        tools.get_resource(store, PID, "Observation", "c1")  # right id, wrong type
+    with pytest.raises(NotFound):
+        tools.get_resource(store, PID, "Condition", "nope")
+
+
 def test_unknown_ids_raise(store):
     with pytest.raises(NotFound):
         tools.search_conditions(store, "missing")
@@ -158,6 +168,7 @@ async def test_contract_over_mcp_protocol(fhir_dir, tmp_path):
         assert names == {
             "list_patients",
             "get_patient",
+            "get_resource",
             "search_conditions",
             "search_medication_requests",
             "search_observations",
