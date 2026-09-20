@@ -68,14 +68,17 @@ async def _gather(
             args["limit"] = OBSERVATION_LIMIT
         result.queries.append(f"{spec.resource} {spec.code.system} {spec.code.code}")
         records = await gateway.call_tool(SEARCH_TOOLS[spec.resource], args)
-        result.items += [_item(record, as_of) for record in records]
+        # Day counts only where the criterion asks for a duration; elsewhere they are noise.
+        measure_from = as_of if criterion.min_duration_days is not None else None
+        result.items += [_item(record, measure_from) for record in records]
     return result
 
 
-def _item(record: dict[str, Any], as_of: date) -> EvidenceItem:
+def _item(record: dict[str, Any], as_of: date | None) -> EvidenceItem:
     when = next((record[k] for k in DATE_KEYS if record.get(k)), None)
     status = record.get("status") or record.get("clinical_status")
-    days = (as_of - date.fromisoformat(when[:10])).days if when and status in ONGOING else None
+    measurable = as_of is not None and when and status in ONGOING
+    days = (as_of - date.fromisoformat(when[:10])).days if measurable else None
     return EvidenceItem(
         ref=ResourceRef(resource_type=record["resource_type"], id=record["id"]),
         label=record["code"].get("display") or record["code"]["code"],

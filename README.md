@@ -73,7 +73,10 @@ medical-necessity/
 │   │   │   ├── vault.py           # request-scoped re-ID map, TTL
 │   │   │   └── rehydrate.py
 │   │   ├── llm/
-│   │   │   ├── client.py          # provider-agnostic interface
+│   │   │   ├── client.py          # provider-agnostic interface + factory
+│   │   │   ├── anthropic_client.py
+│   │   │   ├── gemini_client.py
+│   │   │   ├── guard.py           # refuses any prompt holding a value the vault knows
 │   │   │   └── prompts/
 │   │   ├── mcp/
 │   │   │   ├── server.py          # FastMCP server (streamable HTTP, :8001)
@@ -115,7 +118,7 @@ medical-necessity/
 ## Running it
 
 ```bash
-cp .env.example .env               # add provider keys
+cp .env.example .env               # set LLM_PROVIDER (anthropic | gemini) and its key
 ./data/generate.sh                 # Synthea → FHIR R4 bundles (needs Docker; ~30 min for 30 patients)
 docker compose up
 ```

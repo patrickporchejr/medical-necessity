@@ -66,6 +66,11 @@ class Vault:
         self._check()
         return {orig: token for (k, orig), token in self._forward.items() if k == kind}
 
+    def known(self) -> list[tuple[str, str]]:
+        """(kind, original) for everything the vault holds; used by the outbound leak guard."""
+        self._check()
+        return list(self._forward)
+
     def date_offset(self, patient_id: str) -> timedelta:
         """One random, non-zero shift per patient, so intervals within a chart survive."""
         self._check()
