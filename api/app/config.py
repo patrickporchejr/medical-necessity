@@ -10,10 +10,15 @@ class Settings(BaseSettings):
 
     llm_provider: Literal["anthropic", "gemini"] = "anthropic"
     anthropic_api_key: str = ""
-    anthropic_model: str = "claude-opus-5"
+    anthropic_model: str = "claude-haiku-4-5"
     gemini_api_key: str = ""
     gemini_model: str = "gemini-3.8-flash"
-    langsmith_api_key: str = ""
+
+    # Observability. Without a token nothing is sent anywhere; set LOGFIRE_CONSOLE to see
+    # spans locally instead. Spans carry metadata only unless LOGFIRE_CAPTURE_LLM_CONTENT is on.
+    logfire_token: str = ""
+    logfire_console: bool = False
+    logfire_capture_llm_content: bool = False
 
     # <repo>/data locally, /data in the containers (compose mounts ./data there).
     data_dir: Path = Path(__file__).resolve().parents[2] / "data"

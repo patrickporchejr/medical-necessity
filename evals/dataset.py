@@ -46,9 +46,11 @@ class GroundTruth:
             return False, False
         if criterion_id not in self._by_id:
             return True, False
-        text = chart.document_text.get(resource_id) if resource_type == "DocumentReference" else None
-        code = None if resource_type == "DocumentReference" else record.code.code
-        return True, criterion_supports(self._by_id[criterion_id], resource_type, code, text)
+        is_note = resource_type == "DocumentReference"
+        text = chart.document_text.get(resource_id) if is_note else None
+        code = None if is_note else record.code.code
+        status = None if is_note else _status(record)
+        return True, criterion_supports(self._by_id[criterion_id], resource_type, code, text, status)
 
     def established(self, patient_id: str, criterion_id: str) -> bool:
         """Does the whole chart, not just the first few notes, meet the criterion?"""
@@ -56,7 +58,7 @@ class GroundTruth:
         chart = self.store.chart(patient_id)
         hits = [
             r for r in (*chart.conditions, *chart.medication_requests, *chart.observations)
-            if criterion_supports(criterion, r.resource_type, r.code.code, None)
+            if criterion_supports(criterion, r.resource_type, r.code.code, None, _status(r))
         ]
         note_hit = any(
             criterion_supports(criterion, "DocumentReference", None, text)
@@ -69,6 +71,11 @@ class GroundTruth:
             and (self.as_of - date.fromisoformat(_start(r)[:10])).days >= criterion.min_duration_days
             for r in hits
         )
+
+
+def _status(record) -> str | None:
+    # A Condition's clinical status, or a request's status; the same rule verify applies.
+    return getattr(record, "clinical_status", None) or getattr(record, "status", None)
 
 
 def _start(record) -> str:

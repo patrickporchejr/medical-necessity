@@ -18,7 +18,8 @@ from app.graph.state import (
     Verification,
     VerifiedAssertion,
 )
-from app.graph.support import criterion_supports, established
+from app.graph.support import criterion_supports, established, record_status
+from app.observability import node_span
 from app.phi.gateway import ToolCallError
 
 
@@ -26,6 +27,18 @@ class ToolCaller(Protocol):
     async def call_tool(self, name: str, arguments: dict[str, Any]) -> Any: ...
 
 
+def _summarize(update: dict[str, Any]) -> dict[str, Any]:
+    v = update["verification"]
+    return {
+        "assertions": len(v.assertions),
+        "supported": len(v.assertions) - len(v.flagged),
+        "flagged": len(v.flagged),
+        "flagged_criteria": [a.assertion.criterion_id for a in v.flagged],
+        "unaddressed": v.unaddressed,
+    }
+
+
+@node_span("graph.verify", _summarize)
 async def verify(state: CaseState, gateway: ToolCaller, criteria: Criteria) -> dict[str, Any]:
     if state.packet is None:
         raise ValueError("verify needs a packet to check")
@@ -93,19 +106,19 @@ async def _check_citation(
             record = await gateway.call_tool(
                 "read_document", {"patient_id": patient_id, "document_id": ref.id}
             )
-            code, text = None, record["text"]
+            code, text, status = None, record["text"], None
         else:
             record = await gateway.call_tool(
                 "get_resource",
                 {"patient_id": patient_id, "resource_type": ref.resource_type, "resource_id": ref.id},
             )
-            code, text = record["code"]["code"], None
+            code, text, status = record["code"]["code"], None, record_status(record)
     except (PermissionError, ToolCallError):
         # Not an id this case was ever shown, another patient's, or the wrong type.
         return CitationCheck(
             ref=ref, exists=False, supports=False, reason="not found in this patient's chart"
         )
-    supports = criterion_supports(criterion, ref.resource_type, code, text)
+    supports = criterion_supports(criterion, ref.resource_type, code, text, status)
     return CitationCheck(
         ref=ref, exists=True, supports=supports,
         reason=None if supports else f"does not bear on {criterion.id}",

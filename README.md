@@ -22,7 +22,7 @@ This is the design decision worth arguing about, and the six questions it exists
 | Where does inference run?          | Third-party API, which is exactly why the scrub layer exists             |
 | Is anything retained for training? | No — zero-retention mode, and the payload is de-identified regardless    |
 | How is context minimized?          | `extract` scopes retrieval to the criteria; the full chart is never sent |
-| What's logged, and where?          | Traces carry de-identified payloads only; the re-ID map is never logged  |
+| What's logged, and where?          | Metadata-only spans; prompt capture is opt-in; the re-ID map never logged |
 | How is output attributed?          | Every assertion carries a `DocumentReference` id, surfaced in the UI     |
 | What's the audit trail?            | Reviewer decision, timestamp, and diff against the draft                 |
 
@@ -40,7 +40,7 @@ Faithfulness and hallucination metrics run through DeepEval as a CI gate. Those 
 
 The metric that matters here is **citation resolution rate**: of the assertions the agent makes in a packet, what fraction point at a document that exists _and_ actually supports the claim. It's domain-specific, it's the thing a payer would reject the packet over, and it's scored against Synthea ground truth rather than an LLM judge.
 
-LangSmith collects runtime traces out-of-band — spans, latencies, token counts per node.
+Logfire collects runtime traces out-of-band: one span per graph node with counts, criterion ids, the model that answered, and token counts. Spans carry metadata only, and nothing that sees raw data (the MCP client or server, HTTP clients, request bodies) is instrumented; a test enforces that. Recording the full de-identified prompt and response is opt-in (`LOGFIRE_CAPTURE_LLM_CONTENT`), because Logfire retains what it stores.
 
 ---
 

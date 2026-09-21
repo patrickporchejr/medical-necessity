@@ -9,10 +9,18 @@ from app.graph.nodes.extract import find_excerpt_lines
 from app.graph.state import CriterionEvidence
 
 
+def record_status(record: dict) -> str | None:
+    """A Condition's clinical status, or a request's status."""
+    return record.get("clinical_status") or record.get("status")
+
+
 def spec_supports(
-    spec: EvidenceSpec, resource_type: str, code: str | None, note_text: str | None
+    spec: EvidenceSpec, resource_type: str, code: str | None, note_text: str | None,
+    status: str | None = None,
 ) -> bool:
     if spec.resource != resource_type:
+        return False
+    if spec.status is not None and status != spec.status:
         return False
     if spec.resource == "DocumentReference":
         return bool(note_text and find_excerpt_lines(note_text, spec.keywords))
@@ -20,9 +28,10 @@ def spec_supports(
 
 
 def criterion_supports(
-    criterion: Criterion, resource_type: str, code: str | None, note_text: str | None
+    criterion: Criterion, resource_type: str, code: str | None, note_text: str | None,
+    status: str | None = None,
 ) -> bool:
-    return any(spec_supports(s, resource_type, code, note_text) for s in criterion.evidence)
+    return any(spec_supports(s, resource_type, code, note_text, status) for s in criterion.evidence)
 
 
 def established(evidence: CriterionEvidence) -> bool:

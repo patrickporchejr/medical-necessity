@@ -11,6 +11,7 @@ from typing import Any, Protocol
 
 from app.graph.criteria import Criteria, Criterion, EvidenceSpec
 from app.graph.state import CaseState, CriterionEvidence, EvidenceItem, NoteExcerpt, ResourceRef
+from app.observability import node_span
 
 SEARCH_TOOLS = {
     "Condition": "search_conditions",
@@ -36,6 +37,21 @@ class ChartGateway(Protocol):
     def shift_date(self, patient_id: str, iso_date: str) -> str: ...
 
 
+def _summarize(update: dict[str, Any]) -> dict[str, Any]:
+    evidence = update["evidence"]
+    return {
+        "criteria": len(evidence),
+        "criteria_found": [e.criterion_id for e in evidence if e.found],
+        "criteria_not_found": [e.criterion_id for e in evidence if not e.found],
+        "duration_status": {
+            e.criterion_id: e.duration_status for e in evidence if e.duration_status
+        },
+        "items": sum(len(e.items) for e in evidence),
+        "note_excerpts": sum(len(e.excerpts) for e in evidence),
+    }
+
+
+@node_span("graph.extract", _summarize)
 async def extract(
     state: CaseState, gateway: ChartGateway, criteria: Criteria, as_of: date
 ) -> dict[str, Any]:
@@ -70,11 +86,12 @@ async def _gather(
         records = await gateway.call_tool(SEARCH_TOOLS[spec.resource], args)
         # Day counts only where the criterion asks for a duration; elsewhere they are noise.
         measure_from = as_of if criterion.min_duration_days is not None else None
-        result.items += [_item(record, measure_from) for record in records]
+        result.required_status = spec.status or result.required_status
+        result.items += [_item(record, measure_from, spec.status) for record in records]
     return result
 
 
-def _item(record: dict[str, Any], as_of: date | None) -> EvidenceItem:
+def _item(record: dict[str, Any], as_of: date | None, required_status: str | None = None) -> EvidenceItem:
     when = next((record[k] for k in DATE_KEYS if record.get(k)), None)
     status = record.get("status") or record.get("clinical_status")
     measurable = as_of is not None and when and status in ONGOING
@@ -86,6 +103,7 @@ def _item(record: dict[str, Any], as_of: date | None) -> EvidenceItem:
         status=status,
         value=record.get("value"),
         days_in_effect=days,
+        qualifies=required_status is None or status == required_status,
     )
 
 

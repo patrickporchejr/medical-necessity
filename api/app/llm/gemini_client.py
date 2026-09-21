@@ -31,10 +31,15 @@ class GeminiClient:
         except ValidationError as err:
             raise LLMError(f"{self._model} returned JSON that does not match {schema.__name__}") from err
         usage = response.usage_metadata
+        # Thinking tokens are billed as output but reported apart from the answer. Leaving them
+        # out understated Flash's output by ~4x on a real prompt (330 answer + 1229 thinking).
+        answer = getattr(usage, "candidates_token_count", None)
+        thinking = getattr(usage, "thoughts_token_count", None)
+        output_tokens = None if answer is None else answer + (thinking or 0)
         return LLMResult(
             parsed=parsed,
             provider=self.provider,
             model=getattr(response, "model_version", None) or self._model,
             input_tokens=getattr(usage, "prompt_token_count", None),
-            output_tokens=getattr(usage, "candidates_token_count", None),
+            output_tokens=output_tokens,
         )

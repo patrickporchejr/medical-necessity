@@ -96,9 +96,13 @@ def _doc(n: int, text: str) -> dict:
     }
 
 
-def _fhir_dir(tmp_path: Path, notes: list[str], mtx_status: str | None = None) -> Path:
+def _fhir_dir(tmp_path: Path, notes: list[str], mtx_status: str | None = None,
+              ra_status: str | None = None) -> Path:
     bundle = _bundle()
     for e in bundle["entry"]:
+        r = e["resource"]
+        if ra_status and r["resourceType"] == "Condition" and r["id"] == "c1":
+            r["clinicalStatus"] = {"coding": [{"code": ra_status}]}
         if mtx_status and e["resource"]["resourceType"] == "MedicationRequest":
             e["resource"]["status"] = mtx_status
     if mtx_status == "absent":  # a chart with no methotrexate order at all
@@ -127,9 +131,9 @@ class Counting:
         return self.gateway.shift_date(patient_id, iso_date)
 
 
-async def _run(tmp_path, notes, as_of=ORDERED + timedelta(days=120), mtx_status=None):
+async def _run(tmp_path, notes, as_of=ORDERED + timedelta(days=120), mtx_status=None, ra_status=None):
     criteria = load_criteria(CRITERIA_FILE)
-    server = build_server(_fhir_dir(tmp_path, notes, mtx_status), settings.criteria_dir)
+    server = build_server(_fhir_dir(tmp_path, notes, mtx_status, ra_status), settings.criteria_dir)
     async with create_connected_server_and_client_session(server._mcp_server) as session:
         gateway = PhiGateway(session, Anonymizer(Vault()))
         counting = Counting(gateway)
@@ -179,6 +183,47 @@ async def test_extract_caps_reads_on_a_large_chart_with_no_matches(tmp_path):
     [active] = [e for e in update["evidence"] if e.criterion_id == "active_disease"]
     assert not active.found
     assert counting.calls.count("read_document") == MAX_NOTE_READS
+
+
+# --- a criterion can require a status: a resolved diagnosis is not an active one -------------
+
+@pytest.mark.anyio
+async def test_a_resolved_diagnosis_is_listed_but_does_not_qualify(tmp_path):
+    update, _, _ = await _run(tmp_path, ["- Joint Pain"], ra_status="resolved")
+    ra = next(e for e in update["evidence"] if e.criterion_id == "ra_diagnosis")
+    assert ra.required_status == "active"
+    assert [(i.status, i.qualifies) for i in ra.items] == [("resolved", False)]
+    assert not ra.found  # so the criterion is not established
+    from app.graph.support import established
+    assert not established(ra)
+
+
+@pytest.mark.anyio
+async def test_an_active_diagnosis_qualifies(tmp_path):
+    update, _, _ = await _run(tmp_path, ["- Joint Pain"])
+    ra = next(e for e in update["evidence"] if e.criterion_id == "ra_diagnosis")
+    assert [(i.status, i.qualifies) for i in ra.items] == [("active", True)] and ra.found
+
+
+def test_the_ra_criterion_requires_an_active_status_and_notes_cannot_have_one():
+    criteria = load_criteria(CRITERIA_FILE)
+    assert criteria.criteria[0].evidence[0].status == "active"
+    assert criteria.criteria[1].evidence[0].status is None  # the methotrexate spec has no status rule
+    with pytest.raises(ValidationError):
+        Criteria.model_validate({"service": "s", "criteria": [{"id": "c", "description": "d", "evidence": [
+            {"resource": "DocumentReference", "keywords": ["pain"], "status": "active"}]}]})
+
+
+def test_the_shared_predicate_checks_status():
+    from app.graph.criteria import EvidenceSpec, CodeSpec
+    from app.graph.support import spec_supports
+
+    spec = EvidenceSpec(resource="Condition", code=CodeSpec(system="s", code="1"), status="active")
+    assert spec_supports(spec, "Condition", "1", None, "active")
+    assert not spec_supports(spec, "Condition", "1", None, "resolved")
+    assert not spec_supports(spec, "Condition", "1", None, None)
+    no_rule = EvidenceSpec(resource="Condition", code=CodeSpec(system="s", code="1"))
+    assert spec_supports(no_rule, "Condition", "1", None, "resolved")  # no status rule: any status
 
 
 # --- the as-of date and "at least 90 days of methotrexate" ------------------------------------
@@ -281,7 +326,9 @@ async def test_cohort_extract_matches_the_ground_truth_the_eval_will_use():
 
             orders = tools.search_medication_requests(store, patient.id, "105585")
             has_mtx = bool(orders)
-            assert evidence["ra_diagnosis"].found
+            ra_active = any(c.code.code == "69896004" and c.clinical_status == "active"
+                            for c in store.chart(patient.id).conditions)
+            assert evidence["ra_diagnosis"].found == ra_active, patient.id
             assert evidence["dmard_trial"].found == has_mtx, patient.id
             assert not evidence["tb_screening"].found and not evidence["hepatitis_b_screening"].found
             dmard_found += has_mtx
