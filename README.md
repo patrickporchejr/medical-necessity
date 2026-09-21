@@ -1,15 +1,25 @@
-# medical-necessity
+# Medical Necessity AI Engine
 
-An agentic prior authorization packet assembler with a hard PHI boundary and a citation-resolution eval harness.
+An open-source clinical evaluation and stateful routing engine built with **LangGraph** and **LangSmith** to automate prior authorization and medical necessity checks.
 
 The agent reads a synthetic patient chart over FHIR, matches the requested service against payer criteria, drafts the medical-necessity packet, and verifies that every assertion in that packet resolves to a real document in the chart. A human reviewer approves, edits, or rejects.
+
+## Architecture Overview
+<img width="831" height="581" alt="image" src="https://github.com/user-attachments/assets/8defb40f-0eec-4b05-adb4-253ee0c14ff4" />
+
+## Key Features
+- **Stateful Routing:** LangGraph conditional edges for clinical policy evaluation.
+- **Observability & Evals:** LangSmith integration for tracking context grounding, accuracy, and latency.
+- **Deterministic Guardrails:** Fallbacks for schema validation and tool errors.
 
 **Why prior auth.** It's the highest-friction administrative workflow in US healthcare, it has an unambiguous ROI story (denial rate, A/R days), CMS electronic PA requirements tighten through 2027, and it structurally requires a human approver — which makes it the right shape for demonstrating human-in-the-loop clinical AI.
 
 **Data.** All patient data is Synthea-generated synthetic FHIR R4 (a fixed-seed cohort of adults with rheumatoid arthritis). No PHI touches this repo, which means no BAA, and no de-identification review.
 
-## Architecture
-<img width="831" height="581" alt="image" src="https://github.com/user-attachments/assets/8defb40f-0eec-4b05-adb4-253ee0c14ff4" />
+## Tech Stack
+- LangGraph / LangChain
+- LangSmith
+- Python / Asyncio / FastAPI
 
 ### The PHI boundary
 
