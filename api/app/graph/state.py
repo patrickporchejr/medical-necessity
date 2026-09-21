@@ -4,7 +4,7 @@ Inside the graph every id is a placeholder issued by the PHI gateway; real ids o
 reappear when a packet is rehydrated for the reviewer.
 """
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict
 
@@ -117,4 +117,7 @@ class CaseState(BaseModel):
     evidence: list[CriterionEvidence] = []
     packet: Packet | None = None
     assembled_by: str | None = None  # provider:model that drafted the packet
+    # Tokens, fallback and repair counts from the assemble call. A graph carries only what
+    # is in its state, so this rides along; it is metadata, never prompt or response text.
+    llm_usage: dict[str, Any] | None = None
     verification: Verification | None = None

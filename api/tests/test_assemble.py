@@ -1,17 +1,19 @@
 import ast
+import asyncio
 import re
 from dataclasses import dataclass
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from langchain_core.messages import AIMessage
+from langchain_core.runnables import RunnableLambda
 
 from app.graph.nodes.assemble import PacketDraft, assemble, render_evidence, repair_citations
 from app.graph.nodes.verify import verify
 from app.graph.state import Assertion, ResourceRef
-from app.llm.anthropic_client import FALLBACK_BETA, AnthropicClient
-from app.llm.client import LLMError, LLMRefusal, LLMResult
-from app.llm.gemini_client import GeminiClient
+from app.llm.client import LLMError, LLMRefusal, LLMResult, build_client
+from app.llm.langchain_client import FALLBACK_BETA, LangChainClient, build_chat_model
 from app.llm.guard import GuardedLLM, PhiLeak, assert_clean
 from app.llm.prompts.assemble import SYSTEM
 from app.phi.vault import Vault
@@ -216,114 +218,121 @@ async def test_the_real_pipeline_prompt_survives_the_guard(tmp_path):
 DRAFT = PacketDraft(assertions=[Assertion(criterion_id="ra_diagnosis", kind="gap", text="none")])
 
 
-def anthropic_response(**over):
-    base = dict(
-        stop_reason="end_turn", stop_details=None, parsed_output=DRAFT, model="claude-haiku-4-5",
-        usage=SimpleNamespace(input_tokens=100, output_tokens=20, iterations=[]),
-    )
-    return SimpleNamespace(**(base | over))
+class FakeChatModel:
+    """Stands in for a LangChain chat model: `with_structured_output(include_raw=True)` yields
+    what a real one does, the raw message plus the parsed object."""
+
+    def __init__(self, raw: AIMessage, parsed=DRAFT, parsing_error=None):
+        self.calls, self.kwargs = [], None
+        self._out = {"raw": raw, "parsed": parsed, "parsing_error": parsing_error}
+
+    def with_structured_output(self, schema, **kwargs):
+        self.kwargs = {"schema": schema, **kwargs}
+
+        async def call(messages):
+            self.calls.append(messages)
+            return self._out
+
+        return RunnableLambda(call)
 
 
-class FakeAnthropic:
-    def __init__(self, response):
-        self.calls = []
-        self.beta = SimpleNamespace(messages=SimpleNamespace(parse=self._parse))
-        self._response = response
-
-    async def _parse(self, **kwargs):
-        self.calls.append(kwargs)
-        return self._response
+def reply(provider="anthropic", parsed=DRAFT, tokens=(100, 20), **meta) -> FakeChatModel:
+    message = AIMessage(content="{}", response_metadata=meta,
+                        usage_metadata={"input_tokens": tokens[0], "output_tokens": tokens[1],
+                                        "total_tokens": sum(tokens)})
+    return FakeChatModel(message, parsed=parsed)
 
 
 @pytest.mark.anyio
-async def test_anthropic_client_defaults_to_haiku_and_sends_only_what_it_supports():
-    fake = FakeAnthropic(anthropic_response())
-    result = await AnthropicClient(client=fake).generate("sys", "user", PacketDraft)
-    [sent] = fake.calls
-    assert sent["model"] == "claude-haiku-4-5" and sent["system"] == "sys"
-    assert sent["messages"] == [{"role": "user", "content": "user"}]
-    assert sent["output_format"] is PacketDraft
-    assert "output_config" not in sent and "betas" not in sent and "fallbacks" not in sent
-    assert (result.parsed, result.provider, result.model) == (DRAFT, "anthropic", "claude-haiku-4-5")
+async def test_the_client_sends_system_and_user_and_asks_for_the_schema():
+    fake = reply(model_name="claude-haiku-4-5-20251001", stop_reason="end_turn")
+    result = await LangChainClient("anthropic", fake, "claude-haiku-4-5").generate("sys", "user", PacketDraft)
+    [messages] = fake.calls
+    assert [(m.type, m.content) for m in messages] == [("system", "sys"), ("human", "user")]
+    assert fake.kwargs == {"schema": PacketDraft, "include_raw": True, "method": "json_schema"}
+    assert (result.parsed, result.provider, result.model) == (DRAFT, "anthropic", "claude-haiku-4-5-20251001")
     assert (result.input_tokens, result.output_tokens, result.fallback) == (100, 20, False)
 
 
 @pytest.mark.anyio
-@pytest.mark.parametrize(
-    "model, effort, fallbacks",
-    [("claude-opus-5", True, True), ("claude-sonnet-5", True, False), ("claude-haiku-4-5", False, False)],
-)
-async def test_anthropic_client_only_sends_what_the_model_supports(model, effort, fallbacks):
-    fake = FakeAnthropic(anthropic_response(model=model))
-    await AnthropicClient(model=model, client=fake).generate("s", "u", PacketDraft)
-    [sent] = fake.calls
-    assert ("output_config" in sent) is effort
-    assert ("fallbacks" in sent and "betas" in sent) is fallbacks
-    assert sent["output_format"] is PacketDraft and sent["model"] == model
-
-
-@pytest.mark.anyio
-async def test_anthropic_client_reports_when_a_fallback_model_answered():
-    usage = SimpleNamespace(input_tokens=1, output_tokens=1, iterations=[SimpleNamespace(type="fallback_message")])
-    fake = FakeAnthropic(anthropic_response(usage=usage, model="claude-opus-4-8"))
-    result = await AnthropicClient(client=fake).generate("s", "u", PacketDraft)
+async def test_the_client_reports_when_a_fallback_model_answered():
+    fake = reply(model_name="claude-opus-4-8", stop_reason="end_turn",
+                 usage={"iterations": [{"type": "fallback_message"}]})
+    result = await LangChainClient("anthropic", fake, "claude-opus-5").generate("s", "u", PacketDraft)
     assert result.fallback and result.model == "claude-opus-4-8"
 
 
 @pytest.mark.anyio
-async def test_anthropic_refusal_and_empty_output_are_errors_not_empty_packets():
-    refused = anthropic_response(stop_reason="refusal", stop_details=SimpleNamespace(category="bio"), parsed_output=None)
+async def test_a_refusal_or_unparseable_reply_is_an_error_not_an_empty_packet():
+    refused = reply(stop_reason="refusal", stop_details={"category": "bio"}, parsed=None)
     with pytest.raises(LLMRefusal, match="bio"):
-        await AnthropicClient(client=FakeAnthropic(refused)).generate("s", "u", PacketDraft)
-    with pytest.raises(LLMError):
-        await AnthropicClient(client=FakeAnthropic(anthropic_response(parsed_output=None))).generate("s", "u", PacketDraft)
-
-
-class FakeGemini:
-    def __init__(self, text, blocked=None, thoughts=None):
-        self.calls = []
-        response = SimpleNamespace(
-            text=text, model_version="gemini-3.8-flash-001",
-            usage_metadata=SimpleNamespace(prompt_token_count=80, candidates_token_count=15,
-                                           thoughts_token_count=thoughts),
-            prompt_feedback=SimpleNamespace(block_reason=blocked),
-        )
-
-        async def generate_content(**kwargs):
-            self.calls.append(kwargs)
-            return response
-
-        self.aio = SimpleNamespace(models=SimpleNamespace(generate_content=generate_content))
-
-
-@pytest.mark.anyio
-async def test_gemini_client_sends_the_schema_and_validates_the_reply():
-    fake = FakeGemini(DRAFT.model_dump_json())
-    result = await GeminiClient(client=fake).generate("sys", "user", PacketDraft)
-    [sent] = fake.calls
-    cfg = sent["config"]
-    assert sent["model"] == "gemini-3.8-flash" and sent["contents"] == "user"
-    assert cfg.system_instruction == "sys" and cfg.response_mime_type == "application/json"
-    assert cfg.response_json_schema == PacketDraft.model_json_schema()
-    assert (result.parsed, result.provider, result.model) == (DRAFT, "gemini", "gemini-3.8-flash-001")
-    assert (result.input_tokens, result.output_tokens) == (80, 15)
-
-
-@pytest.mark.anyio
-async def test_gemini_output_tokens_include_thinking_because_they_are_billed_as_output():
-    # Measured on a real Flash call: 330 answer tokens and 1229 thinking tokens.
-    result = await GeminiClient(client=FakeGemini(DRAFT.model_dump_json(), thoughts=1229)).generate("s", "u", PacketDraft)
-    assert result.output_tokens == 15 + 1229
-    quiet = await GeminiClient(client=FakeGemini(DRAFT.model_dump_json(), thoughts=None)).generate("s", "u", PacketDraft)
-    assert quiet.output_tokens == 15  # a model that reports no thinking tokens
-
-
-@pytest.mark.anyio
-async def test_gemini_blocked_or_malformed_replies_are_errors():
-    with pytest.raises(LLMRefusal, match="SAFETY"):
-        await GeminiClient(client=FakeGemini(None, blocked="SAFETY")).generate("s", "u", PacketDraft)
+        await LangChainClient("anthropic", refused, "m").generate("s", "u", PacketDraft)
     with pytest.raises(LLMError, match="does not match"):
-        await GeminiClient(client=FakeGemini('{"assertions": "nope"}')).generate("s", "u", PacketDraft)
+        await LangChainClient("anthropic", reply(stop_reason="end_turn", parsed=None), "m").generate("s", "u", PacketDraft)
+
+
+@pytest.mark.anyio
+async def test_gemini_blocked_replies_are_refusals_and_thinking_stays_in_the_output_count():
+    blocked = reply("gemini", parsed=None, prompt_feedback={"block_reason": "SAFETY"})
+    with pytest.raises(LLMRefusal, match="SAFETY"):
+        await LangChainClient("gemini", blocked, "gemini-3.8-flash").generate("s", "u", PacketDraft)
+    stopped = reply("gemini", parsed=None, finish_reason="SAFETY")
+    with pytest.raises(LLMRefusal, match="SAFETY"):
+        await LangChainClient("gemini", stopped, "gemini-3.8-flash").generate("s", "u", PacketDraft)
+    # langchain-google-genai already adds thinking tokens to output_tokens (they are billed as output)
+    ok = reply("gemini", model_name="gemini-3.8-flash-001", tokens=(80, 15 + 1229), finish_reason="STOP")
+    result = await LangChainClient("gemini", ok, "gemini-3.8-flash").generate("s", "u", PacketDraft)
+    assert (result.model, result.input_tokens, result.output_tokens) == ("gemini-3.8-flash-001", 80, 1244)
+
+
+def _anthropic_payload(model: str) -> dict:
+    """What ChatAnthropic would send for `model`, captured before it reaches the network."""
+    from anthropic.types.beta import BetaMessage, BetaUsage
+
+    chat = build_chat_model("anthropic", model, api_key="test-key")
+    sent = {}
+    message = BetaMessage(id="m", model=model, role="assistant", type="message", stop_sequence=None,
+                          content=[{"type": "text", "text": DRAFT.model_dump_json()}], stop_reason="end_turn",
+                          usage=BetaUsage(input_tokens=1, output_tokens=1))
+
+    async def fake_create(payload):
+        sent.update(payload)
+        return _Raw(message)
+
+    chat._acreate = fake_create
+    asyncio.run(LangChainClient("anthropic", chat, model).generate("s", "u", PacketDraft))
+    return sent
+
+
+class _Raw:
+    def __init__(self, message):
+        self.message, self.headers = message, {}
+
+    def parse(self):
+        return self.message
+
+    def __getattr__(self, name):
+        return getattr(self.message, name)
+
+
+@pytest.mark.parametrize(
+    "model, effort, fallbacks",
+    [("claude-opus-5", True, True), ("claude-sonnet-5", True, False), ("claude-haiku-4-5", False, False)],
+)
+def test_anthropic_only_sends_what_the_model_supports(model, effort, fallbacks):
+    sent = _anthropic_payload(model)
+    assert ("effort" in sent.get("output_config", {})) is effort
+    assert ("fallbacks" in sent and FALLBACK_BETA in sent.get("betas", [])) is fallbacks
+    assert sent["model"] == model and sent["max_tokens"] == 16000
+    assert sent["output_config"]["format"]["type"] == "json_schema"  # native structured output
+
+
+def test_the_chat_model_is_built_for_the_provider_asked_for():
+    from langchain_anthropic import ChatAnthropic
+    from langchain_google_genai import ChatGoogleGenerativeAI
+
+    assert isinstance(build_chat_model("anthropic", "claude-haiku-4-5", "k"), ChatAnthropic)
+    assert isinstance(build_chat_model("gemini", "gemini-3.8-flash", "k"), ChatGoogleGenerativeAI)
 
 
 def test_the_schema_the_models_are_given_is_the_packet_contract():
@@ -343,7 +352,7 @@ def test_graph_and_the_neutral_llm_modules_import_no_provider_sdk():
             names = ([a.name for a in node.names] if isinstance(node, ast.Import)
                      else [node.module or ""] if isinstance(node, ast.ImportFrom) else [])
             for name in names:
-                assert name.split(".")[0] not in {"anthropic", "google", "openai"}, (path, name)
+                assert name.split(".")[0] not in {"anthropic", "google", "openai", "langchain_anthropic", "langchain_google_genai"}, (path, name)
 
 
 # --- live smoke tests: opt-in, need real keys -------------------------------------------------
@@ -358,7 +367,7 @@ def _live(provider):
 @pytest.mark.anyio
 async def test_live_anthropic_returns_a_valid_draft():
     from app.config import settings
-    result = await AnthropicClient(model=settings.anthropic_model, api_key=settings.anthropic_api_key).generate(
+    result = await build_client(settings.model_copy(update={"llm_provider": "anthropic"})).generate(
         SYSTEM, "Criterion ra_diagnosis: RA.\n  No matching records were found in the chart.", PacketDraft
     )
     assert result.parsed.assertions and result.output_tokens
@@ -368,7 +377,7 @@ async def test_live_anthropic_returns_a_valid_draft():
 @pytest.mark.anyio
 async def test_live_gemini_returns_a_valid_draft():
     from app.config import settings
-    result = await GeminiClient(model=settings.gemini_model, api_key=settings.gemini_api_key).generate(
+    result = await build_client(settings.model_copy(update={"llm_provider": "gemini"})).generate(
         SYSTEM, "Criterion ra_diagnosis: RA.\n  No matching records were found in the chart.", PacketDraft
     )
     assert result.parsed.assertions and result.output_tokens

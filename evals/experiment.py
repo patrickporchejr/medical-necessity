@@ -1,4 +1,4 @@
-"""The eval dataset, run as pydantic-evals experiments (they appear under Experiments in Logfire).
+"""The eval dataset, run as LangSmith experiments (they appear under Datasets & Experiments).
 
     python evals/experiment.py                                    # both providers' configured models
     python evals/experiment.py --models anthropic:claude-haiku-4-5 gemini:gemini-3.8-flash --repeat 3
@@ -6,44 +6,38 @@
 
 Run from the repo root so the one top-level .env is found. Each model is one experiment on the
 same dataset; every case runs `--repeat` times, because a model's answer is not deterministic.
+With no LANGSMITH_API_KEY the same evaluators run locally and nothing is uploaded.
 
-What Logfire stores is de-identified by construction: a case's input is only its patient key,
-its output is the packet as the model wrote it (placeholders and shifted dates), and the case
-name uses a short id, never a patient's name.
+What LangSmith stores is de-identified by construction: a case's input is only a short patient
+key, its output is the scored result (the client drops everything not on an allowlist, see
+app/observability.py), and the case name uses the same short key, never a patient's name.
 """
 
 import argparse
 import asyncio
 import json
-from dataclasses import dataclass, replace
+import uuid
+from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timezone
 from pathlib import Path
+from statistics import mean
 
-import logfire
-from pydantic_evals import Case, Dataset
-from pydantic_evals.evaluators import Evaluator, EvaluatorContext
+from langsmith import Client, aevaluate, schemas
 
 from app.config import settings
 from app.llm.client import LLMResult, build_client
-from app.observability import estimate_cost, setup_observability
+from app.observability import estimate_cost, flush, get_client, setup_observability, tracing
 from dataset import GroundTruth, open_ground_truth
-from run import RUNS_DIR, CaseResult, connect, run_case
+from run import RUNS_DIR, connect, run_case
 
 DATASET_NAME = "prior-auth-adalimumab-ra"
 CASES_PER_STRATUM = 2  # the smallest and the largest chart in each stratum
+KEY_LENGTH = 8  # a case is known by the first 8 characters of its patient id, nothing longer
+LOCAL_DATASET_ID = uuid.uuid5(uuid.NAMESPACE_URL, DATASET_NAME)
 
 
-@dataclass
-class PatientInput:
-    patient_id: str
-
-
-@dataclass
-class Expected:
-    """What a correct packet says, per criterion, derived from ground truth (never typed by hand,
-    so changing a rule such as how a completed order is treated relabels every case)."""
-
-    kinds: dict[str, str]  # criterion id -> "evidence" | "gap"
+def patient_key(patient_id: str) -> str:
+    return patient_id[:KEY_LENGTH]
 
 
 # --- the dataset --------------------------------------------------------------------------------
@@ -74,100 +68,164 @@ def select_patients(truth: GroundTruth) -> list[tuple[str, str]]:
     return chosen
 
 
-def build_dataset(truth: GroundTruth, patient_ids: list[str] | None = None) -> Dataset:
+def build_examples(
+    truth: GroundTruth, patient_ids: list[str] | None = None, dataset_id: uuid.UUID = LOCAL_DATASET_ID
+) -> list[schemas.Example]:
+    """One example per patient. The expected labels come from ground truth, never typed by hand,
+    so changing a rule such as how a completed order is treated relabels every case."""
     # Named patients always run, selected or not; the default is the stratified selection.
     chosen = ([(p, stratum_of(truth, p)) for p in patient_ids] if patient_ids is not None
               else select_patients(truth))
-    cases = []
-    for patient_id, stratum in chosen:
-        cases.append(
-            Case(
-                name=f"{stratum} · {patient_id[:8]}",
-                inputs=PatientInput(patient_id),
-                expected_output=Expected(
-                    {cid: "evidence" if truth.established(patient_id, cid) else "gap"
-                     for cid in truth.criterion_ids}
-                ),
-                metadata={"stratum": stratum, "notes": len(truth.store.chart(patient_id).documents)},
-            )
+    keys = [patient_key(p) for p, _ in chosen]
+    assert len(set(keys)) == len(keys), "two patients share a key; lengthen KEY_LENGTH"
+    return [
+        schemas.Example(
+            id=uuid.uuid5(LOCAL_DATASET_ID, patient_key(patient_id)),
+            dataset_id=dataset_id,
+            inputs={"patient_key": patient_key(patient_id)},
+            outputs={"kinds": {cid: "evidence" if truth.established(patient_id, cid) else "gap"
+                               for cid in truth.criterion_ids}},  # criterion id -> "evidence" | "gap"
+            metadata={"name": f"{stratum} · {patient_key(patient_id)}", "stratum": stratum,
+                      "notes": len(truth.store.chart(patient_id).documents)},
         )
-    return Dataset(
-        name=DATASET_NAME,
-        cases=cases,
-        evaluators=[PipelineCompleted(), ResolutionScores(), DecisionsCorrect(), IdsWellFormed(),
-                    VerifyMatchesTruth()],
-    )
+        for patient_id, stratum in chosen
+    ]
+
+
+def sync_dataset(client: Client, examples: list[schemas.Example]) -> list[schemas.Example]:
+    """Make the LangSmith dataset hold exactly these examples' labels, and return them as the
+    server knows them. Ids are stable per patient key, so a rerun updates rather than duplicates."""
+    if client.has_dataset(dataset_name=DATASET_NAME):
+        dataset = client.read_dataset(dataset_name=DATASET_NAME)
+    else:
+        dataset = client.create_dataset(
+            DATASET_NAME, description="Prior-authorization packets scored against Synthea ground truth"
+        )
+    client.upsert_examples_multipart(upserts=[
+        schemas.ExampleUpsertWithAttachments(
+            id=e.id, dataset_id=dataset.id, inputs=e.inputs, outputs=e.outputs, metadata=e.metadata
+        )
+        for e in examples
+    ])
+    return list(client.list_examples(dataset_id=dataset.id, example_ids=[e.id for e in examples]))
 
 
 # --- evaluators ---------------------------------------------------------------------------------
-# A bool becomes a pass/fail assertion in Logfire, a float a score. A run that failed to
+# A bool is a pass/fail score in LangSmith, a float a graded one. A run that failed to
 # complete gets no scores at all, only `completed = False`, so failures cannot hide in averages.
 
-Ctx = EvaluatorContext[PatientInput, CaseResult, dict]
+def score_case(out: dict, expected: dict[str, str]) -> dict[str, bool | float]:
+    """Every score for one case, from its result and the expected kind per criterion."""
+    scores: dict[str, bool | float] = {"completed": out["ok"]}
+    if out["ok"]:
+        # The citation-resolution metrics, scored against ground truth by evals/metrics.
+        for key in ("citation_resolution_rate", "citation_level_rate", "gap_accuracy"):
+            if out[key] is not None:
+                scores[key] = out[key]
+        # Did the model make the right call on each criterion, and is every claim it made sound?
+        chosen = {a["criterion_id"]: a["kind"] for a in out["assertions"]}
+        scores["decisions_correct"] = chosen == expected
+        scores["packet_fully_correct"] = (
+            chosen == expected and all(a["truth_resolved"] for a in out["assertions"]) and not out["unaddressed"]
+        )
+        # Did the model write every id exactly as given? A repaired id still resolves, so this is
+        # a reliability signal, not a truthfulness one.
+        scores["ids_well_formed"] = out["citations_repaired"] == 0
+    # The harness's own check: the runtime `verify` node and the offline ground truth must
+    # agree on every assertion. A failure here is a bug in verify or extract, not the model.
+    scores["verify_matches_truth"] = bool(out["ok"] and out["verify_agrees_with_truth"])
+    return scores
 
 
-@dataclass
-class PipelineCompleted(Evaluator[PatientInput, CaseResult, dict]):
-    def evaluate(self, ctx: Ctx) -> dict[str, bool]:
-        return {"completed": ctx.output.ok}
-
-
-@dataclass
-class ResolutionScores(Evaluator[PatientInput, CaseResult, dict]):
-    """The citation-resolution metrics, scored against ground truth by evals/metrics."""
-
-    def evaluate(self, ctx: Ctx) -> dict[str, float]:
-        out = ctx.output
-        scores = {
-            "citation_resolution_rate": out.citation_resolution_rate,
-            "citation_level_rate": out.citation_level_rate,
-            "gap_accuracy": out.gap_accuracy,
-        }
-        return {k: v for k, v in scores.items() if out.ok and v is not None}
-
-
-@dataclass
-class DecisionsCorrect(Evaluator[PatientInput, CaseResult, dict]):
-    """Did the model make the right call on each criterion, and is every claim it made sound?"""
-
-    def evaluate(self, ctx: Ctx) -> dict[str, bool]:
-        out = ctx.output
-        if not out.ok:
-            return {}
-        chosen = {a["criterion_id"]: a["kind"] for a in out.assertions}
-        return {
-            "decisions_correct": chosen == ctx.expected_output.kinds,
-            "packet_fully_correct": chosen == ctx.expected_output.kinds
-            and all(a["truth_resolved"] for a in out.assertions) and not out.unaddressed,
-        }
-
-
-@dataclass
-class IdsWellFormed(Evaluator[PatientInput, CaseResult, dict]):
-    """Did the model write every id exactly as given? A repaired id still resolves, so this is
-    reported separately from correctness: it is a reliability signal, not a truthfulness one."""
-
-    def evaluate(self, ctx: Ctx) -> dict[str, bool]:
-        return {"ids_well_formed": ctx.output.citations_repaired == 0} if ctx.output.ok else {}
-
-
-@dataclass
-class VerifyMatchesTruth(Evaluator[PatientInput, CaseResult, dict]):
-    """The harness's own check: the runtime `verify` node and the offline ground truth must
-    agree on every assertion. A failure here is a bug in verify or extract, not the model."""
-
-    def evaluate(self, ctx: Ctx) -> dict[str, bool]:
-        return {"verify_matches_truth": bool(ctx.output.ok and ctx.output.verify_agrees_with_truth)}
+def evaluate_case(run, example) -> dict:
+    outputs = run.outputs or {}
+    if "ok" not in outputs:  # the target raised
+        return {"results": []}
+    scores = score_case(outputs, example.outputs["kinds"])
+    return {"results": [{"key": k, "score": v} for k, v in scores.items()]}
 
 
 # --- running ------------------------------------------------------------------------------------
 
-def make_task(session, llm, truth: GroundTruth):
-    async def task(inputs: PatientInput) -> CaseResult:
-        result, _ = await run_case(session, llm, inputs.patient_id, truth, settings.as_of)
-        return replace(result, patient_id=inputs.patient_id[:8])  # nothing longer goes to Logfire
+@dataclass
+class Row:
+    name: str
+    key: str
+    scores: dict[str, bool | float]
+    output: dict  # the case result, de-identified
+    error: str | None  # set only when the run itself raised
 
-    return task
+
+class _NullResponse:
+    status_code, text, content, headers = 200, "{}", b"{}", {}
+
+    def json(self):
+        return {}
+
+    def raise_for_status(self):
+        pass
+
+
+class _NullSession:
+    """LangSmith's evaluate always records its runs through a client. With no key, give it one
+    that goes nowhere, so a local run neither tries the network nor fails to authenticate."""
+
+    headers: dict = {}
+
+    def request(self, *args, **kwargs):
+        return _NullResponse()
+
+    def close(self):
+        pass
+
+    def mount(self, *args, **kwargs):
+        pass
+
+
+def local_client() -> Client:
+    return Client(api_key="local", api_url="http://localhost:0", session=_NullSession(), auto_batch_tracing=False)
+
+
+def make_target(session, llm, truth: GroundTruth):
+    full_ids = {patient_key(c.patient_id): c.patient_id for c in truth.cases()}
+
+    async def target(inputs: dict) -> dict:
+        key = inputs["patient_key"]
+        with tracing():
+            result, _ = await run_case(session, llm, full_ids[key], truth, settings.as_of)
+        return asdict(replace(result, patient_id=key))  # nothing longer than the key leaves
+
+    return target
+
+
+async def run_experiment(
+    session, llm, truth: GroundTruth, examples: list[schemas.Example], *, name: str,
+    repeat: int = 1, concurrency: int = 4, metadata: dict | None = None,
+    client: Client | None = None, upload: bool = False,
+) -> list[Row]:
+    results = await aevaluate(
+        make_target(session, llm, truth),
+        data=examples,
+        evaluators=[evaluate_case],
+        experiment_prefix=name,
+        metadata=metadata,
+        num_repetitions=repeat,
+        max_concurrency=concurrency,
+        client=client or local_client(),
+        upload_results=upload,
+    )
+    rows = []
+    async for r in results:
+        run, example = r["run"], r["example"]
+        outputs = run.outputs if run.outputs and "ok" in run.outputs else {}
+        rows.append(Row(
+            name=example.metadata["name"],
+            key=example.inputs["patient_key"],
+            scores={e.key: e.score for e in r["evaluation_results"]["results"]},
+            output=outputs,
+            error=str(run.error) if run.error else None,
+        ))
+    return rows
 
 
 def client_for(spec: str):
@@ -178,49 +236,53 @@ def client_for(spec: str):
     return build_client(settings.model_copy(update=update)), provider, model
 
 
-def summarize(spec: str, provider: str, model: str, report) -> dict:
-    outputs = [c.output for c in report.cases]
-    tokens_in = sum(o.input_tokens or 0 for o in outputs)
-    tokens_out = sum(o.output_tokens or 0 for o in outputs)
+def averages(rows: list[Row]) -> dict[str, float]:
+    keys = sorted({k for r in rows for k in r.scores})
+    return {k: round(mean(float(r.scores[k]) for r in rows if k in r.scores), 3) for k in keys}
+
+
+def summarize(spec: str, provider: str, model: str, rows: list[Row]) -> dict:
+    outputs = [r.output for r in rows]
+    tokens_in = sum(o.get("input_tokens") or 0 for o in outputs)
+    tokens_out = sum(o.get("output_tokens") or 0 for o in outputs)
     cost = estimate_cost(LLMResult(parsed=None, provider=provider, model=model,
                                    input_tokens=tokens_in, output_tokens=tokens_out))
-    avg = report.averages()
     return {
         "experiment": spec,
-        "runs": len(report.cases),
-        "task_failures": len(report.failures),
-        "averages": {"scores": avg.scores if avg else {}, "assertions": avg.assertions if avg else None},
+        "runs": len(rows),
+        "task_failures": sum(r.error is not None for r in rows),
+        "averages": averages(rows),
         "tokens": {"input": tokens_in, "output": tokens_out},
         "estimated_cost_usd": None if cost is None else round(cost, 4),
-        "cases": [
-            {
-                "name": c.name,
-                "scores": {k: v.value for k, v in c.scores.items()},
-                "assertions": {k: v.value for k, v in c.assertions.items()},
-                "error": c.output.error,
-            }
-            for c in report.cases
-        ],
+        "cases": [{"name": r.name, "scores": r.scores, "error": r.output.get("error") or r.error} for r in rows],
     }
 
 
+def print_rows(spec: str, rows: list[Row]) -> None:
+    print(f"{spec}")
+    for r in sorted(rows, key=lambda r: r.name):
+        failed = [k for k, v in r.scores.items() if v is False]
+        print(f"  {r.name:<48}{'FAILED ' + r.error if r.error else ('ok' if not failed else 'not ' + ', '.join(failed))}")
+    print("  averages: " + ", ".join(f"{k} {v}" for k, v in averages(rows).items()) + "\n")
+
+
 async def run_experiments(args, truth: GroundTruth, patient_ids: list[str] | None) -> list[dict]:
-    dataset = build_dataset(truth, patient_ids)
+    client = get_client()  # None without a LangSmith key: the run stays local
+    examples = build_examples(truth, patient_ids)
+    if client is not None:
+        examples = sync_dataset(client, examples)
     summaries = []
     async with connect(args.mcp_url) as session:
         for spec in args.models:
             llm, provider, model = client_for(spec)
-            report = await dataset.evaluate(
-                make_task(session, llm, truth),
-                name=spec,
-                task_name="assemble-pipeline",
+            rows = await run_experiment(
+                session, llm, truth, examples, name=spec, repeat=args.repeat,
+                concurrency=args.concurrency, client=client, upload=client is not None,
                 metadata={"provider": provider, "model": model, "as_of": settings.as_of.isoformat(),
                           "repeat": args.repeat},
-                repeat=args.repeat,
-                max_concurrency=args.concurrency,
             )
-            report.print(include_input=False, include_output=False, include_averages=True)
-            summaries.append(summarize(spec, provider, model, report))
+            print_rows(spec, rows)
+            summaries.append(summarize(spec, provider, model, rows))
     return summaries
 
 
@@ -241,12 +303,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.patients:
         from run import resolve_patient
         patient_ids = [resolve_patient(truth, p) for p in args.patients]
-    dataset = build_dataset(truth, patient_ids)
-    print(f"dataset {DATASET_NAME}: {len(dataset.cases)} cases x {args.repeat} runs x {len(args.models)} models "
-          f"= {len(dataset.cases) * args.repeat * len(args.models)} pipeline runs; as of {settings.as_of}; traces: {mode}\n")
+    cases = build_examples(truth, patient_ids)
+    print(f"dataset {DATASET_NAME}: {len(cases)} cases x {args.repeat} runs x {len(args.models)} models "
+          f"= {len(cases) * args.repeat * len(args.models)} pipeline runs; as of {settings.as_of}; traces: {mode}\n")
 
     summaries = asyncio.run(run_experiments(args, truth, patient_ids))
-    logfire.force_flush()
+    flush()
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     path = args.out_dir / f"experiment_{datetime.now(timezone.utc):%Y%m%dT%H%M%SZ}.json"

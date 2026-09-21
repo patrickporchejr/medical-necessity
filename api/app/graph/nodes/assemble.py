@@ -68,7 +68,6 @@ async def assemble(state: CaseState, criteria: Criteria, llm: LLMClient) -> dict
     return {
         "packet": packet,
         "assembled_by": f"{result.provider}:{result.model}",
-        # Recorded on the span, not part of the case state.
         "llm_usage": {
             "input_tokens": result.input_tokens,
             "output_tokens": result.output_tokens,

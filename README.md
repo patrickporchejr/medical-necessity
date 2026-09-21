@@ -38,7 +38,7 @@ This is the design decision worth arguing about, and the six questions it exists
 
 ### The graph
 
-Three nodes. Deliberately three.
+Three nodes. Deliberately three. They are plain async functions wired into a LangGraph `StateGraph` in `graph/build.py`, in a line: `extract → assemble → verify`.
 
 - **`extract`** — pulls the requested service and the clinical evidence bearing on it via MCP FHIR tools
 - **`assemble`** — drafts the packet against the payer's criteria for that service
@@ -46,11 +46,11 @@ Three nodes. Deliberately three.
 
 ### Evaluation
 
-Faithfulness and hallucination metrics run through DeepEval as a CI gate. Those are table stakes.
+Faithfulness and hallucination metrics run through DeepEval as a CI gate. The eval dataset runs as LangSmith experiments (`evals/experiment.py`), one per model. Those are table stakes.
 
 The metric that matters here is **citation resolution rate**: of the assertions the agent makes in a packet, what fraction point at a document that exists _and_ actually supports the claim. It's domain-specific, it's the thing a payer would reject the packet over, and it's scored against Synthea ground truth rather than an LLM judge.
 
-Logfire collects runtime traces out-of-band: one span per graph node with counts, criterion ids, the model that answered, and token counts. Spans carry metadata only, and nothing that sees raw data (the MCP client or server, HTTP clients, request bodies) is instrumented; a test enforces that. Recording the full de-identified prompt and response is opt-in (`LOGFIRE_CAPTURE_LLM_CONTENT`), because Logfire retains what it stores.
+LangSmith collects runtime traces out-of-band: one run per graph node with counts, criterion ids, the model that answered, and token and cost figures. LangGraph and LangChain would trace every run's whole inputs and outputs on their own, so the LangSmith client used here drops everything but an allowlist of keys, and only what we write ourselves (run names, timings, metadata) is sent. Nothing that sees raw data (the MCP client or server, HTTP clients, request bodies) is traced, and a test enforces that. Recording states, prompts and responses in full (de-identified) is opt-in (`LANGSMITH_CAPTURE_CONTENT`), because LangSmith retains what it stores. Don't set `LANGSMITH_TRACING`: the app turns tracing on itself, through that client.
 
 ---
 
@@ -72,7 +72,7 @@ medical-necessity/
 │   │   │   ├── stream.py          # SSE node events to the dashboard
 │   │   │   └── review.py          # approve · edit · reject
 │   │   ├── graph/
-│   │   │   ├── build.py           # graph construction
+│   │   │   ├── build.py           # LangGraph StateGraph wiring
 │   │   │   ├── state.py           # typed graph state
 │   │   │   └── nodes/
 │   │   │       ├── extract.py
