@@ -6,13 +6,18 @@ from app.llm.client import LLMError, LLMRefusal, LLMResult, T
 # another model, server-side, instead of surfacing the refusal. Clinical text can trip them.
 FALLBACK_BETA = "server-side-fallback-2026-07-01"
 
+# What each model accepts. Haiku 4.5 has no `effort`; the refusal fallback is for the models
+# whose classifiers can decline (Opus 5, Fable). Anything else would be rejected or pointless.
+NO_EFFORT_PREFIXES = ("claude-haiku",)
+FALLBACK_PREFIXES = ("claude-opus-5", "claude-fable")
+
 
 class AnthropicClient:
     provider = "anthropic"
 
     def __init__(
         self,
-        model: str = "claude-opus-5",
+        model: str = "claude-haiku-4-5",
         api_key: str | None = None,
         effort: str = "medium",
         max_tokens: int = 16000,
@@ -23,15 +28,18 @@ class AnthropicClient:
         self._client = client or anthropic.AsyncAnthropic(api_key=api_key or None)
 
     async def generate(self, system: str, user: str, schema: type[T]) -> LLMResult[T]:
+        extra: dict = {}
+        if not self._model.startswith(NO_EFFORT_PREFIXES):
+            extra["output_config"] = {"effort": self._effort}
+        if self._model.startswith(FALLBACK_PREFIXES):
+            extra.update(betas=[FALLBACK_BETA], fallbacks="default")
         response = await self._client.beta.messages.parse(
             model=self._model,
             max_tokens=self._max_tokens,
             system=system,
             messages=[{"role": "user", "content": user}],
             output_format=schema,
-            output_config={"effort": self._effort},
-            betas=[FALLBACK_BETA],
-            fallbacks="default",
+            **extra,
         )
         if response.stop_reason == "refusal":
             category = getattr(response.stop_details, "category", None)

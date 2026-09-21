@@ -27,6 +27,8 @@ class EvidenceItem(BaseModel):
     # Days the item has been in effect at the as-of date. Only known for an ongoing order:
     # the chart records a start date and a status, never a stop date.
     days_in_effect: int | None = None
+    # False when the record matches the criterion's code but not its required status.
+    qualifies: bool = True
 
 
 class NoteExcerpt(BaseModel):
@@ -41,12 +43,14 @@ class CriterionEvidence(BaseModel):
     # What was searched, so "found nothing" is distinguishable from "never looked".
     queries: list[str]
     min_duration_days: int | None = None
+    required_status: str | None = None
     items: list[EvidenceItem] = []
     excerpts: list[NoteExcerpt] = []
 
     @property
     def found(self) -> bool:
-        return bool(self.items or self.excerpts)
+        """Something in the chart bears on the criterion and meets its status requirement."""
+        return any(i.qualifies for i in self.items) or bool(self.excerpts)
 
     @property
     def duration_status(self) -> Literal["met", "not_met", "undetermined"] | None:

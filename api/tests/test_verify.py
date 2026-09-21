@@ -47,8 +47,8 @@ class Case:
 
 
 @asynccontextmanager
-async def case(tmp_path, mtx_status="active", days=120):
-    fhir = _fhir_dir(tmp_path, [OLD_NOTE, NEW_NOTE], mtx_status)
+async def case(tmp_path, mtx_status="active", days=120, ra_status=None):
+    fhir = _fhir_dir(tmp_path, [OLD_NOTE, NEW_NOTE], mtx_status, ra_status)
     second = json.loads(next(fhir.glob("*.json")).read_text())
     for entry in second["entry"]:  # a second patient whose resource ids differ from the first's
         r = entry["resource"]
@@ -192,6 +192,18 @@ async def test_a_note_without_the_keywords_does_not_support_active_disease(tmp_p
         )
     assert [a.supported for a in v.assertions] == [False, True]
     assert v.assertions[0].checks[0].exists and not v.assertions[0].checks[0].supports
+
+
+@pytest.mark.anyio
+async def test_claiming_a_resolved_diagnosis_as_evidence_is_flagged_and_a_gap_is_supported(tmp_path):
+    async with case(tmp_path, ra_status="resolved") as c:
+        cited = c.ev["ra_diagnosis"].items[0].ref
+        claim = Assertion(criterion_id="ra_diagnosis", text="RA confirmed", citations=[cited])
+        gap = Assertion(criterion_id="ra_diagnosis", kind="gap", text="RA is recorded as resolved")
+        v = await c.verify(claim, gap)
+    assert [a.supported for a in v.assertions] == [False, True]
+    assert v.assertions[0].checks[0].exists and not v.assertions[0].checks[0].supports  # status fails it
+    assert any("does not establish" in r for r in v.assertions[0].reasons)
 
 
 @pytest.mark.anyio

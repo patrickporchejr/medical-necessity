@@ -2,10 +2,13 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from app.config import settings
+from app.observability import setup_observability
+
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    print("hello world")
+    print(f"hello world (observability: {setup_observability(settings)})")
     yield
 
 

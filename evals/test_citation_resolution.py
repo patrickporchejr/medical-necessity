@@ -83,6 +83,8 @@ def pick_patients(truth):
     """One patient per situation the duration rule distinguishes."""
     picked = {}
     for case in truth.cases():
+        if not truth.established(case.patient_id, "ra_diagnosis"):
+            continue  # a resolved diagnosis makes an all-gap packet: nothing to corrupt (see test_run.py)
         chart = truth.store.chart(case.patient_id)
         mtx = [m for m in chart.medication_requests if m.code.code == "105585"]
         if not mtx:

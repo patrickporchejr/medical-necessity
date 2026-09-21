@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from app.graph.nodes.assemble import PacketDraft, assemble, render_evidence
+from app.graph.nodes.assemble import PacketDraft, assemble, render_evidence, repair_citations
 from app.graph.nodes.verify import verify
 from app.graph.state import Assertion, ResourceRef
 from app.llm.anthropic_client import FALLBACK_BETA, AnthropicClient
@@ -49,6 +49,15 @@ async def test_prompt_carries_the_evidence_and_the_duration_facts(tmp_path):
     assert "Minimum duration: 90 days. Duration status: met." in prompt
     assert "Criterion tb_screening" in prompt and "No matching records were found" in prompt
     assert f"As of: {c.state.as_of}" in prompt
+
+
+@pytest.mark.anyio
+async def test_a_resolved_diagnosis_is_shown_with_its_status_and_the_requirement(tmp_path):
+    async with case(tmp_path, ra_status="resolved") as c:
+        prompt = render_evidence(c.state, c.criteria)
+    block = prompt.split("Criterion ra_diagnosis")[1].split("Criterion dmard_trial")[0]
+    assert "status resolved" in block and "Required status: active." in block
+    assert "No matching records" not in block  # the record exists; it just does not qualify
 
 
 @pytest.mark.anyio
@@ -111,6 +120,61 @@ async def test_an_overclaiming_draft_reaches_verify_and_is_flagged(tmp_path):
     assert flagged == {"dmard_trial", "tb_screening"}
 
 
+# --- ids the model wrote without their angle brackets ------------------------------------------
+
+def unbracketed(draft: PacketDraft) -> PacketDraft:
+    return PacketDraft(assertions=[
+        a.model_copy(update={"citations": [
+            ResourceRef(resource_type=r.resource_type, id=r.id.strip("<>")) for r in a.citations
+        ]})
+        for a in draft.assertions
+    ])
+
+
+def test_repair_restores_only_bracket_variants_of_a_placeholder():
+    def ids(*given):
+        [a], n = repair_citations([Assertion(criterion_id="c", text="t", citations=[
+            ResourceRef(resource_type="Condition", id=i) for i in given])])
+        return [r.id for r in a.citations], n
+
+    assert ids("CONDITION_1", "<CONDITION_2", "CONDITION_3>", "  CONDITION_4 ") == (
+        ["<CONDITION_1>", "<CONDITION_2>", "<CONDITION_3>", "<CONDITION_4>"], 4)
+    assert ids("<CONDITION_1>") == (["<CONDITION_1>"], 0)          # already right: not counted
+    # not placeholders even with brackets: left exactly as written, for verify to flag
+    assert ids("banana", "condition_1", "CONDITION_", "<CONDITION_1> extra") == (
+        ["banana", "condition_1", "CONDITION_", "<CONDITION_1> extra"], 0)
+
+
+@pytest.mark.anyio
+async def test_bracketless_ids_are_restored_counted_and_then_verify_cleanly(tmp_path):
+    async with case(tmp_path, mtx_status="active") as c:
+        cited = sum(len(a.citations) for a in faithful_draft(c).assertions)
+        update = await assemble(c.state, c.criteria, ScriptedLLM(unbracketed(faithful_draft(c))))
+        assert update["llm_usage"]["citations_repaired"] == cited > 0
+        assert all(r.id.startswith("<") for a in update["packet"].assertions for r in a.citations)
+        v = (await verify(c.state.model_copy(update=update), c.gateway, c.criteria))["verification"]
+    assert v.flagged == []
+
+
+@pytest.mark.anyio
+async def test_a_fabricated_id_is_not_mistaken_for_a_formatting_slip(tmp_path):
+    async with case(tmp_path, mtx_status="active") as c:
+        draft = faithful_draft(c).assertions
+        draft[0] = draft[0].model_copy(update={"citations": [ResourceRef(resource_type="Condition", id="CONDITION_99")]})
+        update = await assemble(c.state, c.criteria, ScriptedLLM(PacketDraft(assertions=draft)))
+        v = (await verify(c.state.model_copy(update=update), c.gateway, c.criteria))["verification"]
+    assert update["packet"].assertions[0].citations[0].id == "<CONDITION_99>"  # shaped right, still invented
+    assert [a.assertion.criterion_id for a in v.flagged] == ["ra_diagnosis"]
+    assert not v.flagged[0].checks[0].exists
+
+
+def test_the_system_prompt_puts_brackets_on_record_ids_and_not_on_criterion_ids():
+    # A model given "ids have brackets" wrapped the criterion ids too (<ra_diagnosis>); keep the
+    # two kinds of id explicitly apart.
+    assert "brackets and all" in SYSTEM and "the angle brackets are part of the id" in SYSTEM
+    assert "never wrapped in brackets" in SYSTEM
+
+
 # --- the guard --------------------------------------------------------------------------------
 
 def test_guard_blocks_real_values_in_any_case_and_never_echoes_them():
@@ -154,7 +218,7 @@ DRAFT = PacketDraft(assertions=[Assertion(criterion_id="ra_diagnosis", kind="gap
 
 def anthropic_response(**over):
     base = dict(
-        stop_reason="end_turn", stop_details=None, parsed_output=DRAFT, model="claude-opus-5",
+        stop_reason="end_turn", stop_details=None, parsed_output=DRAFT, model="claude-haiku-4-5",
         usage=SimpleNamespace(input_tokens=100, output_tokens=20, iterations=[]),
     )
     return SimpleNamespace(**(base | over))
@@ -172,16 +236,30 @@ class FakeAnthropic:
 
 
 @pytest.mark.anyio
-async def test_anthropic_client_sends_the_structured_request_with_fallbacks():
+async def test_anthropic_client_defaults_to_haiku_and_sends_only_what_it_supports():
     fake = FakeAnthropic(anthropic_response())
     result = await AnthropicClient(client=fake).generate("sys", "user", PacketDraft)
     [sent] = fake.calls
-    assert sent["model"] == "claude-opus-5" and sent["system"] == "sys"
+    assert sent["model"] == "claude-haiku-4-5" and sent["system"] == "sys"
     assert sent["messages"] == [{"role": "user", "content": "user"}]
-    assert sent["output_format"] is PacketDraft and sent["output_config"] == {"effort": "medium"}
-    assert sent["betas"] == [FALLBACK_BETA] and sent["fallbacks"] == "default"
-    assert (result.parsed, result.provider, result.model) == (DRAFT, "anthropic", "claude-opus-5")
+    assert sent["output_format"] is PacketDraft
+    assert "output_config" not in sent and "betas" not in sent and "fallbacks" not in sent
+    assert (result.parsed, result.provider, result.model) == (DRAFT, "anthropic", "claude-haiku-4-5")
     assert (result.input_tokens, result.output_tokens, result.fallback) == (100, 20, False)
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "model, effort, fallbacks",
+    [("claude-opus-5", True, True), ("claude-sonnet-5", True, False), ("claude-haiku-4-5", False, False)],
+)
+async def test_anthropic_client_only_sends_what_the_model_supports(model, effort, fallbacks):
+    fake = FakeAnthropic(anthropic_response(model=model))
+    await AnthropicClient(model=model, client=fake).generate("s", "u", PacketDraft)
+    [sent] = fake.calls
+    assert ("output_config" in sent) is effort
+    assert ("fallbacks" in sent and "betas" in sent) is fallbacks
+    assert sent["output_format"] is PacketDraft and sent["model"] == model
 
 
 @pytest.mark.anyio
@@ -202,11 +280,12 @@ async def test_anthropic_refusal_and_empty_output_are_errors_not_empty_packets()
 
 
 class FakeGemini:
-    def __init__(self, text, blocked=None):
+    def __init__(self, text, blocked=None, thoughts=None):
         self.calls = []
         response = SimpleNamespace(
             text=text, model_version="gemini-3.8-flash-001",
-            usage_metadata=SimpleNamespace(prompt_token_count=80, candidates_token_count=15),
+            usage_metadata=SimpleNamespace(prompt_token_count=80, candidates_token_count=15,
+                                           thoughts_token_count=thoughts),
             prompt_feedback=SimpleNamespace(block_reason=blocked),
         )
 
@@ -228,6 +307,15 @@ async def test_gemini_client_sends_the_schema_and_validates_the_reply():
     assert cfg.response_json_schema == PacketDraft.model_json_schema()
     assert (result.parsed, result.provider, result.model) == (DRAFT, "gemini", "gemini-3.8-flash-001")
     assert (result.input_tokens, result.output_tokens) == (80, 15)
+
+
+@pytest.mark.anyio
+async def test_gemini_output_tokens_include_thinking_because_they_are_billed_as_output():
+    # Measured on a real Flash call: 330 answer tokens and 1229 thinking tokens.
+    result = await GeminiClient(client=FakeGemini(DRAFT.model_dump_json(), thoughts=1229)).generate("s", "u", PacketDraft)
+    assert result.output_tokens == 15 + 1229
+    quiet = await GeminiClient(client=FakeGemini(DRAFT.model_dump_json(), thoughts=None)).generate("s", "u", PacketDraft)
+    assert quiet.output_tokens == 15  # a model that reports no thinking tokens
 
 
 @pytest.mark.anyio

@@ -5,10 +5,11 @@ service: Adalimumab (TNF inhibitor) for rheumatoid arthritis
 
 criteria:
   - id: ra_diagnosis
-    description: Confirmed diagnosis of rheumatoid arthritis.
+    description: Confirmed, currently active diagnosis of rheumatoid arthritis.
     evidence:
       - resource: Condition
         code: { system: SNOMED-CT, code: "69896004" }   # Rheumatoid arthritis (disorder)
+        status: active   # a resolved diagnosis (the episode has ended) does not qualify
 
   - id: dmard_trial
     description: >
