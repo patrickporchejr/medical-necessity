@@ -14,11 +14,12 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     gemini_model: str = "gemini-3.8-flash"
 
-    # Observability. Without a token nothing is sent anywhere; set LOGFIRE_CONSOLE to see
-    # spans locally instead. Spans carry metadata only unless LOGFIRE_CAPTURE_LLM_CONTENT is on.
-    logfire_token: str = ""
-    logfire_console: bool = False
-    logfire_capture_llm_content: bool = False
+    # Observability (LangSmith). Without a key nothing is sent anywhere. Runs carry metadata
+    # only (counts, ids, models, tokens) unless LANGSMITH_CAPTURE_CONTENT is on.
+    langsmith_api_key: str = ""
+    langsmith_project: str = "medical-necessity"
+    langsmith_endpoint: str = ""  # blank is LangSmith cloud; set for EU or self-hosted
+    langsmith_capture_content: bool = False
 
     # <repo>/data locally, /data in the containers (compose mounts ./data there).
     data_dir: Path = Path(__file__).resolve().parents[2] / "data"

@@ -5,7 +5,7 @@
 
 Run from the repo root so the one top-level .env is found. MCP server -> PHI gateway ->
 extract -> assemble (a real model, behind the prompt guard) -> verify -> rehydrate -> score
-against ground truth from the raw bundles. Traces go to Logfire when a token is set.
+against ground truth from the raw bundles. Traces go to LangSmith when a key is set.
 """
 
 import argparse
@@ -17,18 +17,16 @@ from dataclasses import asdict, dataclass, field
 from datetime import date, datetime, timezone
 from pathlib import Path
 
-import logfire
+from langsmith import trace
 from mcp import ClientSession
 from mcp.shared.memory import create_connected_server_and_client_session
 
 from app.config import settings
-from app.graph.nodes.assemble import assemble
-from app.graph.nodes.extract import extract
-from app.graph.nodes.verify import verify
+from app.graph.build import build_graph
 from app.graph.state import CaseState, Packet
 from app.llm.client import LLMClient, build_client
 from app.llm.guard import GuardedLLM
-from app.observability import setup_observability
+from app.observability import flush, setup_observability, tracing
 from app.phi.anonymize import Anonymizer
 from app.phi.gateway import PhiGateway
 from app.phi.rehydrate import rehydrate
@@ -71,7 +69,7 @@ async def run_case(
     vault = Vault()
     gateway = PhiGateway(session, Anonymizer(vault))
     try:
-        with logfire.span("eval.case", provider=llm.provider) as span:
+        with tracing(), trace("eval.case", metadata={"provider": llm.provider}) as span:
             clock = time.perf_counter()
 
             def lap(stage: str) -> None:
@@ -80,16 +78,12 @@ async def run_case(
                 clock = time.perf_counter()
 
             state = CaseState(patient_id=await gateway.adopt_patient(patient_id))
-            state = state.model_copy(update=await extract(state, gateway, truth.criteria, as_of))
-            lap("extract")
-
-            update = await assemble(state, truth.criteria, GuardedLLM(llm, vault))
-            usage = update.pop("llm_usage")
-            state = state.model_copy(update=update)
-            lap("assemble")
-
-            verification = (await verify(state, gateway, truth.criteria))["verification"]
-            lap("verify")
+            graph = build_graph(gateway, truth.criteria, GuardedLLM(llm, vault), as_of)
+            async for chunk in graph.astream(state, stream_mode="updates"):
+                for node, update in chunk.items():  # nodes run in a line: one lap per node
+                    state = state.model_copy(update=update)
+                    lap(node)
+            usage, verification = state.llm_usage, state.verification
 
             real = Packet.model_validate(
                 rehydrate(state.packet.model_dump(), vault, state.patient_id)
@@ -121,7 +115,7 @@ async def run_case(
                 by_verify == by_truth and verification.unaddressed == score.unaddressed
             )
             result.ok = True
-            span.set_attributes(
+            span.add_metadata(
                 {
                     k: v
                     for k, v in {
@@ -210,7 +204,7 @@ def write_results(results: list[CaseResult], meta: dict, out_dir: Path) -> Path:
 async def run(args, truth: GroundTruth, patient_id: str) -> list[CaseResult]:
     providers = list(PROVIDERS) if args.provider == "both" else [args.provider]
     results: list[CaseResult] = []
-    with logfire.span("eval.run", providers=providers, mcp=args.mcp_url or "in-process"):
+    with tracing(), trace("eval.run", metadata={"providers": providers, "mcp": args.mcp_url or "in-process"}):
         async with connect(args.mcp_url) as session:
             for provider in providers:
                 llm = build_client(settings.model_copy(update={"llm_provider": provider}))
@@ -234,7 +228,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"patient {patient_id[:8]}, as of {settings.as_of}, traces: {mode}\n")
 
     results = asyncio.run(run(args, truth, patient_id))
-    logfire.force_flush()
+    flush()
 
     meta = {"as_of": settings.as_of.isoformat(), "mcp": args.mcp_url or "in-process", "traces": mode}
     print(f"results: {write_results(results, meta, args.out_dir)}")

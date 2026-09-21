@@ -1,4 +1,4 @@
-"""Provider-neutral LLM interface. No provider SDK is imported here."""
+"""Provider-neutral LLM interface. No provider package is imported here."""
 
 from dataclasses import dataclass
 from typing import Generic, Protocol, TypeVar
@@ -35,11 +35,11 @@ class LLMClient(Protocol):
 
 
 def build_client(settings) -> LLMClient:
-    """The client for `settings.llm_provider`. Imports lazily so the unused SDK is not loaded."""
+    """The client for `settings.llm_provider`."""
+    from app.llm.langchain_client import LangChainClient, build_chat_model
+
     if settings.llm_provider == "anthropic":
-        from app.llm.anthropic_client import AnthropicClient
-
-        return AnthropicClient(model=settings.anthropic_model, api_key=settings.anthropic_api_key)
-    from app.llm.gemini_client import GeminiClient
-
-    return GeminiClient(model=settings.gemini_model, api_key=settings.gemini_api_key)
+        provider, model, key = "anthropic", settings.anthropic_model, settings.anthropic_api_key
+    else:
+        provider, model, key = "gemini", settings.gemini_model, settings.gemini_api_key
+    return LangChainClient(provider, build_chat_model(provider, model, key), model)
