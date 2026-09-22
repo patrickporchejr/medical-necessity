@@ -93,20 +93,25 @@ def build_examples(
 
 
 def sync_dataset(client: Client, examples: list[schemas.Example]) -> list[schemas.Example]:
-    """Make the LangSmith dataset hold exactly these examples' labels, and return them as the
-    server knows them. Ids are stable per patient key, so a rerun updates rather than duplicates."""
+    """Make the LangSmith dataset hold these examples with these labels (examples already there
+    are updated, new ones created, others left alone), and return them as the server knows them.
+    Ids are stable per patient key, so a rerun updates rather than duplicates."""
     if client.has_dataset(dataset_name=DATASET_NAME):
         dataset = client.read_dataset(dataset_name=DATASET_NAME)
     else:
         dataset = client.create_dataset(
             DATASET_NAME, description="Prior-authorization packets scored against Synthea ground truth"
         )
-    client.upsert_examples_multipart(upserts=[
-        schemas.ExampleUpsertWithAttachments(
-            id=e.id, dataset_id=dataset.id, inputs=e.inputs, outputs=e.outputs, metadata=e.metadata
-        )
-        for e in examples
-    ])
+    # `upsert_examples_multipart` rejects an id that already exists (409), so updates and
+    # creates go through separate calls.
+    ids = [e.id for e in examples]
+    existing = {e.id for e in client.list_examples(dataset_id=dataset.id, example_ids=ids)}
+    fields = lambda e: dict(id=e.id, inputs=e.inputs, outputs=e.outputs, metadata=e.metadata)
+    if updated := [schemas.ExampleUpdate(**fields(e)) for e in examples if e.id in existing]:
+        client.update_examples_multipart(dataset_id=dataset.id, updates=updated)
+    if created := [schemas.ExampleUpsertWithAttachments(dataset_id=dataset.id, **fields(e))
+                   for e in examples if e.id not in existing]:
+        client.upsert_examples_multipart(upserts=created)
     return list(client.list_examples(dataset_id=dataset.id, example_ids=[e.id for e in examples]))
 
 
