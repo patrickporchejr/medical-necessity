@@ -1,6 +1,8 @@
 import json
 import re
+import uuid
 from datetime import date
+from types import SimpleNamespace
 
 import pytest
 
@@ -10,6 +12,7 @@ from experiment import (
     client_for,
     patient_key,
     run_experiment,
+    sync_dataset,
     score_case,
     select_patients,
     stratum_of,
@@ -90,6 +93,47 @@ def test_model_specs_are_parsed_and_validated():
     for bad in ("claude-sonnet-5", "openai:gpt-x", "anthropic:"):
         with pytest.raises(SystemExit):
             client_for(bad)
+
+
+# --- syncing the dataset ------------------------------------------------------------------------
+
+class FakeLangSmith:
+    """Enough of the client to check which examples are created and which are updated."""
+
+    def __init__(self, existing_ids):
+        self.stored = {i: None for i in existing_ids}
+        self.calls = []
+        self.dataset = SimpleNamespace(id=uuid.uuid4())
+
+    def has_dataset(self, **kw):
+        return True
+
+    def read_dataset(self, **kw):
+        return self.dataset
+
+    def list_examples(self, dataset_id, example_ids):
+        return [SimpleNamespace(id=i) for i in example_ids if i in self.stored]
+
+    def update_examples_multipart(self, dataset_id, updates):
+        assert all(u.id in self.stored for u in updates), "updated an example that does not exist"
+        self.calls.append(("update", [u.id for u in updates]))
+
+    def upsert_examples_multipart(self, upserts):
+        assert not [u for u in upserts if u.id in self.stored], "409: created an example that exists"
+        self.calls.append(("create", [u.id for u in upserts]))
+        self.stored.update({u.id: None for u in upserts})
+
+
+@needs_cohort
+def test_syncing_updates_existing_examples_creates_new_ones_and_survives_a_rerun(truth):
+    examples = build_examples(truth)
+    first, rest = examples[:1], examples
+    client = FakeLangSmith(existing_ids=[examples[0].id])  # one already uploaded by an earlier run
+    sync_dataset(client, rest)
+    assert client.calls == [("update", [examples[0].id]), ("create", [e.id for e in examples[1:]])]
+    client.calls.clear()
+    sync_dataset(client, rest)  # a rerun with everything present must only update
+    assert client.calls == [("update", [e.id for e in examples])]
 
 
 # --- scoring ------------------------------------------------------------------------------------

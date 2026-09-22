@@ -46,7 +46,7 @@ Three nodes. Deliberately three. They are plain async functions wired into a Lan
 
 ### Evaluation
 
-Faithfulness and hallucination metrics run through DeepEval as a CI gate. The eval dataset runs as LangSmith experiments (`evals/experiment.py`), one per model. Those are table stakes.
+The eval dataset runs as LangSmith experiments (`evals/experiment.py`), one per model, scored against Synthea ground truth. There is no LLM-judged faithfulness metric in the MVP: it would add a model call (and cost) to every run, and `verify` already checks what a payer would reject. Known limit: nothing checks that an assertion's *wording* is faithful to the source it cites, only that the citation exists and bears on the criterion.
 
 The metric that matters here is **citation resolution rate**: of the assertions the agent makes in a packet, what fraction point at a document that exists _and_ actually supports the claim. It's domain-specific, it's the thing a payer would reject the packet over, and it's scored against Synthea ground truth rather than an LLM judge.
 
@@ -107,7 +107,6 @@ medical-necessity/
 │   ├── dataset.py                 # cases + ground truth from Synthea
 │   ├── metrics/
 │   │   └── citation_resolution.py
-│   ├── test_packet_quality.py     # DeepEval suite
 │   └── RESULTS.md                 # scores across both providers
 │
 ├── web/                           # Next.js reviewer dashboard
