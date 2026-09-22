@@ -38,7 +38,7 @@ This is the design decision worth arguing about, and the six questions it exists
 
 ### The graph
 
-Three nodes. Deliberately three. They are plain async functions wired into a LangGraph `StateGraph` in `graph/build.py`, in a line: `extract → assemble → verify`.
+Three nodes. Deliberately three. They are plain async functions wired into a LangGraph `StateGraph` in `graph/build.py`, in a line: `extract → assemble → verify`. `run_pipeline` in the same module is the one way a case is run, by the API and the evals alike: it makes the per-run vault, PHI gateway and prompt guard, and reports progress as events that carry metadata only. `run_pipeline` in the same module is the one way a case is run, by the API and the evals alike: it makes the per-run vault, PHI gateway and prompt guard, and reports progress as events that carry metadata only.
 
 - **`extract`** — pulls the requested service and the clinical evidence bearing on it via MCP FHIR tools
 - **`assemble`** — drafts the packet against the payer's criteria for that service

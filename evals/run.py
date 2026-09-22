@@ -11,7 +11,6 @@ against ground truth from the raw bundles. Traces go to LangSmith when a key is 
 import argparse
 import asyncio
 import json
-import time
 from contextlib import asynccontextmanager
 from dataclasses import asdict, dataclass, field
 from datetime import date, datetime, timezone
@@ -22,15 +21,10 @@ from mcp import ClientSession
 from mcp.shared.memory import create_connected_server_and_client_session
 
 from app.config import settings
-from app.graph.build import build_graph
-from app.graph.state import CaseState, Packet
+from app.graph.build import PipelineEvent, run_pipeline
+from app.graph.state import Packet
 from app.llm.client import LLMClient, build_client
-from app.llm.guard import GuardedLLM
 from app.observability import flush, setup_observability, tracing
-from app.phi.anonymize import Anonymizer
-from app.phi.gateway import PhiGateway
-from app.phi.rehydrate import rehydrate
-from app.phi.vault import Vault
 from dataset import GroundTruth, open_ground_truth
 from metrics.citation_resolution import score_packet
 
@@ -66,28 +60,16 @@ async def run_case(
     """One patient through one provider. Returns the result and the rehydrated packet (for
     display only; the result itself holds nothing but de-identified content)."""
     result = CaseResult(patient_id=patient_id, provider=llm.provider, as_of=as_of.isoformat())
-    vault = Vault()
-    gateway = PhiGateway(session, Anonymizer(vault))
+
+    def record_lap(event: PipelineEvent) -> None:  # kept even if a later node fails
+        if event.event == "node_finished":
+            result.seconds[event.node] = event.data["seconds"]
+
     try:
         with tracing(), trace("eval.case", metadata={"provider": llm.provider}) as span:
-            clock = time.perf_counter()
-
-            def lap(stage: str) -> None:
-                nonlocal clock
-                result.seconds[stage] = round(time.perf_counter() - clock, 2)
-                clock = time.perf_counter()
-
-            state = CaseState(patient_id=await gateway.adopt_patient(patient_id))
-            graph = build_graph(gateway, truth.criteria, GuardedLLM(llm, vault), as_of)
-            async for chunk in graph.astream(state, stream_mode="updates"):
-                for node, update in chunk.items():  # nodes run in a line: one lap per node
-                    state = state.model_copy(update=update)
-                    lap(node)
+            outcome = await run_pipeline(session, llm, patient_id, truth.criteria, as_of, record_lap)
+            state, real = outcome.state, outcome.packet
             usage, verification = state.llm_usage, state.verification
-
-            real = Packet.model_validate(
-                rehydrate(state.packet.model_dump(), vault, state.patient_id)
-            )
             score = score_packet(real, patient_id, truth)
 
             by_verify = [v.supported for v in verification.assertions]

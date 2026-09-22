@@ -144,6 +144,7 @@ def node_span(name: str, summarize: Callable[[dict[str, Any]], dict[str, Any]]):
 
             return await run()
 
+        wrapper.summarize = summarize  # the same metadata, for whoever reports on the node (events)
         return wrapper
 
     return decorate
