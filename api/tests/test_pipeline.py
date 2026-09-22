@@ -191,3 +191,66 @@ async def test_a_patient_that_does_not_exist_fails_before_any_node_starts(tmp_pa
         with pytest.raises(Exception):
             await run_pipeline(session, ScriptedLLM(faithful_from_prompt), "not-a-patient", criteria, AS_OF, on_event)
     assert events == []
+
+
+# --- what happens to the vault and to the verdicts ----------------------------------------------
+
+@pytest.fixture
+def vaults(monkeypatch):
+    """Every Vault a run makes, so a test can look at it after the run."""
+    from app.graph import build
+    from app.phi.vault import Vault
+
+    made = []
+
+    class Recording(Vault):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            made.append(self)
+
+    monkeypatch.setattr(build, "Vault", Recording)
+    return made
+
+
+@pytest.mark.anyio
+async def test_the_vault_is_cleared_when_a_run_ends(tmp_path, vaults):
+    async with pipeline(tmp_path) as (session, criteria):
+        await run_pipeline(session, ScriptedLLM(faithful_from_prompt), PID, criteria, AS_OF)
+    [vault] = vaults
+    assert vault.known() == [] and vault.patients_with_offsets() == []  # nothing left to re-identify with
+
+
+@pytest.mark.anyio
+async def test_the_vault_is_cleared_when_a_run_fails_too(tmp_path, vaults):
+    async with pipeline(tmp_path) as (session, criteria):
+        with pytest.raises(LLMRefusal):
+            await run_pipeline(session, Refuses(), PID, criteria, AS_OF)
+    [vault] = vaults
+    assert vault.known() == []
+
+
+def wrongly_claims_tb_screening(prompt: str) -> PacketDraft:
+    """The faithful packet, except it claims TB screening is met and cites a condition for it."""
+    draft = faithful_from_prompt(prompt)
+    condition = re.search(r"- (Condition) (<CONDITION_\d+>)", prompt)
+    claim = Assertion(criterion_id="tb_screening", text="TB screening is documented",
+                      citations=[ResourceRef(resource_type=condition.group(1), id=condition.group(2))])
+    return PacketDraft(assertions=[claim if a.criterion_id == "tb_screening" else a for a in draft.assertions])
+
+
+@pytest.mark.anyio
+async def test_the_verdicts_come_back_with_real_ids_and_no_placeholders(tmp_path):
+    async with pipeline(tmp_path) as (session, criteria):
+        outcome = await run_pipeline(session, ScriptedLLM(wrongly_claims_tb_screening), PID, criteria, AS_OF)
+
+    # inside the run the verdict speaks in placeholders...
+    state_reasons = [r for v in outcome.state.verification.assertions for r in v.reasons]
+    assert any("<CONDITION_" in r for r in state_reasons)
+    # ...and what the reviewer gets speaks in real ids, with nothing left over
+    verdicts = outcome.verification
+    [flagged] = verdicts.flagged
+    assert flagged.assertion.criterion_id == "tb_screening"
+    assert any("c1" in r and "does not bear on tb_screening" in r for r in flagged.reasons)
+    everything = str(verdicts.model_dump())
+    assert not re.search(r"<[A-Z]+_\d+>", everything)
+    assert [c.ref.id for c in flagged.checks] == [a.id for a in flagged.assertion.citations] == ["c1"]
