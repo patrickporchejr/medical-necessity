@@ -1,12 +1,18 @@
 """The eval dataset, run as LangSmith experiments (they appear under Datasets & Experiments).
 
     python evals/experiment.py                                    # both providers' configured models
-    python evals/experiment.py --models anthropic:claude-haiku-4-5 gemini:gemini-3.8-flash --repeat 3
+    python evals/experiment.py --models anthropic:claude-haiku-4-5-20251001 gemini:gemini-3.8-flash --repeat 3
     python evals/experiment.py --patients loyd638 aaron697        # a subset, for a quick look
 
 Run from the repo root so the one top-level .env is found. Each model is one experiment on the
 same dataset; every case runs `--repeat` times, because a model's answer is not deterministic.
 With no LANGSMITH_API_KEY the same evaluators run locally and nothing is uploaded.
+
+Each experiment's summary carries a `config` block: everything its result depends on (exact
+model, as of date, repeat, the case keys, cohort, prompt and criteria hashes, git commit, the
+genai-prices version). It holds no timestamp, so a rerun of the same inputs writes the same block.
+To reproduce one: check out its commit, install from api/uv.lock (see api/pyproject.toml), set
+AS_OF_DATE to its as_of, and run with its models and --repeat.
 
 What LangSmith stores is de-identified by construction: a case's input is only a short patient
 key, its output is the scored result (the client drops everything not on an allowlist, see
@@ -15,25 +21,31 @@ app/observability.py), and the case name uses the same short key, never a patien
 
 import argparse
 import asyncio
+import hashlib
 import json
+import subprocess
 import uuid
 from dataclasses import asdict, dataclass, replace
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
+from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from statistics import mean
 
 from langsmith import Client, aevaluate, schemas
 
+import app.llm.prompts
 from app.config import settings
 from app.llm.client import LLMResult, build_client
 from app.observability import estimate_cost, flush, get_client, setup_observability, tracing
-from dataset import GroundTruth, open_ground_truth
+from dataset import CRITERIA_FILE, GroundTruth, open_ground_truth
 from run import RUNS_DIR, connect, run_case
 
 DATASET_NAME = "prior-auth-adalimumab-ra"
 CASES_PER_STRATUM = 2  # the smallest and the largest chart in each stratum
 KEY_LENGTH = 8  # a case is known by the first 8 characters of its patient id, nothing longer
 LOCAL_DATASET_ID = uuid.uuid5(uuid.NAMESPACE_URL, DATASET_NAME)
+APP_DIR = Path(app.llm.prompts.__file__).parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 def patient_key(patient_id: str) -> str:
@@ -233,6 +245,68 @@ async def run_experiment(
     return rows
 
 
+# --- the run config -----------------------------------------------------------------------------
+# Everything a result depends on, written into each summary. Nothing here is a timestamp, so
+# rerunning the same inputs reproduces the block exactly, and nothing identifies a patient: cases
+# are short keys and the cohort is a hash of the synthetic patient ids.
+
+def sha256_of(paths: list[Path], root: Path) -> str:
+    """One hash over the files' names (relative to `root`) and contents, in a fixed order."""
+    h = hashlib.sha256()
+    for path in sorted(paths, key=lambda p: p.relative_to(root).as_posix()):
+        h.update(path.relative_to(root).as_posix().encode() + b"\0" + path.read_bytes() + b"\0")
+    return h.hexdigest()
+
+
+def prompt_files() -> list[Path]:
+    """The prompt templates: the system prompts, and the assemble node that renders the user
+    message from the evidence."""
+    return [*(APP_DIR / "llm" / "prompts").glob("*.py"), APP_DIR / "graph" / "nodes" / "assemble.py"]
+
+
+def cohort_fingerprint(patient_ids: list[str]) -> str:
+    """sha256 of the sorted, newline-joined patient ids: the same value data/generate.sh prints."""
+    return hashlib.sha256("".join(f"{p}\n" for p in sorted(patient_ids)).encode()).hexdigest()
+
+
+def git_commit(root: Path = REPO_ROOT) -> str | None:
+    """HEAD, with "-dirty" when tracked files differ from it. None outside a git checkout."""
+    def git(*args: str) -> str:
+        return subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True,
+                              check=True).stdout.strip()
+    try:
+        sha = git("rev-parse", "HEAD")
+        # Untracked files are not counted: eval output and local scratch would mark every run dirty.
+        return sha + ("-dirty" if git("status", "--porcelain", "--untracked-files=no") else "")
+    except (OSError, subprocess.CalledProcessError):
+        return None
+
+
+def package_version(name: str) -> str | None:
+    try:
+        return version(name)
+    except PackageNotFoundError:
+        return None
+
+
+def run_config(provider: str, model: str, *, as_of: date, repeat: int,
+               examples: list[schemas.Example], truth: GroundTruth) -> dict:
+    patient_ids = truth.store.patient_ids()
+    return {
+        "provider": provider,
+        "model": model,
+        "as_of": as_of.isoformat(),
+        "repeat": repeat,
+        "dataset": DATASET_NAME,
+        "case_keys": sorted(e.inputs["patient_key"] for e in examples),
+        "cohort": {"patients": len(patient_ids), "sha256": cohort_fingerprint(patient_ids)},
+        "prompts_sha256": sha256_of(prompt_files(), APP_DIR),
+        "criteria_sha256": sha256_of([CRITERIA_FILE], CRITERIA_FILE.parent),
+        "git_commit": git_commit(),
+        "genai_prices": package_version("genai-prices"),
+    }
+
+
 def client_for(spec: str):
     provider, _, model = spec.partition(":")
     if provider not in ("anthropic", "gemini") or not model:
@@ -246,7 +320,7 @@ def averages(rows: list[Row]) -> dict[str, float]:
     return {k: round(mean(float(r.scores[k]) for r in rows if k in r.scores), 3) for k in keys}
 
 
-def summarize(spec: str, provider: str, model: str, rows: list[Row]) -> dict:
+def summarize(spec: str, provider: str, model: str, rows: list[Row], config: dict | None = None) -> dict:
     outputs = [r.output for r in rows]
     tokens_in = sum(o.get("input_tokens") or 0 for o in outputs)
     tokens_out = sum(o.get("output_tokens") or 0 for o in outputs)
@@ -254,6 +328,7 @@ def summarize(spec: str, provider: str, model: str, rows: list[Row]) -> dict:
                                    input_tokens=tokens_in, output_tokens=tokens_out))
     return {
         "experiment": spec,
+        "config": config,
         "runs": len(rows),
         "task_failures": sum(r.error is not None for r in rows),
         "averages": averages(rows),
@@ -280,14 +355,15 @@ async def run_experiments(args, truth: GroundTruth, patient_ids: list[str] | Non
     async with connect(args.mcp_url) as session:
         for spec in args.models:
             llm, provider, model = client_for(spec)
+            config = run_config(provider, model, as_of=settings.as_of, repeat=args.repeat,
+                                examples=examples, truth=truth)
             rows = await run_experiment(
                 session, llm, truth, examples, name=spec, repeat=args.repeat,
                 concurrency=args.concurrency, client=client, upload=client is not None,
-                metadata={"provider": provider, "model": model, "as_of": settings.as_of.isoformat(),
-                          "repeat": args.repeat},
+                metadata=config,
             )
             print_rows(spec, rows)
-            summaries.append(summarize(spec, provider, model, rows))
+            summaries.append(summarize(spec, provider, model, rows, config))
     return summaries
 
 
@@ -316,8 +392,11 @@ def main(argv: list[str] | None = None) -> int:
     flush()
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    path = args.out_dir / f"experiment_{datetime.now(timezone.utc):%Y%m%dT%H%M%SZ}.json"
+    written = datetime.now(timezone.utc)
+    path = args.out_dir / f"experiment_{written:%Y%m%dT%H%M%SZ}.json"
+    # The timestamp lives here, outside every experiment's config block.
     path.write_text(json.dumps({"dataset": DATASET_NAME, "as_of": settings.as_of.isoformat(),
+                                "written_at": written.isoformat(timespec="seconds"),
                                 "experiments": summaries}, indent=2, default=str))
     print(f"summary: {path}")
     return 0 if all(s["task_failures"] == 0 for s in summaries) else 1
