@@ -1,0 +1,145 @@
+{
+  "trimmed_from": "evals/runs/20260921T002224Z_631bf667.json",
+  "dropped": [
+    "packet.service",
+    "packet.assertions[].text",
+    "patient_id beyond its first 8 characters"
+  ],
+  "meta": {
+    "as_of": "2026-09-20",
+    "mcp": "in-process",
+    "traces": "cloud"
+  },
+  "results": [
+    {
+      "patient_id": "631bf667",
+      "provider": "anthropic",
+      "as_of": "2026-09-20",
+      "model": "anthropic:claude-sonnet-5",
+      "ok": true,
+      "error": null,
+      "seconds": {
+        "extract": 0.69,
+        "assemble": 5.11,
+        "verify": 0.0
+      },
+      "input_tokens": 1974,
+      "output_tokens": 575,
+      "fallback": false,
+      "citations_repaired": 0,
+      "packet": {
+        "assertions": [
+          {
+            "criterion_id": "<ra_diagnosis>",
+            "kind": "evidence",
+            "citations": [
+              {
+                "resource_type": "Condition",
+                "id": "<CONDITION_1>"
+              }
+            ]
+          },
+          {
+            "criterion_id": "<dmard_trial>",
+            "kind": "gap",
+            "citations": []
+          },
+          {
+            "criterion_id": "<active_disease>",
+            "kind": "evidence",
+            "citations": [
+              {
+                "resource_type": "DocumentReference",
+                "id": "<DOCUMENTREFERENCE_27>"
+              },
+              {
+                "resource_type": "DocumentReference",
+                "id": "<DOCUMENTREFERENCE_28>"
+              },
+              {
+                "resource_type": "DocumentReference",
+                "id": "<DOCUMENTREFERENCE_29>"
+              },
+              {
+                "resource_type": "DocumentReference",
+                "id": "<DOCUMENTREFERENCE_30>"
+              },
+              {
+                "resource_type": "DocumentReference",
+                "id": "<DOCUMENTREFERENCE_31>"
+              }
+            ]
+          },
+          {
+            "criterion_id": "<tb_screening>",
+            "kind": "gap",
+            "citations": []
+          },
+          {
+            "criterion_id": "<hepatitis_b_screening>",
+            "kind": "gap",
+            "citations": []
+          }
+        ]
+      },
+      "assertions": [
+        {
+          "criterion_id": "<ra_diagnosis>",
+          "kind": "evidence",
+          "verify_supported": false,
+          "truth_resolved": false,
+          "reasons": [
+            "unknown criterion '<ra_diagnosis>'"
+          ]
+        },
+        {
+          "criterion_id": "<dmard_trial>",
+          "kind": "gap",
+          "verify_supported": false,
+          "truth_resolved": false,
+          "reasons": [
+            "unknown criterion '<dmard_trial>'"
+          ]
+        },
+        {
+          "criterion_id": "<active_disease>",
+          "kind": "evidence",
+          "verify_supported": false,
+          "truth_resolved": false,
+          "reasons": [
+            "unknown criterion '<active_disease>'"
+          ]
+        },
+        {
+          "criterion_id": "<tb_screening>",
+          "kind": "gap",
+          "verify_supported": false,
+          "truth_resolved": false,
+          "reasons": [
+            "unknown criterion '<tb_screening>'"
+          ]
+        },
+        {
+          "criterion_id": "<hepatitis_b_screening>",
+          "kind": "gap",
+          "verify_supported": false,
+          "truth_resolved": false,
+          "reasons": [
+            "unknown criterion '<hepatitis_b_screening>'"
+          ]
+        }
+      ],
+      "unaddressed": [
+        "ra_diagnosis",
+        "dmard_trial",
+        "active_disease",
+        "tb_screening",
+        "hepatitis_b_screening"
+      ],
+      "citation_resolution_rate": 0.0,
+      "citation_level_rate": 0.0,
+      "gap_accuracy": 0.0,
+      "verify_agrees_with_truth": true
+    }
+  ]
+}

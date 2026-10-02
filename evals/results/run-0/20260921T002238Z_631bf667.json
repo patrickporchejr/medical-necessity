@@ -1,0 +1,129 @@
+{
+  "trimmed_from": "evals/runs/20260921T002238Z_631bf667.json",
+  "dropped": [
+    "packet.service",
+    "packet.assertions[].text",
+    "patient_id beyond its first 8 characters"
+  ],
+  "meta": {
+    "as_of": "2026-09-20",
+    "mcp": "in-process",
+    "traces": "cloud"
+  },
+  "results": [
+    {
+      "patient_id": "631bf667",
+      "provider": "anthropic",
+      "as_of": "2026-09-20",
+      "model": "anthropic:claude-haiku-4-5-20251001",
+      "ok": true,
+      "error": null,
+      "seconds": {
+        "extract": 0.68,
+        "assemble": 3.14,
+        "verify": 0.39
+      },
+      "input_tokens": 1432,
+      "output_tokens": 399,
+      "fallback": false,
+      "citations_repaired": 0,
+      "packet": {
+        "assertions": [
+          {
+            "criterion_id": "ra_diagnosis",
+            "kind": "evidence",
+            "citations": [
+              {
+                "resource_type": "Condition",
+                "id": "<CONDITION_1>"
+              }
+            ]
+          },
+          {
+            "criterion_id": "dmard_trial",
+            "kind": "gap",
+            "citations": []
+          },
+          {
+            "criterion_id": "active_disease",
+            "kind": "evidence",
+            "citations": [
+              {
+                "resource_type": "DocumentReference",
+                "id": "<DOCUMENTREFERENCE_27>"
+              },
+              {
+                "resource_type": "DocumentReference",
+                "id": "<DOCUMENTREFERENCE_28>"
+              },
+              {
+                "resource_type": "DocumentReference",
+                "id": "<DOCUMENTREFERENCE_29>"
+              },
+              {
+                "resource_type": "DocumentReference",
+                "id": "<DOCUMENTREFERENCE_30>"
+              },
+              {
+                "resource_type": "DocumentReference",
+                "id": "<DOCUMENTREFERENCE_31>"
+              }
+            ]
+          },
+          {
+            "criterion_id": "tb_screening",
+            "kind": "gap",
+            "citations": []
+          },
+          {
+            "criterion_id": "hepatitis_b_screening",
+            "kind": "gap",
+            "citations": []
+          }
+        ]
+      },
+      "assertions": [
+        {
+          "criterion_id": "ra_diagnosis",
+          "kind": "evidence",
+          "verify_supported": true,
+          "truth_resolved": true,
+          "reasons": []
+        },
+        {
+          "criterion_id": "dmard_trial",
+          "kind": "gap",
+          "verify_supported": true,
+          "truth_resolved": true,
+          "reasons": []
+        },
+        {
+          "criterion_id": "active_disease",
+          "kind": "evidence",
+          "verify_supported": true,
+          "truth_resolved": true,
+          "reasons": []
+        },
+        {
+          "criterion_id": "tb_screening",
+          "kind": "gap",
+          "verify_supported": true,
+          "truth_resolved": true,
+          "reasons": []
+        },
+        {
+          "criterion_id": "hepatitis_b_screening",
+          "kind": "gap",
+          "verify_supported": true,
+          "truth_resolved": true,
+          "reasons": []
+        }
+      ],
+      "unaddressed": [],
+      "citation_resolution_rate": 1.0,
+      "citation_level_rate": 1.0,
+      "gap_accuracy": 1.0,
+      "verify_agrees_with_truth": true
+    }
+  ]
+}

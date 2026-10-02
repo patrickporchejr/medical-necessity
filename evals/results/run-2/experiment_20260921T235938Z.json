@@ -1,0 +1,950 @@
+{
+  "dataset": "prior-auth-adalimumab-ra",
+  "as_of": "2026-09-20",
+  "experiments": [
+    {
+      "experiment": "anthropic:claude-haiku-4-5",
+      "runs": 33,
+      "task_failures": 0,
+      "averages": {
+        "citation_level_rate": 0.926,
+        "citation_resolution_rate": 0.926,
+        "completed": 1.0,
+        "decisions_correct": 0.97,
+        "gap_accuracy": 0.992,
+        "ids_well_formed": 1.0,
+        "packet_fully_correct": 0.909,
+        "verify_matches_truth": 1.0
+      },
+      "tokens": {
+        "input": 46875,
+        "output": 11604
+      },
+      "estimated_cost_usd": 0.1049,
+      "cases": [
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 875ecf6d",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 ee8b3e65",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 7aefca51",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 c106918a",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 631bf667",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 405b7002",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 d1b49867",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 9d05650c",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/no-active-notes \u00b7 18806782",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 55b0826b",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 62faaba8",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 ee8b3e65",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 7aefca51",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 c106918a",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 875ecf6d",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 0.75,
+            "decisions_correct": false,
+            "packet_fully_correct": false,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 631bf667",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 d1b49867",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 405b7002",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 9d05650c",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/no-active-notes \u00b7 18806782",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 55b0826b",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 62faaba8",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 ee8b3e65",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 7aefca51",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 c106918a",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 631bf667",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 405b7002",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 875ecf6d",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 d1b49867",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 55b0826b",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 62faaba8",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 9d05650c",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/no-active-notes \u00b7 18806782",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "experiment": "gemini:gemini-3.8-flash",
+      "runs": 33,
+      "task_failures": 0,
+      "averages": {
+        "citation_level_rate": 1.0,
+        "citation_resolution_rate": 1.0,
+        "completed": 1.0,
+        "decisions_correct": 1.0,
+        "gap_accuracy": 1.0,
+        "ids_well_formed": 1.0,
+        "packet_fully_correct": 1.0,
+        "verify_matches_truth": 1.0
+      },
+      "tokens": {
+        "input": 23661,
+        "output": 30561
+      },
+      "estimated_cost_usd": 0.1323,
+      "cases": [
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 875ecf6d",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 ee8b3e65",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 c106918a",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 7aefca51",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 631bf667",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 405b7002",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 d1b49867",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 55b0826b",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 9d05650c",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 62faaba8",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/no-active-notes \u00b7 18806782",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 ee8b3e65",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 7aefca51",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 875ecf6d",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 c106918a",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 405b7002",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 631bf667",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 d1b49867",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 55b0826b",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 9d05650c",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/no-active-notes \u00b7 18806782",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 62faaba8",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 ee8b3e65",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 875ecf6d",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 7aefca51",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 c106918a",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 631bf667",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 405b7002",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 9d05650c",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 d1b49867",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/no-active-notes \u00b7 18806782",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 55b0826b",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 62faaba8",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        }
+      ]
+    }
+  ]
+}
