@@ -14,18 +14,20 @@ kept, and evals score it as well as the final one.
 """
 
 import re
-from typing import Any
+from dataclasses import replace
+from typing import Any, Callable
 
 from pydantic import BaseModel
 
 from app.graph.criteria import Criteria
 from app.graph.state import Assertion, CaseState, CriterionEvidence, Packet, ResourceRef, Verification
-from app.llm.client import LLMClient
+from app.llm.client import LLMClient, LLMResult, LLMSchemaError
 from app.llm.prompts.assemble import SYSTEM
 from app.observability import agent_span, node_span, record_agent_usage
 
 
 BARE_ID = re.compile(r"[A-Z]+_\d+")
+MAX_ERROR_CHARS = 2000  # of the validation error fed back: enough to say what was wrong
 
 
 def repair_citations(assertions: list[Assertion]) -> tuple[list[Assertion], int]:
@@ -68,11 +70,15 @@ def _summarize(update: dict[str, Any]) -> dict[str, Any]:
 
 
 @node_span("graph.assemble", _summarize)
-async def assemble(state: CaseState, criteria: Criteria, llm: LLMClient) -> dict[str, Any]:
+async def assemble(
+    state: CaseState, criteria: Criteria, llm: LLMClient, scrub: Callable[[str], str] = lambda text: text
+) -> dict[str, Any]:
+    """`scrub` cleans a validation error before it goes back to the model: the error can quote
+    the model's own output. The graph passes the gateway's scrubber."""
     if state.verification is not None:
-        return await _repair(state, criteria, llm)
+        return await _repair(state, criteria, llm, scrub)
     with agent_span("assemble", llm.provider, "Drafts the prior authorization packet from the chart evidence") as agent:
-        result = await llm.generate(SYSTEM, render_evidence(state, criteria), PacketDraft)
+        result, retries = await _generate(llm, render_evidence(state, criteria), scrub)
         record_agent_usage(agent, result)
     assertions, repaired = repair_citations(result.parsed.assertions)
     packet = Packet(service=state.service or criteria.service, assertions=assertions)
@@ -81,10 +87,11 @@ async def assemble(state: CaseState, criteria: Criteria, llm: LLMClient) -> dict
         "route": "assemble",
         "assembled_by": f"{result.provider}:{result.model}",
         "llm_usage": {
-            "input_tokens": result.input_tokens,
+            "input_tokens": result.input_tokens,  # over every attempt
             "output_tokens": result.output_tokens,
             "fallback": result.fallback,
             "citations_repaired": repaired,
+            "schema_retries": retries,
         },
     }
 
@@ -100,10 +107,12 @@ def repair_targets(state: CaseState, criteria: Criteria) -> list[str]:
     return [c.id for c in criteria.criteria if c.id in flagged]
 
 
-async def _repair(state: CaseState, criteria: Criteria, llm: LLMClient) -> dict[str, Any]:
+async def _repair(
+    state: CaseState, criteria: Criteria, llm: LLMClient, scrub: Callable[[str], str]
+) -> dict[str, Any]:
     targets = repair_targets(state, criteria)
     with agent_span("assemble", llm.provider, "Redrafts the criteria verify flagged") as agent:
-        result = await llm.generate(SYSTEM, render_repair(state, criteria, targets), PacketDraft)
+        result, retries = await _generate(llm, render_repair(state, criteria, targets), scrub)
         record_agent_usage(agent, result)
     redrafted, repaired = repair_citations(result.parsed.assertions)
     packet = state.packet.model_copy(update={"assertions": merge_repair(state.packet, redrafted, targets)})
@@ -120,6 +129,7 @@ async def _repair(state: CaseState, criteria: Criteria, llm: LLMClient) -> dict[
             "output_tokens": _add(usage.get("output_tokens"), result.output_tokens),
             "fallback": bool(usage.get("fallback")) or result.fallback,
             "citations_repaired": usage.get("citations_repaired", 0) + repaired,
+            "schema_retries": usage.get("schema_retries", 0) + retries,
         },
     }
 
@@ -143,6 +153,21 @@ def merge_repair(draft: Packet, redrafted: list[Assertion], targets: list[str]) 
         if criterion_id not in mentioned:
             out += new.get(criterion_id, [])
     return out
+
+
+async def _generate(llm: LLMClient, user: str, scrub: Callable[[str], str]) -> tuple[LLMResult[PacketDraft], int]:
+    """The model's draft, and how many retries it took. A reply that fails validation is retried
+    once, with the error appended; a second failure fails the case. Only a schema failure is
+    retried, never a refusal or a PHI leak. A retried result's tokens include the failed call's."""
+    try:
+        return await llm.generate(SYSTEM, user, PacketDraft), 0
+    except LLMSchemaError as err:
+        error = scrub(str(err))[:MAX_ERROR_CHARS]
+        retry = (f"{user}\n\nYour previous reply failed validation: {error}\n"
+                 "Reply again, with output that matches the schema.")
+        result = await llm.generate(SYSTEM, retry, PacketDraft)
+        return replace(result, input_tokens=_add(result.input_tokens, err.input_tokens),
+                       output_tokens=_add(result.output_tokens, err.output_tokens)), 1
 
 
 def _add(a: int | None, b: int | None) -> int | None:

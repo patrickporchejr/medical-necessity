@@ -30,7 +30,7 @@ from langsmith.run_helpers import get_current_run_tree, tracing_context
 SAFE_INPUT_KEYS = frozenset({"patient_key"})
 SAFE_OUTPUT_KEYS = frozenset({
     "ok", "error", "provider", "model", "seconds", "input_tokens", "output_tokens",
-    "fallback", "citations_repaired", "assertions", "unaddressed", "citation_resolution_rate",
+    "fallback", "citations_repaired", "schema_retries", "assertions", "unaddressed", "citation_resolution_rate",
     "citation_level_rate", "gap_accuracy", "verify_agrees_with_truth", "first_pass",
 })
 

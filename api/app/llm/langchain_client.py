@@ -10,7 +10,7 @@ from typing import Any
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
-from app.llm.client import LLMError, LLMRefusal, LLMResult, T
+from app.llm.client import LLMRefusal, LLMResult, LLMSchemaError, T
 
 # `fallbacks: "default"` re-runs a request Claude Opus 5's safety classifiers decline on
 # another model, server-side, instead of surfacing the refusal. Clinical text can trip them.
@@ -53,12 +53,14 @@ class LangChainClient:
         out = await chain.ainvoke([SystemMessage(system), HumanMessage(user)])
         raw: AIMessage = out["raw"]
         self._raise_if_declined(raw)
-        if out.get("parsed") is None:
-            raise LLMError(
-                f"{self._model_name} returned output that does not match {schema.__name__}"
-                f" ({out.get('parsing_error')})"
-            )
         usage = raw.usage_metadata or {}
+        if out.get("parsed") is None:
+            raise LLMSchemaError(
+                f"{self._model_name} returned output that does not match {schema.__name__}"
+                f" ({out.get('parsing_error')})",
+                input_tokens=usage.get("input_tokens"),
+                output_tokens=usage.get("output_tokens"),
+            )
         meta = raw.response_metadata
         iterations = (meta.get("usage") or {}).get("iterations") or []
         return LLMResult(

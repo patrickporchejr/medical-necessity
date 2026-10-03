@@ -36,6 +36,8 @@ class ChartGateway(Protocol):
 
     def shift_date(self, patient_id: str, iso_date: str) -> str: ...
 
+    def scrub_message(self, text: str) -> str: ...
+
 
 def _summarize(update: dict[str, Any]) -> dict[str, Any]:
     evidence = update["evidence"]

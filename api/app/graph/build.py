@@ -79,7 +79,7 @@ def build_graph(gateway: ChartGateway, criteria: Criteria, llm: LLMClient, as_of
         return await extract(state, gateway, criteria, as_of)
 
     async def assemble_node(state: CaseState):
-        return await assemble(state, criteria, llm)
+        return await assemble(state, criteria, llm, gateway.scrub_message)
 
     async def gap_packet_node(state: CaseState):
         return await gap_packet(state, criteria, GATE)

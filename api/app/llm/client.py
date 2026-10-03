@@ -16,6 +16,15 @@ class LLMRefusal(LLMError):
     """The provider declined the request (safety classifier or block)."""
 
 
+class LLMSchemaError(LLMError):
+    """The reply did not validate against the schema. The message can quote the model's output,
+    and the tokens the failed call spent are kept so a retry's cost is not undercounted."""
+
+    def __init__(self, message: str, input_tokens: int | None = None, output_tokens: int | None = None):
+        super().__init__(message)
+        self.input_tokens, self.output_tokens = input_tokens, output_tokens
+
+
 @dataclass(frozen=True)
 class LLMResult(Generic[T]):
     parsed: T

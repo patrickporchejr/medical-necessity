@@ -144,6 +144,9 @@ def score_case(out: dict, expected: dict[str, str]) -> dict[str, bool | float]:
         # Did the model write every id exactly as given? A repaired id still resolves, so this is
         # a reliability signal, not a truthfulness one.
         scores["ids_well_formed"] = out["citations_repaired"] == 0
+        # Did every model call's first reply validate (the draft and any repair)? A retried one
+        # completed, so this too is reliability.
+        scores["schema_valid_first_try"] = out["schema_retries"] == 0
     # The harness's own check: the runtime `verify` node and the offline ground truth must
     # agree on every assertion. A failure here is a bug in verify or extract, not the model.
     scores["verify_matches_truth"] = bool(out["ok"] and out["verify_agrees_with_truth"])
@@ -349,6 +352,7 @@ def summarize(spec: str, provider: str, model: str, rows: list[Row], config: dic
         "runs": len(rows),
         "task_failures": sum(r.error is not None for r in rows),
         "repaired_runs": sum(bool(o.get("repairs")) for o in outputs),
+        "schema_retries": sum(o.get("schema_retries") or 0 for o in outputs),
         "averages": averages(rows),
         "tokens": {"input": tokens_in, "output": tokens_out},
         "estimated_cost_usd": None if cost is None else round(cost, 4),

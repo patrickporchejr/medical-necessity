@@ -3,20 +3,23 @@ import asyncio
 import re
 from dataclasses import dataclass
 from pathlib import Path
+from datetime import timedelta
 from types import SimpleNamespace
 
 import pytest
 from langchain_core.messages import AIMessage
 from langchain_core.runnables import RunnableLambda
 
+from app.graph.build import build_graph
 from app.graph.nodes.assemble import PacketDraft, assemble, render_evidence, repair_citations
 from app.graph.nodes.verify import verify
-from app.graph.state import Assertion, ResourceRef
-from app.llm.client import LLMError, LLMRefusal, LLMResult, build_client
+from app.graph.state import Assertion, CaseState, ResourceRef
+from app.llm.client import LLMRefusal, LLMResult, LLMSchemaError, build_client
 from app.llm.langchain_client import FALLBACK_BETA, LangChainClient, build_chat_model
 from app.llm.guard import GuardedLLM, PhiLeak, assert_clean
 from app.llm.prompts.assemble import SYSTEM
 from app.phi.vault import Vault
+from tests.test_extract import ORDERED
 from tests.test_mcp_tools import PID
 from tests.test_verify import Case, case
 
@@ -213,6 +216,83 @@ async def test_the_real_pipeline_prompt_survives_the_guard(tmp_path):
     assert update["packet"].assertions
 
 
+# --- the schema retry -------------------------------------------------------------------------
+
+class FlakyLLM(ScriptedLLM):
+    """Answers with each of `replies` in turn; an exception in the list is raised instead."""
+
+    def __init__(self, *replies):
+        super().__init__(None)
+        self.replies = list(replies)
+
+    async def generate(self, system, user, schema):
+        self.calls.append((system, user, schema))
+        reply = self.replies.pop(0)
+        if isinstance(reply, Exception):
+            raise reply
+        return LLMResult(parsed=reply, provider="fake", model="fake-1", input_tokens=10, output_tokens=5)
+
+
+INVALID = LLMSchemaError("fake-1 returned output that does not match PacketDraft (assertions: Field required)",
+                         input_tokens=7, output_tokens=3)
+
+
+@pytest.mark.anyio
+async def test_a_reply_that_fails_validation_is_retried_once_with_the_error_fed_back(tmp_path):
+    async with case(tmp_path) as c:
+        llm = FlakyLLM(INVALID, faithful_draft(c))
+        update = await assemble(c.state, c.criteria, llm)
+    first, second = (user for _, user, _ in llm.calls)
+    assert second.startswith(first) and "Your previous reply failed validation: " in second
+    assert "assertions: Field required" in second
+    assert len(update["packet"].assertions) == 5
+    # both calls are paid for
+    usage = update["llm_usage"]
+    assert (usage["schema_retries"], usage["input_tokens"], usage["output_tokens"]) == (1, 17, 8)
+
+
+@pytest.mark.anyio
+async def test_a_second_invalid_reply_fails_the_case(tmp_path):
+    async with case(tmp_path) as c:
+        llm = FlakyLLM(INVALID, INVALID, faithful_draft(c))
+        with pytest.raises(LLMSchemaError):
+            await assemble(c.state, c.criteria, llm)
+    assert len(llm.calls) == 2
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("error", [LLMRefusal("fake-1 refused the request"), PhiLeak("a real NAME value")])
+async def test_a_refusal_or_a_phi_leak_is_never_retried(tmp_path, error):
+    async with case(tmp_path) as c:
+        llm = FlakyLLM(error, faithful_draft(c))
+        with pytest.raises(type(error)):
+            await assemble(c.state, c.criteria, llm)
+    assert len(llm.calls) == 1
+
+
+@pytest.mark.anyio
+async def test_a_valid_first_reply_makes_one_call_and_counts_no_retry(tmp_path):
+    async with case(tmp_path) as c:
+        llm = ScriptedLLM(faithful_draft(c))
+        update = await assemble(c.state, c.criteria, llm)
+    assert len(llm.calls) == 1 and update["llm_usage"]["schema_retries"] == 0
+
+
+@pytest.mark.anyio
+async def test_the_error_fed_back_is_scrubbed_by_the_gateway_before_the_guard_sees_it(tmp_path):
+    """A validation error can quote the model's output. Should that ever hold a real id, the
+    graph's assemble scrubs it to its placeholder, rather than send it or trip the guard."""
+    async with case(tmp_path) as c:
+        vault = c.gateway.anonymizer.vault
+        real_id = vault.original(c.state.patient_id)
+        inner = FlakyLLM(LLMSchemaError(f"does not match PacketDraft (input_value='{real_id}')"), faithful_draft(c))
+        graph = build_graph(c.gateway, c.criteria, GuardedLLM(inner, vault), ORDERED + timedelta(days=120))
+        final = CaseState.model_validate(await graph.ainvoke(CaseState(patient_id=c.state.patient_id)))
+    retry = inner.calls[1][1]
+    assert real_id not in retry and f"input_value='{c.state.patient_id}'" in retry
+    assert final.llm_usage["schema_retries"] == 1
+
+
 # --- provider clients, against fakes (no keys, no network) ------------------------------------
 
 DRAFT = PacketDraft(assertions=[Assertion(criterion_id="ra_diagnosis", kind="gap", text="none")])
@@ -267,8 +347,10 @@ async def test_a_refusal_or_unparseable_reply_is_an_error_not_an_empty_packet():
     refused = reply(stop_reason="refusal", stop_details={"category": "bio"}, parsed=None)
     with pytest.raises(LLMRefusal, match="bio"):
         await LangChainClient("anthropic", refused, "m").generate("s", "u", PacketDraft)
-    with pytest.raises(LLMError, match="does not match"):
+    with pytest.raises(LLMSchemaError, match="does not match") as raised:
         await LangChainClient("anthropic", reply(stop_reason="end_turn", parsed=None), "m").generate("s", "u", PacketDraft)
+    # what the failed call spent is kept, so a retry's cost is not undercounted
+    assert (raised.value.input_tokens, raised.value.output_tokens) == (100, 20)
 
 
 @pytest.mark.anyio

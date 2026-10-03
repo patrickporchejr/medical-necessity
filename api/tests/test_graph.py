@@ -5,7 +5,7 @@ import pytest
 from app.graph.build import build_graph, route_after_extract
 from app.graph.nodes.assemble import PacketDraft, merge_repair
 from app.graph.state import Assertion, CaseState, Packet, ResourceRef
-from tests.test_assemble import ScriptedLLM, faithful_draft
+from tests.test_assemble import INVALID, FlakyLLM, ScriptedLLM, faithful_draft
 from tests.test_extract import ORDERED
 from tests.test_observability import leaks
 from tests.test_verify import case
@@ -24,7 +24,8 @@ async def test_an_active_diagnosis_goes_through_the_model(tmp_path, ls):
     assert final.route == "assemble"
     assert final.service == c.criteria.service and len(final.evidence) == 5
     assert final.assembled_by == "fake:fake-1"
-    assert final.llm_usage == {"input_tokens": 10, "output_tokens": 5, "fallback": False, "citations_repaired": 0}
+    assert final.llm_usage == {"input_tokens": 10, "output_tokens": 5, "fallback": False, "citations_repaired": 0,
+                               "schema_retries": 0}
     assert final.verification is not None and not final.verification.flagged
     # The node runs still fire, once per node per invocation, in order.
     names = [r["name"] for r in ls.runs if r["name"].startswith("graph.")]
@@ -195,3 +196,16 @@ def test_a_repair_replaces_only_the_criteria_it_was_asked_about():
     merged = merge_repair(draft, redraft, ["b", "c", "d"])
     # c was a target the redraft left out: it keeps its old, still flagged assertion
     assert [(a.criterion_id, a.text) for a in merged] == [("a", "old a"), ("b", "new b"), ("c", "old c"), ("d", "new d")]
+
+
+@pytest.mark.anyio
+async def test_a_repair_reply_that_fails_validation_is_retried_too(tmp_path):
+    async with case(tmp_path, mtx_status="active") as c:
+        llm = FlakyLLM(overclaiming_draft(c), INVALID, faithful_draft(c))
+        final = await run_graph(c, llm)
+    repair, retry = llm.calls[1][1], llm.calls[2][1]
+    assert retry.startswith(repair) and "Your previous reply failed validation: " in retry
+    assert final.repairs == 1 and not final.verification.flagged
+    # every call is counted: draft 10+5, failed repair 7+3, retried repair 10+5
+    usage = final.llm_usage
+    assert (usage["schema_retries"], usage["input_tokens"], usage["output_tokens"]) == (1, 27, 13)

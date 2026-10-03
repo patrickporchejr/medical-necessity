@@ -47,6 +47,7 @@ class CaseResult:
     fallback: bool = False
     citations_repaired: int = 0  # ids that lost their angle brackets and were restored
     repairs: int = 0  # times verify's flags sent the packet back to the model
+    schema_retries: int = 0  # replies that failed schema validation and were asked for again, over all calls
     packet: dict | None = None  # de-identified: exactly what the model wrote, placeholders and all
     assertions: list[dict] = field(default_factory=list)
     unaddressed: list[str] = field(default_factory=list)
@@ -88,6 +89,7 @@ async def run_case(
                 result.input_tokens, result.output_tokens = usage["input_tokens"], usage["output_tokens"]
                 result.fallback = usage["fallback"]
                 result.citations_repaired = usage["citations_repaired"]
+                result.schema_retries = usage["schema_retries"]
             result.repairs = state.repairs
             result.packet = state.packet.model_dump()
             result.assertions = [
@@ -129,6 +131,7 @@ async def run_case(
                         "unaddressed": result.unaddressed,
                         "citations_repaired": result.citations_repaired,
                         "repairs": result.repairs,
+                        "schema_retries": result.schema_retries,
                     }.items()
                     if v is not None
                 }
@@ -193,6 +196,8 @@ def format_result(result: CaseResult, real: Packet | None) -> str:
         wrong = sum(not a["truth_resolved"] for a in first["assertions"])
         lines.append(f"  repaired: the first packet had {wrong} assertion(s) wrong against ground truth"
                      f" and {len(first['unaddressed'])} criteria unaddressed")
+    if result.schema_retries:
+        lines.append(f"  replies that failed schema validation and were retried: {result.schema_retries}")
     if result.unaddressed:
         lines.append(f"  criteria never addressed: {', '.join(result.unaddressed)}")
     rate = lambda x: "n/a" if x is None else f"{x:.2f}"
