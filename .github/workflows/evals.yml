@@ -1,8 +1,32 @@
-name: evals
-on: [pull_request]
+name: tests
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# The API and eval-harness tests, with no API keys and no Synthea cohort: every model is
+# scripted, and tests that need the generated cohort skip themselves. This is not an eval
+# gate (no live model calls, no score thresholds); see the README's Status section.
 jobs:
-  evals:
+  tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: echo "TODO: run evals gate"
+      - uses: astral-sh/setup-uv@v6
+      - name: Install from the lockfile
+        working-directory: api
+        run: uv sync --frozen --extra dev --python 3.11
+      - name: Run tests
+        working-directory: api
+        run: uv run pytest -q ../api ../evals
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - working-directory: web
+        run: npm ci && npx next build

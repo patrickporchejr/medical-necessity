@@ -9,7 +9,28 @@ The agent reads a synthetic patient chart through MCP FHIR tools, gathers the ch
 New to the domain or the acronyms? See the [Glossary](GLOSSARY.md).
 
 ## Architecture Overview
-<img width="831" height="581" alt="image" src="https://github.com/user-attachments/assets/8defb40f-0eec-4b05-adb4-253ee0c14ff4" />
+```mermaid
+flowchart LR
+    web["Next.js dashboard<br/>queue · packet · citation trace"] -->|"create, poll"| api["FastAPI case API<br/>(in memory)"]
+    api -->|run_pipeline| pipeline
+
+    subgraph zone["PHI trust zone"]
+        mcp["FastMCP server<br/>Synthea FHIR R4"] --> gateway["PHI gateway<br/>scrub every tool result<br/>vault · date shift"]
+        criteria["Payer criteria<br/>YAML, one service"] --> pipeline
+        gateway --> pipeline
+        subgraph pipeline["LangGraph StateGraph (de-identified state)"]
+            extract -->|"RA diagnosis<br/>established"| assemble
+            extract -->|"not established"| gap_packet["gap_packet<br/>(no model)"]
+            assemble --> verify
+            gap_packet --> verify
+            verify -->|"flagged · repairs left (max 1)"| assemble
+        end
+        verify -->|packet + verdicts| rehydrate["Rehydrate<br/>real ids for the reviewer"]
+    end
+
+    assemble <-->|"de-identified prompt<br/>behind the prompt guard"| llm["LLM inference<br/>Anthropic · Gemini"]
+    rehydrate --> api
+```
 
 ## Key Features
 - **Stateful Routing:** the graph is a LangGraph `StateGraph` with typed state and two conditional edges. After `extract`, a case whose RA diagnosis is not established (absent, or resolved rather than active) skips the model: code writes the packet, so the case costs no tokens. After `verify`, a model-drafted packet with flagged or unaddressed criteria goes back to `assemble` once with verify's reasons (the repair loop); the first draft is kept, and evals score it alongside the final packet. The route taken and any repair are recorded in the state, in the run's events and in LangSmith.
@@ -37,6 +58,7 @@ Built:
 - Anthropic and Gemini clients on LangChain chat models (`api/app/llm/langchain_client.py`)
 - Metadata-only LangSmith tracing (`api/app/observability.py`)
 - Evals: one-patient runs, LangSmith experiments, the citation resolution metric and recorded results (`evals/`)
+- CI on every PR and push to main: the API and eval-harness tests against scripted models, with no keys and no cohort (cohort tests skip), and the dashboard build (`.github/workflows/evals.yml`)
 
 - Case API: list patients, create a case, run it in the background, fetch it with its node events, the rehydrated packet, verify's verdicts and each cited record (`api/app/routes/cases.py`). Cases are kept in memory.
 - Reviewer dashboard: a case queue with a new-case form, and a case page with the node timeline, the packet, verify's flags and the citation trace (`web/`)
@@ -44,7 +66,7 @@ Built:
 Not built (the project stopped here):
 - Approve · edit · reject, and an audit trail of reviewer decisions
 - Persistent cases (a database) and a live SSE stream; the dashboard polls instead
-- An eval gate on PRs (`.github/workflows/evals.yml` is a placeholder step)
+- An eval gate on PRs: CI runs the test suite against scripted models (see below), but no live-model eval with score thresholds
 - Latency and run-to-run variance in experiment summaries
 - Negation handling in the active-disease check: "denies joint pain" still counts as evidence (see [Evaluation](#evaluation))
 
@@ -165,7 +187,7 @@ medical-necessity/
 │   └── lib/api.ts
 │
 └── .github/workflows/
-    └── evals.yml                  # eval gate on PR (not built; a placeholder step)
+    └── evals.yml                  # CI: API and harness tests (scripted models) and the web build
 ```
 
 ---
