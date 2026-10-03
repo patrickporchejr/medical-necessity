@@ -16,6 +16,43 @@ each assertion's `text` are dropped and the patient id is cut to its 8-character
 the placeholder ids cited, the verify and ground-truth flags, scores, tokens and per-node seconds are kept.
 Each trimmed file names its source and what was dropped.
 
+## Run 3: the final run, with the repair loop and the schema retry
+
+Run 2026-10-03 with `python evals/experiment.py --repeat 3`, at commit `e256eaf` (the repair loop from MED-5, the
+schema retry and the repair fallback from MED-6), clean tree. Same dataset, cases and as of date as Run 2: 11 cases
+x 3 runs = 33 runs per model, 6 of them on the no-model `gap_packet` route. Each packet is scored twice: the model's
+first draft (`first_pass_*`) and the final packet after any repair, so the loop cannot hide model quality.
+
+| | claude-haiku-4-5 | gemini-3.8-flash |
+|---|---|---|
+| packet_fully_correct, first draft → final | 0.970 (32/33) → 1.000 | 1.000 → 1.000 |
+| decisions_correct, first draft → final | 0.970 → 1.000 | 1.000 → 1.000 |
+| citation_resolution_rate, first draft → final | 1.000 → 1.000 | 1.000 → 1.000 |
+| gap_accuracy, first draft → final | 0.992 → 1.000 | 1.000 → 1.000 |
+| Runs repaired | 1 of 33 | 0 |
+| Repair calls that failed | 0 | 0 |
+| Replies that needed the schema retry | 0 | 0 |
+| verify agrees with ground truth | 33/33 | 33/33 |
+| Run failures (error or refusal) | 0 | 0 |
+| Tokens per run, in / out | 1,218 / 299 | 602 / 781 (thinking included) |
+| Estimated cost per run (all 33, the 6 no-model runs at $0) | $0.0027 | $0.0034 |
+| Estimated cost of the run | $0.09 | $0.11 |
+
+Source: [`results/run-3/experiment_20261003T181114Z.json`](results/run-3/experiment_20261003T181114Z.json).
+
+What it shows:
+- **The repair loop fired once in 66 runs, and fixed what it was sent.** Haiku's one miss was a wrong call on a
+  case with no methotrexate order and active-disease notes (`ra-active/no-order/active-notes · 875ecf6d`). verify
+  flagged it, the criterion went back with verify's reasons, and the repaired packet was fully correct. Because the
+  repair is told verify's verdict, the honest model number is the first-draft one: 0.970 for Haiku, 1.000 for Gemini.
+- **Haiku's first drafts improved on Run 2** (0.909 → 0.970 fully correct, citation resolution 0.926 → 1.000) with
+  no change to the extract or verify rules. Run 2's misses were ids not in the patient's chart; none recurred. With
+  3 runs per case this is within what run-to-run variation could produce, so it is not claimed as an improvement.
+- **The schema retry and the repair fallback never triggered.** Both are covered by tests against scripted models;
+  on these two models every reply validated the first time.
+- Same caveat as every run: ground truth shares `verify`'s rules, so "verify agrees with ground truth" checks the
+  wiring, not whether the rules are right (the active-disease check ignores negation, for one).
+
 ## Run 2: the dataset, both cheap models, repeated
 
 Run 2026-09-21 with `python evals/experiment.py --repeat 3`. As of date pinned to 2026-09-20 (`AS_OF_DATE`).

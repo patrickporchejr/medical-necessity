@@ -2,7 +2,9 @@
 
 A clinical evaluation engine built with **LangGraph** and **LangSmith** to automate prior authorization and medical necessity checks.
 
-The agent reads a synthetic patient chart through MCP FHIR tools, gathers the chart evidence for each of the payer's criteria, drafts the medical-necessity packet, and verifies that every assertion in that packet resolves to a real record in the chart. A human reviewer approving, editing, or rejecting the packet is planned (see [Status](#status)).
+The agent reads a synthetic patient chart through MCP FHIR tools, gathers the chart evidence for each of the payer's criteria, drafts the medical-necessity packet, and verifies that every assertion in that packet resolves to a real record in the chart. A reviewer dashboard shows the packet criterion by criterion, with verify's verdict and the chart record behind every citation.
+
+**Project status: complete as a demo; no further development is planned.** See [Status](#status) for what is built and what was left out.
 
 New to the domain or the acronyms? See the [Glossary](GLOSSARY.md).
 
@@ -23,6 +25,7 @@ New to the domain or the acronyms? See the [Glossary](GLOSSARY.md).
 - LangSmith
 - Python / Asyncio / FastAPI
 - MCP (FastMCP) for chart access
+- Next.js for the reviewer dashboard
 - Presidio for pattern-based de-identification
 
 ## Status
@@ -35,12 +38,15 @@ Built:
 - Metadata-only LangSmith tracing (`api/app/observability.py`)
 - Evals: one-patient runs, LangSmith experiments, the citation resolution metric and recorded results (`evals/`)
 
-Planned:
-- API routes to create and fetch a case, stream node events and record a review (`api/app/routes/`, stubs). The FastAPI app serves only a hello-world endpoint today.
-- Reviewer dashboard: case queue, packet view, citation trace, approve · edit · reject (`web/`, placeholder pages)
-- Audit trail of reviewer decisions (`api/app/audit/log.py`, a stub)
-- Eval gate on PRs (`.github/workflows/evals.yml`, a placeholder step)
-- Latency in experiment summaries
+- Case API: list patients, create a case, run it in the background, fetch it with its node events, the rehydrated packet, verify's verdicts and each cited record (`api/app/routes/cases.py`). Cases are kept in memory.
+- Reviewer dashboard: a case queue with a new-case form, and a case page with the node timeline, the packet, verify's flags and the citation trace (`web/`)
+
+Not built (the project stopped here):
+- Approve · edit · reject, and an audit trail of reviewer decisions
+- Persistent cases (a database) and a live SSE stream; the dashboard polls instead
+- An eval gate on PRs (`.github/workflows/evals.yml` is a placeholder step)
+- Latency and run-to-run variance in experiment summaries
+- Negation handling in the active-disease check: "denies joint pain" still counts as evidence (see [Evaluation](#evaluation))
 
 ### The PHI boundary
 
@@ -56,8 +62,8 @@ This is the design decision worth arguing about, and the six questions it exists
 | Is anything retained for training? | The payload is de-identified regardless. Zero data retention is a setting on the provider account; nothing in this code configures it |
 | How is context minimized?          | `extract` scopes retrieval to the criteria; the full chart is never sent |
 | What's logged, and where?          | Metadata-only spans; prompt capture is opt-in; the re-ID map never logged |
-| How is output attributed?          | An evidence assertion cites records by `resource_type` and id: a Condition, MedicationRequest, Observation or DocumentReference. `verify` flags one with no citations. Showing them in the UI is planned |
-| What's the audit trail?            | Planned: reviewer decision, timestamp, and diff against the draft        |
+| How is output attributed?          | An evidence assertion cites records by `resource_type` and id: a Condition, MedicationRequest, Observation or DocumentReference. `verify` flags one with no citations. The dashboard shows each citation with the record it resolves to |
+| What's the audit trail?            | Not built: the dashboard shows the packet and its verdicts, but reviewer decisions are not recorded |
 
 ### The graph
 
@@ -70,7 +76,7 @@ extract ─┬─ ra_diagnosis established ──▶ assemble ───┬─▶
          └─ not established ───────────▶ gap_packet ─┘          model-drafted, repairs left (max 1)
 ```
 
-The routing decision is the conditional edge after `extract`, made by `route_after_extract` with the same `established` rule `verify` and the eval ground truth use. Without an active diagnosis no packet can be approved, so there is nothing for a model to weigh. `run_pipeline` in the same module is the one way a case is run, by the evals today and by the API once its routes are built: it makes the per-run vault, PHI gateway and prompt guard, and reports progress as events that carry metadata only. The events follow whichever node actually ran.
+The routing decision is the conditional edge after `extract`, made by `route_after_extract` with the same `established` rule `verify` and the eval ground truth use. Without an active diagnosis no packet can be approved, so there is nothing for a model to weigh. `run_pipeline` in the same module is the one way a case is run, by the evals and the API alike: it makes the per-run vault, PHI gateway and prompt guard, and reports progress as events that carry metadata only. The events follow whichever node actually ran.
 
 The repair loop is the conditional edge after `verify` (`route_after_verify`). The repair call sees only the flagged and unaddressed criteria: their evidence, what the model wrote, and verify's reasons. Its answers replace those criteria and nothing else. A criterion it leaves out keeps its old assertion, still flagged. Because verify's reasons are its verdict, verify is no longer independent for a repaired criterion, so the first packet is kept (`draft_packet`, `draft_verification`) and evals report `first_pass_*` scores next to the final ones. A code-written gap packet never loops. If the repair call gives no usable answer (a refusal, or a reply that still fails validation after its retry), the first packet goes to the reviewer with its flags and `repair_failed` records why; a PHI-guard hit still fails the run.
 
@@ -81,7 +87,7 @@ The repair loop is the conditional edge after `verify` (`route_after_verify`). T
 
 ### Evaluation
 
-The eval dataset runs as LangSmith experiments (`evals/experiment.py`), one per model, scored against Synthea ground truth. There is no LLM-judged faithfulness metric in the MVP: it would add a model call (and cost) to every run, and `verify` already checks what a payer would reject. Known limit: nothing checks that an assertion's *wording* is faithful to the source it cites, only that the citation exists and bears on the criterion.
+The eval dataset runs as LangSmith experiments (`evals/experiment.py`), one per model, scored against Synthea ground truth. There is no LLM-judged faithfulness metric in the MVP: it would add a model call (and cost) to every run, and `verify` already checks what a payer would reject. Known limits: nothing checks that an assertion's *wording* is faithful to the source it cites, only that the citation exists and bears on the criterion. And the active-disease check matches keywords without negation, so a note line such as "denies joint pain" counts as evidence; the eval's ground truth shares that rule, so the evals cannot catch it.
 
 The metric that matters here is **citation resolution rate**: of the assertions the agent makes in a packet, what fraction point at a record that exists _and_ actually supports the claim. It's domain-specific, it's the thing a payer would reject the packet over, and it's scored against Synthea ground truth rather than an LLM judge.
 
@@ -103,10 +109,8 @@ medical-necessity/
 │   │   ├── main.py
 │   │   ├── config.py
 │   │   ├── observability.py       # LangSmith client with a metadata-only allowlist
-│   │   ├── routes/                # planned; stubs today
-│   │   │   ├── cases.py           # create / fetch a prior auth case
-│   │   │   ├── stream.py          # SSE node events to the dashboard
-│   │   │   └── review.py          # approve · edit · reject
+│   │   ├── routes/
+│   │   │   └── cases.py           # patients; create, run and fetch a case (in memory)
 │   │   ├── graph/
 │   │   │   ├── build.py           # LangGraph StateGraph wiring, the route, run_pipeline
 │   │   │   ├── state.py           # typed graph state
@@ -130,11 +134,10 @@ medical-necessity/
 │   │   │   └── prompts/
 │   │   ├── mcp/
 │   │   │   ├── server.py          # FastMCP server (streamable HTTP, :8001)
+│   │   │   ├── client.py          # opens a session; reconnects when the server restarts
 │   │   │   ├── tools.py           # FHIR read tools exposed to the agent
 │   │   │   ├── models.py          # typed tool results; id + resource_type = the citation
 │   │   │   └── store.py           # lazy per-patient loader over the Synthea bundles
-│   │   └── audit/
-│   │       └── log.py             # planned; stub today
 │   └── tests/
 │
 ├── data/
@@ -152,17 +155,17 @@ medical-necessity/
 │   ├── test_*.py                  # harness tests against scripted models
 │   └── RESULTS.md                 # scores across both providers
 │
-├── web/                           # Next.js reviewer dashboard (planned; placeholder pages)
+├── web/                           # Next.js reviewer dashboard
 │   ├── app/
-│   │   ├── page.tsx               # case queue
-│   │   └── cases/[id]/page.tsx
-│   └── components/
-│       ├── PacketView.tsx
-│       ├── CitationTrace.tsx      # assertion → source record
-│       └── ReviewActions.tsx
+│   │   ├── page.tsx               # case queue and new-case form
+│   │   └── cases/[id]/page.tsx    # timeline, summary, packet
+│   ├── components/
+│   │   ├── PacketView.tsx         # criterion by criterion, with verify's verdict
+│   │   └── CitationTrace.tsx      # assertion → source record
+│   └── lib/api.ts
 │
 └── .github/workflows/
-    └── evals.yml                  # eval gate on PR (planned; placeholder step)
+    └── evals.yml                  # eval gate on PR (not built; a placeholder step)
 ```
 
 ---
@@ -175,7 +178,16 @@ cp .env.example .env               # set LLM_PROVIDER (anthropic | gemini) and i
 docker compose up
 ```
 
-Dashboard on `:3000`, API on `:8000`, MCP server on `:8001`. The dashboard and API are placeholders today (see [Status](#status)); the MCP server serves the chart tools.
+Dashboard on `:3000`, API on `:8000`, MCP server on `:8001`.
+
+### The demo, in two minutes
+
+1. Open <http://localhost:3000>, pick a patient and press **Start case**. Loyd638 is a good first one: an active RA diagnosis, notes showing active disease, and a completed methotrexate order whose duration the chart cannot establish, so that criterion is a gap.
+2. The case page follows the nodes as they run (`extract → assemble → verify`), then shows the packet: each criterion as evidence or a gap, verify's verdict, and for every citation the chart record it resolves to (open a note to read it).
+3. Pick Denis399, whose RA diagnosis is not active: the timeline goes `extract → gap_packet → verify`, and the summary says no model was called.
+4. A flagged assertion, when a model overclaims, is shown in red with verify's reasons; if the repair loop ran, the summary names the criteria that went back to the model.
+
+Cases live in the API's memory, so restarting it clears the queue. The API needs a provider key in `.env`; without one it still serves, and a case fails with the reason.
 
 The evals run on the host, from the repo root, with the API package installed:
 

@@ -2,8 +2,12 @@ services:
   api:
     build: ./api
     env_file: .env
+    environment:
+      MCP_URL: http://mcp:8001/mcp
     ports: ["8000:8000"]
-    volumes: ["./api:/srv"]
+    # The API reads the chart only through the mcp service; it needs the payer criteria itself.
+    volumes: ["./api:/srv", "./data/payer_criteria:/data/payer_criteria:ro"]
+    depends_on: [mcp]
   mcp:
     build: ./api
     env_file: .env

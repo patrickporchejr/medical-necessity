@@ -11,19 +11,18 @@ against ground truth from the raw bundles. Traces go to LangSmith when a key is 
 import argparse
 import asyncio
 import json
-from contextlib import asynccontextmanager
 from dataclasses import asdict, dataclass, field
 from datetime import date, datetime, timezone
 from pathlib import Path
 
 from langsmith import trace
 from mcp import ClientSession
-from mcp.shared.memory import create_connected_server_and_client_session
 
 from app.config import settings
 from app.graph.build import PipelineEvent, run_pipeline
 from app.graph.state import Packet
 from app.llm.client import LLMClient, build_client
+from app.mcp.client import connect
 from app.observability import flush, setup_observability, tracing
 from dataset import GroundTruth, open_ground_truth
 from metrics.citation_resolution import score_packet
@@ -153,23 +152,6 @@ def resolve_patient(truth: GroundTruth, wanted: str) -> str:
         found = ", ".join(c.name for c in matches[:5]) or "nothing"
         raise SystemExit(f"--patient {wanted!r} must match exactly one patient (matched: {found})")
     return matches[0].patient_id
-
-
-@asynccontextmanager
-async def connect(mcp_url: str | None):
-    if mcp_url is None:
-        from app.mcp.server import build_server
-
-        server = build_server(settings.fhir_dir, settings.criteria_dir)
-        async with create_connected_server_and_client_session(server._mcp_server) as session:
-            yield session
-    else:
-        from mcp.client.streamable_http import streamablehttp_client
-
-        async with streamablehttp_client(mcp_url) as (read, write, _):
-            async with ClientSession(read, write) as session:
-                await session.initialize()
-                yield session
 
 
 def format_result(result: CaseResult, real: Packet | None) -> str:
