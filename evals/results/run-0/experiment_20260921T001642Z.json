@@ -1,0 +1,2054 @@
+{
+  "dataset": "prior-auth-adalimumab-ra",
+  "as_of": "2026-09-20",
+  "experiments": [
+    {
+      "experiment": "anthropic:claude-opus-5",
+      "runs": 33,
+      "task_failures": 0,
+      "averages": {
+        "scores": {
+          "gap_accuracy": 0.9636363636363636,
+          "citation_resolution_rate": 1.0,
+          "citation_level_rate": 1.0
+        },
+        "assertions": 0.9090909090909091
+      },
+      "tokens": {
+        "input": 61296,
+        "output": 17044
+      },
+      "estimated_cost_usd": 0.7326,
+      "cases": [
+        {
+          "name": "no-order/active-notes \u00b7 55b0826b [1/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/active-notes \u00b7 55b0826b [2/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/active-notes \u00b7 55b0826b [3/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/active-notes \u00b7 875ecf6d [1/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/active-notes \u00b7 875ecf6d [2/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/active-notes \u00b7 875ecf6d [3/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/no-active-notes \u00b7 c106918a [1/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/no-active-notes \u00b7 c106918a [2/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/no-active-notes \u00b7 c106918a [3/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/no-active-notes \u00b7 d1b49867 [1/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/no-active-notes \u00b7 d1b49867 [2/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/no-active-notes \u00b7 d1b49867 [3/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/active-notes \u00b7 631bf667 [1/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/active-notes \u00b7 631bf667 [2/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/active-notes \u00b7 631bf667 [3/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/active-notes \u00b7 ee8b3e65 [1/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/active-notes \u00b7 ee8b3e65 [2/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/active-notes \u00b7 ee8b3e65 [3/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/no-active-notes \u00b7 7aefca51 [1/3]",
+          "scores": {
+            "gap_accuracy": 0.8
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": false,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/no-active-notes \u00b7 7aefca51 [2/3]",
+          "scores": {
+            "gap_accuracy": 0.8
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": false,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/no-active-notes \u00b7 7aefca51 [3/3]",
+          "scores": {
+            "gap_accuracy": 0.8
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": false,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/no-active-notes \u00b7 9d05650c [1/3]",
+          "scores": {
+            "gap_accuracy": 0.8
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": false,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/no-active-notes \u00b7 9d05650c [2/3]",
+          "scores": {
+            "gap_accuracy": 0.8
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": false,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/no-active-notes \u00b7 9d05650c [3/3]",
+          "scores": {
+            "gap_accuracy": 0.8
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": false,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/active-notes \u00b7 405b7002 [1/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/active-notes \u00b7 405b7002 [2/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/active-notes \u00b7 405b7002 [3/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/active-notes \u00b7 62faaba8 [1/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/active-notes \u00b7 62faaba8 [2/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/active-notes \u00b7 62faaba8 [3/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/no-active-notes \u00b7 18806782 [1/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/no-active-notes \u00b7 18806782 [2/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/no-active-notes \u00b7 18806782 [3/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "experiment": "anthropic:claude-sonnet-5",
+      "runs": 33,
+      "task_failures": 0,
+      "averages": {
+        "scores": {
+          "gap_accuracy": 1.0,
+          "citation_resolution_rate": 0.09090909090909091,
+          "citation_level_rate": 0.09090909090909091
+        },
+        "assertions": 0.7727272727272727
+      },
+      "tokens": {
+        "input": 61296,
+        "output": 16524
+      },
+      "estimated_cost_usd": 0.2878,
+      "cases": [
+        {
+          "name": "no-order/active-notes \u00b7 55b0826b [1/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/active-notes \u00b7 55b0826b [2/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/active-notes \u00b7 55b0826b [3/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/active-notes \u00b7 875ecf6d [1/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/active-notes \u00b7 875ecf6d [2/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/active-notes \u00b7 875ecf6d [3/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/no-active-notes \u00b7 c106918a [1/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/no-active-notes \u00b7 c106918a [2/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/no-active-notes \u00b7 c106918a [3/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/no-active-notes \u00b7 d1b49867 [1/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/no-active-notes \u00b7 d1b49867 [2/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/no-active-notes \u00b7 d1b49867 [3/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/active-notes \u00b7 631bf667 [1/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/active-notes \u00b7 631bf667 [2/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/active-notes \u00b7 631bf667 [3/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/active-notes \u00b7 ee8b3e65 [1/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/active-notes \u00b7 ee8b3e65 [2/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/active-notes \u00b7 ee8b3e65 [3/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/no-active-notes \u00b7 7aefca51 [1/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/no-active-notes \u00b7 7aefca51 [2/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/no-active-notes \u00b7 7aefca51 [3/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/no-active-notes \u00b7 9d05650c [1/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/no-active-notes \u00b7 9d05650c [2/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/no-active-notes \u00b7 9d05650c [3/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/active-notes \u00b7 405b7002 [1/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/active-notes \u00b7 405b7002 [2/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/active-notes \u00b7 405b7002 [3/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/active-notes \u00b7 62faaba8 [1/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/active-notes \u00b7 62faaba8 [2/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/active-notes \u00b7 62faaba8 [3/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/no-active-notes \u00b7 18806782 [1/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/no-active-notes \u00b7 18806782 [2/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/no-active-notes \u00b7 18806782 [3/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "experiment": "anthropic:claude-haiku-4-5",
+      "runs": 33,
+      "task_failures": 0,
+      "averages": {
+        "scores": {
+          "gap_accuracy": 1.0,
+          "citation_resolution_rate": 0.0,
+          "citation_level_rate": 0.0
+        },
+        "assertions": 0.75
+      },
+      "tokens": {
+        "input": 45225,
+        "output": 11279
+      },
+      "estimated_cost_usd": 0.1016,
+      "cases": [
+        {
+          "name": "no-order/active-notes \u00b7 55b0826b [1/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/active-notes \u00b7 55b0826b [2/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/active-notes \u00b7 55b0826b [3/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/active-notes \u00b7 875ecf6d [1/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/active-notes \u00b7 875ecf6d [2/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/active-notes \u00b7 875ecf6d [3/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/no-active-notes \u00b7 c106918a [1/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/no-active-notes \u00b7 c106918a [2/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/no-active-notes \u00b7 c106918a [3/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/no-active-notes \u00b7 d1b49867 [1/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/no-active-notes \u00b7 d1b49867 [2/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/no-active-notes \u00b7 d1b49867 [3/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/active-notes \u00b7 631bf667 [1/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/active-notes \u00b7 631bf667 [2/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/active-notes \u00b7 631bf667 [3/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/active-notes \u00b7 ee8b3e65 [1/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/active-notes \u00b7 ee8b3e65 [2/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/active-notes \u00b7 ee8b3e65 [3/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/no-active-notes \u00b7 7aefca51 [1/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/no-active-notes \u00b7 7aefca51 [2/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/no-active-notes \u00b7 7aefca51 [3/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/no-active-notes \u00b7 9d05650c [1/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/no-active-notes \u00b7 9d05650c [2/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/no-active-notes \u00b7 9d05650c [3/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/active-notes \u00b7 405b7002 [1/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/active-notes \u00b7 405b7002 [2/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/active-notes \u00b7 405b7002 [3/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/active-notes \u00b7 62faaba8 [1/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/active-notes \u00b7 62faaba8 [2/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/active-notes \u00b7 62faaba8 [3/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/no-active-notes \u00b7 18806782 [1/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/no-active-notes \u00b7 18806782 [2/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/no-active-notes \u00b7 18806782 [3/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "experiment": "gemini:gemini-3.8-flash",
+      "runs": 33,
+      "task_failures": 0,
+      "averages": {
+        "scores": {
+          "gap_accuracy": 1.0,
+          "citation_resolution_rate": 0.8484848484848484,
+          "citation_level_rate": 0.8484848484848484
+        },
+        "assertions": 0.962121212121212
+      },
+      "tokens": {
+        "input": 22077,
+        "output": 11807
+      },
+      "estimated_cost_usd": 0.0608,
+      "cases": [
+        {
+          "name": "no-order/active-notes \u00b7 55b0826b [1/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/active-notes \u00b7 55b0826b [2/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/active-notes \u00b7 55b0826b [3/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/active-notes \u00b7 875ecf6d [1/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/active-notes \u00b7 875ecf6d [2/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/active-notes \u00b7 875ecf6d [3/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/no-active-notes \u00b7 c106918a [1/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/no-active-notes \u00b7 c106918a [2/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/no-active-notes \u00b7 c106918a [3/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/no-active-notes \u00b7 d1b49867 [1/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/no-active-notes \u00b7 d1b49867 [2/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "no-order/no-active-notes \u00b7 d1b49867 [3/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/active-notes \u00b7 631bf667 [1/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/active-notes \u00b7 631bf667 [2/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/active-notes \u00b7 631bf667 [3/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/active-notes \u00b7 ee8b3e65 [1/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/active-notes \u00b7 ee8b3e65 [2/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/active-notes \u00b7 ee8b3e65 [3/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/no-active-notes \u00b7 7aefca51 [1/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/no-active-notes \u00b7 7aefca51 [2/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/no-active-notes \u00b7 7aefca51 [3/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/no-active-notes \u00b7 9d05650c [1/3]",
+          "scores": {
+            "citation_resolution_rate": 0.0,
+            "citation_level_rate": 0.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": false,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/no-active-notes \u00b7 9d05650c [2/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-not-shown/no-active-notes \u00b7 9d05650c [3/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/active-notes \u00b7 405b7002 [1/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/active-notes \u00b7 405b7002 [2/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/active-notes \u00b7 405b7002 [3/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/active-notes \u00b7 62faaba8 [1/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/active-notes \u00b7 62faaba8 [2/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/active-notes \u00b7 62faaba8 [3/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/no-active-notes \u00b7 18806782 [1/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/no-active-notes \u00b7 18806782 [2/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "trial-shown/no-active-notes \u00b7 18806782 [3/3]",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        }
+      ]
+    }
+  ]
+}

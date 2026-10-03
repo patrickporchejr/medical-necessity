@@ -1,0 +1,134 @@
+{
+  "dataset": "prior-auth-adalimumab-ra",
+  "as_of": "2026-09-20",
+  "experiments": [
+    {
+      "experiment": "anthropic:claude-haiku-4-5",
+      "runs": 3,
+      "task_failures": 0,
+      "averages": {
+        "scores": {
+          "gap_accuracy": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_level_rate": 1.0
+        },
+        "assertions": 1.0
+      },
+      "tokens": {
+        "input": 4156,
+        "output": 937
+      },
+      "estimated_cost_usd": 0.0088,
+      "cases": [
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 7aefca51",
+          "scores": {
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 9d05650c",
+          "scores": {
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 631bf667",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "experiment": "gemini:gemini-3.8-flash",
+      "runs": 3,
+      "task_failures": 0,
+      "averages": {
+        "scores": {
+          "gap_accuracy": 1.0,
+          "citation_resolution_rate": 1.0,
+          "citation_level_rate": 1.0
+        },
+        "assertions": 1.0
+      },
+      "tokens": {
+        "input": 2047,
+        "output": 2086
+      },
+      "estimated_cost_usd": 0.0094,
+      "cases": [
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 7aefca51",
+          "scores": {
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 9d05650c",
+          "scores": {
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 631bf667",
+          "scores": {
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0
+          },
+          "assertions": {
+            "completed": true,
+            "decisions_correct": true,
+            "packet_fully_correct": true,
+            "ids_well_formed": true,
+            "verify_matches_truth": true
+          },
+          "error": null
+        }
+      ]
+    }
+  ]
+}
