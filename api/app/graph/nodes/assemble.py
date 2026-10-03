@@ -49,6 +49,7 @@ class PacketDraft(BaseModel):
 def _summarize(update: dict[str, Any]) -> dict[str, Any]:
     assertions = update["packet"].assertions
     return {
+        "route": update["route"],
         "assembled_by": update["assembled_by"],
         "assertions": len(assertions),
         "evidence_assertions": sum(a.kind == "evidence" for a in assertions),
@@ -67,6 +68,7 @@ async def assemble(state: CaseState, criteria: Criteria, llm: LLMClient) -> dict
     packet = Packet(service=state.service or criteria.service, assertions=assertions)
     return {
         "packet": packet,
+        "route": "assemble",
         "assembled_by": f"{result.provider}:{result.model}",
         "llm_usage": {
             "input_tokens": result.input_tokens,

@@ -308,6 +308,27 @@ async def test_a_failed_run_reports_completed_false_and_no_scores(truth):
 
 @needs_cohort
 @pytest.mark.anyio
+async def test_ra_not_active_cases_cost_nothing_and_the_summary_shows_it(truth):
+    rows = await evaluate(truth, Scripted(faithful_from_prompt), ["Loyd638", "Denis399"])
+    summary = summarize("anthropic:claude-haiku-4-5-20251001", "anthropic", "claude-haiku-4-5-20251001", rows)
+    by_route = {c["route"]: c for c in summary["cases"]}
+    assert by_route["gap_packet"]["name"].startswith("ra-not-active/")
+    assert by_route["gap_packet"]["estimated_cost_usd"] == 0.0 and by_route["assemble"]["estimated_cost_usd"] > 0
+    assert summary["routes"]["gap_packet"] == {"runs": 1, "estimated_cost_usd": 0.0}
+    assert summary["routes"]["assemble"]["runs"] == 1
+    assert all(s for s in by_route["gap_packet"]["scores"].values())
+
+
+def test_a_gap_packet_run_costs_nothing_even_for_a_model_with_no_known_price():
+    rows = [Row(name="ra-not-active/x · 0a1b2c3d", key="0a1b2c3d", scores={"completed": True},
+                output={"route": "gap_packet", "input_tokens": 0, "output_tokens": 0}, error=None)]
+    summary = summarize("anthropic:no-such-model", "anthropic", "no-such-model", rows)
+    assert summary["cases"][0]["estimated_cost_usd"] == 0.0
+    assert summary["routes"] == {"gap_packet": {"runs": 1, "estimated_cost_usd": 0.0}}
+
+
+@needs_cohort
+@pytest.mark.anyio
 async def test_what_langsmith_would_store_holds_nothing_identifying(truth, ls):
     patient_id = resolve_patient(truth, "Loyd638")
     [row] = await evaluate(truth, Scripted(faithful_from_prompt), ["Loyd638"])

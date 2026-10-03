@@ -107,7 +107,7 @@ async def test_a_faithful_model_on_the_completed_order_patient_scores_perfectly(
     assert (result.citation_resolution_rate, result.gap_accuracy) == (1.0, 1.0)
     assert result.verify_agrees_with_truth and all(a["verify_supported"] for a in result.assertions)
     assert result.model == "fake:scripted" and (result.input_tokens, result.output_tokens) == (100, 50)
-    assert set(result.seconds) == {"extract", "assemble", "verify"}
+    assert result.route == "assemble" and set(result.seconds) == {"extract", "assemble", "verify"}
 
 
 @needs_cohort
@@ -166,23 +166,32 @@ def test_ground_truth_requires_an_active_diagnosis(truth):
 
 @needs_cohort
 @pytest.mark.anyio
-async def test_a_faithful_model_writes_a_gap_for_a_resolved_diagnosis(truth):
-    result, _ = await run(truth, "Denis399", faithful_from_prompt)
+async def test_a_resolved_diagnosis_gets_a_gap_packet_with_no_model_call(truth):
+    result, real = await run(truth, "Denis399", faithful_from_prompt)
+    assert result.ok, result.error
+    assert result.route == "gap_packet" and result.model is None
+    assert (result.input_tokens, result.output_tokens) == (0, 0)
+    assert set(result.seconds) == {"extract", "gap_packet", "verify"}
     kinds = {a["criterion_id"]: a["kind"] for a in result.assertions}
     assert kinds["ra_diagnosis"] == "gap" and set(kinds.values()) == {"gap"}
+    assert all(a["verify_supported"] for a in result.assertions)
     assert result.gap_accuracy == 1.0 and result.verify_agrees_with_truth
+    assert "no model called" in format_result(result, real)
 
 
 @needs_cohort
 @pytest.mark.anyio
-async def test_claiming_a_resolved_diagnosis_is_caught_and_verify_agrees(truth):
+async def test_a_model_that_would_claim_a_resolved_diagnosis_is_never_asked(truth):
+    """Before the conditional edge, this model's claim reached verify and was flagged there.
+    Now the case never reaches a model, so neither a naive nor a refusing one changes it."""
     from test_run import naive_ra_from_prompt as naive
 
-    result, real = await run(truth, "Denis399", naive)
-    ra = next(a for a in result.assertions if a["criterion_id"] == "ra_diagnosis")
-    assert ra["kind"] == "evidence" and not ra["verify_supported"] and not ra["truth_resolved"]
-    assert result.verify_agrees_with_truth
-    assert "does not establish" in " ".join(ra["reasons"])
+    for llm in (Scripted(naive), Refusing()):
+        async with connect(None) as session:
+            result, _ = await run_case(session, llm, resolve_patient(truth, "Denis399"), truth, AS_OF)
+        assert result.ok and result.route == "gap_packet" and result.verify_agrees_with_truth
+        ra = next(a for a in result.assertions if a["criterion_id"] == "ra_diagnosis")
+        assert ra["kind"] == "gap" and ra["verify_supported"] and ra["truth_resolved"]
 
 
 # --- plumbing -----------------------------------------------------------------------------------

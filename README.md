@@ -8,7 +8,7 @@ The agent reads a synthetic patient chart through MCP FHIR tools, gathers the ch
 <img width="831" height="581" alt="image" src="https://github.com/user-attachments/assets/8defb40f-0eec-4b05-adb4-253ee0c14ff4" />
 
 ## Key Features
-- **Stateful Routing (in progress):** the graph is a LangGraph `StateGraph` with typed state, but its edges are a straight line today. Conditional edges for clinical policy evaluation are planned.
+- **Stateful Routing:** the graph is a LangGraph `StateGraph` with typed state and one conditional edge. After `extract`, a case whose RA diagnosis is not established (absent, or resolved rather than active) skips the model: code writes the packet, so the case costs no tokens. The route taken is recorded in the state, in the run's events and in LangSmith.
 - **Observability & Evals:** With a LangSmith key set, every run is traced, and the evals score each model as an experiment: citation resolution against ground truth, decision accuracy, tokens and estimated cost. Per-node timings are captured, and `evals/run.py` prints them, but experiment summaries do not report latency yet.
 - **Deterministic Guardrails:** they fail closed. A model reply that does not match the schema raises and the run stops; there is no retry. A tool error in `extract` stops the run. In `verify`, a citation that cannot be fetched counts as not found and its assertion is flagged. The one fallback is the provider's: on Claude Opus 5 and Fable, a refusal is re-run server-side on another model.
 
@@ -28,13 +28,12 @@ The agent reads a synthetic patient chart through MCP FHIR tools, gathers the ch
 Built:
 - MCP server with read-only FHIR tools over the Synthea bundles (`api/app/mcp/`)
 - The PHI boundary: gateway, vault, date shifting, rehydration and the outbound prompt guard (`api/app/phi/`, `api/app/llm/guard.py`)
-- The graph, `extract → assemble → verify`, and `run_pipeline`, the one runner for a case (`api/app/graph/`)
+- The graph, `extract → assemble | gap_packet → verify`, and `run_pipeline`, the one runner for a case (`api/app/graph/`)
 - Anthropic and Gemini clients on LangChain chat models (`api/app/llm/langchain_client.py`)
 - Metadata-only LangSmith tracing (`api/app/observability.py`)
 - Evals: one-patient runs, LangSmith experiments, the citation resolution metric and recorded results (`evals/`)
 
 Planned:
-- Conditional routing in the graph
 - API routes to create and fetch a case, stream node events and record a review (`api/app/routes/`, stubs). The FastAPI app serves only a hello-world endpoint today.
 - Reviewer dashboard: case queue, packet view, citation trace, approve · edit · reject (`web/`, placeholder pages)
 - Audit trail of reviewer decisions (`api/app/audit/log.py`, a stub)
@@ -60,10 +59,18 @@ This is the design decision worth arguing about, and the six questions it exists
 
 ### The graph
 
-Three nodes. Deliberately three. They are plain async functions wired into a LangGraph `StateGraph` in `graph/build.py`, in a line: `extract → assemble → verify`. `run_pipeline` in the same module is the one way a case is run, by the evals today and by the API once its routes are built: it makes the per-run vault, PHI gateway and prompt guard, and reports progress as events that carry metadata only.
+Four nodes, two paths. They are plain async functions wired into a LangGraph `StateGraph` in `graph/build.py`:
+
+```
+extract ─┬─ ra_diagnosis established ──▶ assemble ───┬─▶ verify
+         └─ not established ───────────▶ gap_packet ─┘
+```
+
+The routing decision is the conditional edge after `extract`, made by `route_after_extract` with the same `established` rule `verify` and the eval ground truth use. Without an active diagnosis no packet can be approved, so there is nothing for a model to weigh. `run_pipeline` in the same module is the one way a case is run, by the evals today and by the API once its routes are built: it makes the per-run vault, PHI gateway and prompt guard, and reports progress as events that carry metadata only. The events follow whichever node actually ran.
 
 - **`extract`** — for each criterion in the payer's criteria file, pulls the chart evidence bearing on it via MCP FHIR tools: records filtered by code, and keyword-matching lines from the most recent notes
 - **`assemble`** — drafts the packet against the payer's criteria for that service
+- **`gap_packet`** — writes the packet without a model when the diagnosis is not established: a gap for each criterion the chart does not meet, and an evidence assertion citing the records for any it does
 - **`verify`** — resolves each generated assertion back to a record in the chart; unsupported claims are flagged for the reviewer, never silently dropped
 
 ### Evaluation
@@ -95,13 +102,14 @@ medical-necessity/
 │   │   │   ├── stream.py          # SSE node events to the dashboard
 │   │   │   └── review.py          # approve · edit · reject
 │   │   ├── graph/
-│   │   │   ├── build.py           # LangGraph StateGraph wiring + run_pipeline
+│   │   │   ├── build.py           # LangGraph StateGraph wiring, the route, run_pipeline
 │   │   │   ├── state.py           # typed graph state
 │   │   │   ├── criteria.py        # loads the payer criteria YAML
 │   │   │   ├── support.py         # whether a record bears on a criterion
 │   │   │   └── nodes/
 │   │   │       ├── extract.py
 │   │   │       ├── assemble.py
+│   │   │       ├── gap_packet.py  # the no-model path when the diagnosis is not established
 │   │   │       └── verify.py
 │   │   ├── phi/
 │   │   │   ├── gateway.py         # the only path to the chart; scrubs every tool result
