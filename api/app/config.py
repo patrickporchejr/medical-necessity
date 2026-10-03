@@ -9,8 +9,11 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     llm_provider: Literal["anthropic", "gemini"] = "anthropic"
+    # Exact model ids, so a result can be reproduced: a dated snapshot where the provider has
+    # one, never a floating alias. gemini-3.8-flash has no dated snapshot; it is the exact id
+    # the API reports serving.
     anthropic_api_key: str = ""
-    anthropic_model: str = "claude-haiku-4-5"
+    anthropic_model: str = "claude-haiku-4-5-20251001"
     gemini_api_key: str = ""
     gemini_model: str = "gemini-3.8-flash"
 

@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
 # Synthea invocation + seed -> FHIR R4 bundles in data/synthea/
 #
-# Builds a fixed-seed cohort of adults with an active rheumatoid arthritis
-# diagnosis (SNOMED 69896004). RA is rare (~0.3% of the population) and too rare
-# for Synthea's keep-module mechanism, so we generate batches of patients with
-# sequential seeds, keep the RA patients from each batch, and discard the rest.
-# Seeds and reference date are pinned, so the cohort (and the eval ground truth
-# derived from it) is reproducible.
+# Builds a fixed-seed cohort of adults with a rheumatoid arthritis diagnosis
+# (SNOMED 69896004), active or resolved: a resolved diagnosis is kept on purpose,
+# because "the chart does not show active RA" is one of the situations the eval
+# scores. RA is rare (~0.3% of the population) and too rare for Synthea's
+# keep-module mechanism, so we generate batches of patients with sequential
+# seeds, keep the RA patients from each batch, and discard the rest. The last
+# batch can overshoot TARGET, so the cohort is then trimmed to exactly TARGET
+# (sorted by patient id, first TARGET kept) and its fingerprint printed: the
+# sha256 of the sorted, newline-joined patient ids, the same value the eval
+# summaries record as cohort.sha256. Seeds and reference date are pinned, so the
+# cohort (and the eval ground truth derived from it) is reproducible.
 # Runs Synthea in Docker, so no local JDK is needed (Synthea 4.x requires 17+).
 set -euo pipefail
 
@@ -34,7 +39,8 @@ fi
 find synthea -mindepth 1 ! -name .gitkeep -delete
 mkdir -p synthea/fhir
 
-# Copy RA patient bundles from $1 into $2; print how many were copied.
+# Copy RA patient bundles (any clinical status, see above) from $1 into $2;
+# print how many were copied.
 filter_ra() {
   python3 - "$1" "$2" <<'PY'
 import json, shutil, sys
@@ -77,4 +83,32 @@ for ((batch = 0; batch < MAX_BATCHES && kept < TARGET; batch++)); do
 done
 rm -rf "$RAW"
 
+if ((kept < TARGET)); then
+  echo "Only $kept/$TARGET RA patients after $MAX_BATCHES batches; raise MAX_BATCHES" >&2
+  exit 1
+fi
+
+# Keep exactly $2 bundles in $1: sorted by patient id, the first $2. Print the
+# cohort fingerprint (sha256 of the sorted, newline-joined patient ids).
+trim_cohort() {
+  python3 - "$1" "$2" <<'PY'
+import hashlib, json, sys
+from pathlib import Path
+
+fhir, target = Path(sys.argv[1]), int(sys.argv[2])
+by_id = {}
+for f in fhir.glob("*.json"):
+    bundle = json.loads(f.read_text())
+    [patient] = [e["resource"] for e in bundle["entry"] if e["resource"]["resourceType"] == "Patient"]
+    by_id[patient["id"]] = f
+ids = sorted(by_id)
+for pid in ids[target:]:
+    by_id[pid].unlink()
+kept = ids[:target]
+print(hashlib.sha256("".join(f"{p}\n" for p in kept).encode()).hexdigest())
+PY
+}
+
+fingerprint="$(trim_cohort synthea/fhir "$TARGET")"
 echo "Bundles: $(ls synthea/fhir/*.json | wc -l | tr -d ' ') in data/synthea/fhir/"
+echo "Cohort fingerprint (sha256 of sorted patient ids): $fingerprint"

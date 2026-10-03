@@ -1,3 +1,7 @@
+# Exact versions live in uv.lock, so an eval result (and its cost estimate, priced by
+# genai-prices) can be reproduced. Install from the lock, for the API and the evals alike:
+#     cd api && uv sync --frozen --extra dev     # then run with api/.venv/bin/python
+# After changing a dependency here, run `uv lock` and commit both files.
 [project]
 name = "medical-necessity-api"
 version = "0.1.0"
@@ -12,7 +16,7 @@ dependencies = [
   "langchain-anthropic>=1.7",
   "langchain-google-genai>=4",
   "langsmith>=0.13",
-  "genai-prices",
+  "genai-prices>=0.1.7",  # exact version in uv.lock; it prices the cost estimates
   "presidio-analyzer>=2.2",
   "presidio-anonymizer>=2.2",
   "en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl",

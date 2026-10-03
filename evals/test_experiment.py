@@ -1,5 +1,7 @@
+import hashlib
 import json
 import re
+import subprocess
 import uuid
 from datetime import date
 from types import SimpleNamespace
@@ -8,14 +10,22 @@ import pytest
 
 from dataset import open_ground_truth
 from experiment import (
+    Row,
     build_examples,
     client_for,
+    cohort_fingerprint,
+    git_commit,
+    package_version,
     patient_key,
+    prompt_files,
+    run_config,
     run_experiment,
     sync_dataset,
     score_case,
     select_patients,
+    sha256_of,
     stratum_of,
+    summarize,
 )
 from run import connect, resolve_patient
 from test_run import Refusing, Scripted, faithful_from_prompt, overclaiming_from_prompt
@@ -93,6 +103,98 @@ def test_model_specs_are_parsed_and_validated():
     for bad in ("claude-sonnet-5", "openai:gpt-x", "anthropic:"):
         with pytest.raises(SystemExit):
             client_for(bad)
+
+
+# --- the run config -----------------------------------------------------------------------------
+
+def fake_truth(patient_ids):
+    return SimpleNamespace(store=SimpleNamespace(patient_ids=lambda: list(patient_ids)))
+
+
+def fake_examples(keys):
+    return [SimpleNamespace(inputs={"patient_key": k}) for k in keys]
+
+
+def test_the_config_block_depends_only_on_inputs_and_names_everything_a_result_depends_on():
+    ids = ["c2b0e5c3-0000-4000-8000-000000000002", "0a1b2c3d-0000-4000-8000-000000000001"]
+    make = lambda: run_config("anthropic", "claude-haiku-4-5-20251001", as_of=AS_OF, repeat=3,
+                              examples=fake_examples(["c2b0e5c3", "0a1b2c3d"]), truth=fake_truth(ids))
+    config = make()
+    assert config == make()  # a rerun of the same inputs writes the same block
+    assert set(config) == {"provider", "model", "as_of", "repeat", "dataset", "case_keys", "cohort",
+                           "prompts_sha256", "criteria_sha256", "git_commit", "genai_prices"}
+    assert (config["provider"], config["model"], config["as_of"], config["repeat"]) == (
+        "anthropic", "claude-haiku-4-5-20251001", "2026-09-20", 3)
+    assert config["case_keys"] == ["0a1b2c3d", "c2b0e5c3"]
+    assert config["cohort"] == {"patients": 2, "sha256": cohort_fingerprint(ids)}
+    assert re.fullmatch(r"[0-9a-f]{64}", config["prompts_sha256"])
+    assert re.fullmatch(r"[0-9a-f]{64}", config["criteria_sha256"])
+    assert config["genai_prices"] == package_version("genai-prices") is not None
+    # no full patient id, and nothing that looks like a timestamp
+    text = json.dumps(config)
+    assert not [i for i in ids if i in text]
+    assert not re.search(r"\d{4}-\d{2}-\d{2}T|\d{8}T\d{6}", text)
+
+
+def test_the_cohort_fingerprint_is_the_sha256_of_the_sorted_newline_joined_ids():
+    # the same bytes data/generate.sh hashes when it prints the cohort fingerprint
+    assert cohort_fingerprint(["b", "a"]) == hashlib.sha256(b"a\nb\n").hexdigest()
+    assert cohort_fingerprint(["a", "b"]) == cohort_fingerprint(["b", "a"])
+
+
+def test_a_file_hash_changes_with_content_and_name_but_not_listing_order(tmp_path):
+    (tmp_path / "a.py").write_text("one")
+    (tmp_path / "b.py").write_text("two")
+    files = [tmp_path / "a.py", tmp_path / "b.py"]
+    before = sha256_of(files, tmp_path)
+    assert sha256_of(files[::-1], tmp_path) == before
+    (tmp_path / "b.py").write_text("two!")
+    assert sha256_of(files, tmp_path) != before
+    (tmp_path / "b.py").write_text("two")
+    (tmp_path / "b.py").rename(tmp_path / "c.py")
+    assert sha256_of([tmp_path / "a.py", tmp_path / "c.py"], tmp_path) != before
+
+
+def test_the_git_commit_marks_a_dirty_tree_and_is_none_outside_a_checkout(tmp_path):
+    assert git_commit(tmp_path) is None
+    git = lambda *a: subprocess.run(["git", "-C", str(tmp_path), "-c", "user.name=t", "-c", "user.email=t@t",
+                                     *a], check=True, capture_output=True, text=True).stdout.strip()
+    git("init", "-q")
+    (tmp_path / "f.txt").write_text("x")
+    git("add", "f.txt")
+    git("commit", "-qm", "init")
+    sha = git("rev-parse", "HEAD")
+    assert git_commit(tmp_path) == sha
+    (tmp_path / "untracked.json").write_text("{}")  # e.g. an eval's own output
+    assert git_commit(tmp_path) == sha
+    (tmp_path / "f.txt").write_text("y")
+    assert git_commit(tmp_path) == f"{sha}-dirty"
+
+
+def test_the_prompt_hash_covers_the_system_prompt_and_the_rendered_user_message():
+    names = {p.relative_to(p.parents[2]).as_posix() for p in prompt_files()}
+    assert {"llm/prompts/assemble.py", "graph/nodes/assemble.py"} <= names
+    assert all(p.is_file() for p in prompt_files())
+
+
+def test_a_missing_package_has_no_version():
+    assert package_version("no-such-package-for-medical-necessity") is None
+
+
+def test_the_summary_carries_the_config_block():
+    rows = [Row(name="s · 0a1b2c3d", key="0a1b2c3d", scores={"completed": True}, output={}, error=None)]
+    config = {"model": "m"}
+    assert summarize("anthropic:m", "anthropic", "m", rows, config)["config"] is config
+
+
+@needs_cohort
+def test_the_config_block_for_the_real_dataset_is_stable(truth):
+    examples = build_examples(truth)
+    config = run_config("gemini", "gemini-3.8-flash", as_of=AS_OF, repeat=3, examples=examples, truth=truth)
+    assert config == run_config("gemini", "gemini-3.8-flash", as_of=AS_OF, repeat=3,
+                                examples=examples, truth=open_ground_truth(AS_OF))
+    assert config["cohort"]["patients"] == len(truth.cases())
+    assert config["case_keys"] == sorted(e.inputs["patient_key"] for e in examples)
 
 
 # --- syncing the dataset ------------------------------------------------------------------------
