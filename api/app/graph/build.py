@@ -1,10 +1,14 @@
-"""The case graph: extract -> assemble -> verify, as a LangGraph StateGraph, and the runner
-that puts one real patient through it.
+"""The case graph, as a LangGraph StateGraph, and the runner that puts one real patient
+through it.
 
-Three nodes, in a line, on purpose. The nodes stay plain async functions that take their
-dependencies as arguments; `build_graph` binds those dependencies for one case and wires the
-edges. The gateway and the LLM are per case (each case has its own vault), so the graph is
-built per case too. Compiling is cheap.
+    extract -> assemble   -> verify     the gate criterion is established: a model drafts
+            -> gap_packet -> verify     it is not: code writes the packet, no model call
+
+The one routing decision is after `extract`. Without an active RA diagnosis no packet can be
+approved, so there is nothing for a model to weigh. The nodes stay plain async functions that
+take their dependencies as arguments; `build_graph` binds those dependencies for one case and
+wires the edges. The gateway and the LLM are per case (each case has its own vault), so the
+graph is built per case too. Compiling is cheap.
 
 `run_pipeline` is the one place a case is run, for the API and the evals alike. It owns the
 per-run vault, gateway and prompt guard, and reports progress as events that carry metadata
@@ -22,8 +26,10 @@ from langgraph.graph import END, START, StateGraph
 from app.graph.criteria import Criteria
 from app.graph.nodes.assemble import assemble
 from app.graph.nodes.extract import ChartGateway, extract
+from app.graph.nodes.gap_packet import gap_packet
 from app.graph.nodes.verify import verify
 from app.graph.state import CaseState, Packet, Verification
+from app.graph.support import established
 from app.llm.client import LLMClient
 from app.llm.guard import GuardedLLM
 from app.observability import tracing
@@ -32,7 +38,7 @@ from app.phi.gateway import PhiGateway
 from app.phi.rehydrate import rehydrate
 from app.phi.vault import Vault
 
-NODES = ("extract", "assemble", "verify")  # the order the graph runs them
+GATE = "ra_diagnosis"  # the criterion every other one rests on
 
 
 class ToolSession(Protocol):
@@ -40,6 +46,13 @@ class ToolSession(Protocol):
     client itself: whoever calls the runner holds the session."""
 
     async def call_tool(self, name: str, arguments: dict[str, Any]) -> Any: ...
+
+
+def route_after_extract(state: CaseState) -> Literal["assemble", "gap_packet"]:
+    """Where a case goes once its evidence is in. A criteria file without the gate criterion
+    always goes to the model."""
+    gate = next((e for e in state.evidence if e.criterion_id == GATE), None)
+    return "gap_packet" if gate is not None and not established(gate) else "assemble"
 
 
 def build_graph(gateway: ChartGateway, criteria: Criteria, llm: LLMClient, as_of: date):
@@ -52,16 +65,22 @@ def build_graph(gateway: ChartGateway, criteria: Criteria, llm: LLMClient, as_of
     async def assemble_node(state: CaseState):
         return await assemble(state, criteria, llm)
 
+    async def gap_packet_node(state: CaseState):
+        return await gap_packet(state, criteria, GATE)
+
     async def verify_node(state: CaseState):
         return await verify(state, gateway, criteria)
 
     graph = StateGraph(CaseState)
-    for name, node in zip(NODES, (extract_node, assemble_node, verify_node)):
-        graph.add_node(name, node)
-    graph.add_edge(START, NODES[0])
-    for before, after in zip(NODES, NODES[1:]):
-        graph.add_edge(before, after)
-    graph.add_edge(NODES[-1], END)
+    graph.add_node("extract", extract_node)
+    graph.add_node("assemble", assemble_node)
+    graph.add_node("gap_packet", gap_packet_node)
+    graph.add_node("verify", verify_node)
+    graph.add_edge(START, "extract")
+    graph.add_conditional_edges("extract", route_after_extract, ["assemble", "gap_packet"])
+    graph.add_edge("assemble", "verify")
+    graph.add_edge("gap_packet", "verify")
+    graph.add_edge("verify", END)
     return graph.compile()
 
 
@@ -88,7 +107,7 @@ class PipelineOutcome:
 
 
 EventHandler = Callable[[PipelineEvent], Awaitable[None] | None]
-NODE_FUNCTIONS = {"extract": extract, "assemble": assemble, "verify": verify}
+NODE_FUNCTIONS = {"extract": extract, "assemble": assemble, "gap_packet": gap_packet, "verify": verify}
 
 
 async def run_pipeline(
@@ -113,26 +132,28 @@ async def run_pipeline(
     vault = Vault()
     gateway = PhiGateway(session, Anonymizer(vault))
     seconds: dict[str, float] = {}
-    current = NODES[0]
+    current: str | None = None
     try:
         with tracing():
             state = CaseState(patient_id=await gateway.adopt_patient(patient_id))
             graph = build_graph(gateway, criteria, GuardedLLM(llm, vault), as_of)
-            clock = time.perf_counter()
             try:
-                await emit("node_started", current)
-                async for chunk in graph.astream(state, stream_mode="updates"):
-                    for node, update in chunk.items():  # a line of nodes: one update at a time
-                        state = state.model_copy(update=update)
-                        seconds[node] = round(time.perf_counter() - clock, 2)
-                        summary = NODE_FUNCTIONS[node].summarize(update)
-                        await emit("node_finished", node, {**summary, "seconds": seconds[node]})
-                        clock = time.perf_counter()
-                        if node != NODES[-1]:
-                            current = NODES[NODES.index(node) + 1]
-                            await emit("node_started", current)
+                # "tasks" reports each node as it starts and again when it finishes, so the
+                # events follow whichever branch the graph took. A task's input is the whole
+                # state: it is never read here, let alone sent.
+                async for task in graph.astream(state, stream_mode="tasks"):
+                    node = task["name"]
+                    if "result" not in task:
+                        current, clock = node, time.perf_counter()
+                        await emit("node_started", node)
+                        continue
+                    update = task["result"]
+                    state = state.model_copy(update=update)
+                    seconds[node] = round(time.perf_counter() - clock, 2)
+                    summary = NODE_FUNCTIONS[node].summarize(update)
+                    await emit("node_finished", node, {**summary, "seconds": seconds[node]})
             except Exception as err:
-                await emit("node_failed", current, {
+                await emit("node_failed", current or "graph", {
                     "error_type": type(err).__name__,
                     "error": gateway.anonymizer.scrub_message(str(err)),
                 })

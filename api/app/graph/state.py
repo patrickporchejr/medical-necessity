@@ -112,6 +112,9 @@ class Verification(BaseModel):
 
 class CaseState(BaseModel):
     patient_id: str  # placeholder, never the real id
+    # Which way the graph went after extract: a model drafts the packet ("assemble"), or the
+    # gate criterion is not established and code writes it ("gap_packet").
+    route: Literal["assemble", "gap_packet"] | None = None
     service: str | None = None
     as_of: str | None = None  # the as-of date on this patient's shifted timeline
     evidence: list[CriterionEvidence] = []

@@ -326,6 +326,11 @@ def summarize(spec: str, provider: str, model: str, rows: list[Row], config: dic
     tokens_out = sum(o.get("output_tokens") or 0 for o in outputs)
     cost = estimate_cost(LLMResult(parsed=None, provider=provider, model=model,
                                    input_tokens=tokens_in, output_tokens=tokens_out))
+    case_costs = [case_cost(provider, model, o) for o in outputs]
+    by_route: dict[str, list[float | None]] = {}
+    for o, c in zip(outputs, case_costs):
+        if o.get("route"):
+            by_route.setdefault(o["route"], []).append(c)
     return {
         "experiment": spec,
         "config": config,
@@ -334,15 +339,31 @@ def summarize(spec: str, provider: str, model: str, rows: list[Row], config: dic
         "averages": averages(rows),
         "tokens": {"input": tokens_in, "output": tokens_out},
         "estimated_cost_usd": None if cost is None else round(cost, 4),
-        "cases": [{"name": r.name, "scores": r.scores, "error": r.output.get("error") or r.error} for r in rows],
+        "routes": {route: {"runs": len(costs),  # runs and cost per branch the graph took
+                           "estimated_cost_usd": None if None in costs else round(sum(costs), 4)}
+                   for route, costs in sorted(by_route.items())},
+        "cases": [{"name": r.name, "route": r.output.get("route"), "scores": r.scores,
+                   "estimated_cost_usd": None if c is None else round(c, 4),
+                   "error": r.output.get("error") or r.error} for r, c in zip(rows, case_costs)],
     }
+
+
+def case_cost(provider: str, model: str, output: dict) -> float | None:
+    """What one run spent. The gap_packet route calls no model, so it costs nothing whether or
+    not the model has a known price."""
+    if output.get("route") == "gap_packet":
+        return 0.0
+    return estimate_cost(LLMResult(parsed=None, provider=provider, model=model,
+                                   input_tokens=output.get("input_tokens"),
+                                   output_tokens=output.get("output_tokens")))
 
 
 def print_rows(spec: str, rows: list[Row]) -> None:
     print(f"{spec}")
     for r in sorted(rows, key=lambda r: r.name):
         failed = [k for k, v in r.scores.items() if v is False]
-        print(f"  {r.name:<48}{'FAILED ' + r.error if r.error else ('ok' if not failed else 'not ' + ', '.join(failed))}")
+        route = " [no model call]" if r.output.get("route") == "gap_packet" else ""
+        print(f"  {r.name:<48}{'FAILED ' + r.error if r.error else ('ok' if not failed else 'not ' + ', '.join(failed))}{route}")
     print("  averages: " + ", ".join(f"{k} {v}" for k, v in averages(rows).items()) + "\n")
 
 

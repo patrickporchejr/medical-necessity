@@ -6,7 +6,7 @@ import pytest
 from mcp.shared.memory import create_connected_server_and_client_session
 
 from app.config import settings
-from app.graph.build import NODES, run_pipeline
+from app.graph.build import run_pipeline
 from app.graph.criteria import load_criteria
 from app.graph.nodes.assemble import PacketDraft
 from app.graph.state import Assertion, ResourceRef
@@ -23,9 +23,9 @@ REAL_VALUES = ("Ada", "Lovelace", PID)
 
 
 @asynccontextmanager
-async def pipeline(tmp_path):
+async def pipeline(tmp_path, ra_status=None):
     """What the runner needs: an MCP session over the test chart, and the criteria."""
-    fhir = _fhir_dir(tmp_path, [OLD_NOTE, NEW_NOTE], "active", None)
+    fhir = _fhir_dir(tmp_path, [OLD_NOTE, NEW_NOTE], "active", ra_status)
     server = build_server(fhir, settings.criteria_dir)
     async with create_connected_server_and_client_session(server._mcp_server) as session:
         yield session, load_criteria(CRITERIA_FILE)
@@ -82,7 +82,7 @@ async def test_a_case_runs_end_to_end_and_returns_the_state_and_the_rehydrated_p
     state = outcome.state
     assert state.patient_id.startswith("<PATIENT_") and state.assembled_by == "fake:fake-1"
     assert len(state.evidence) == 5 and state.verification and not state.verification.flagged
-    assert set(outcome.seconds) == set(NODES)
+    assert state.route == "assemble" and set(outcome.seconds) == {"extract", "assemble", "verify"}
     # the state is what the model saw; the packet is the reviewer's, with real ids restored
     cited_in_state = {r.id for a in state.packet.assertions for r in a.citations}
     cited_real = {r.id for a in outcome.packet.assertions for r in a.citations}
@@ -128,9 +128,31 @@ async def test_events_arrive_in_order_with_each_nodes_metadata(tmp_path):
     finished = {e.node: e.data for e in events if e.event == "node_finished"}
     assert finished["extract"]["criteria"] == 5 and "tb_screening" in finished["extract"]["criteria_not_found"]
     assert finished["assemble"]["assembled_by"] == "fake:fake-1" and finished["assemble"]["input_tokens"] == 10
+    assert finished["assemble"]["route"] == "assemble"
     assert (finished["verify"]["supported"], finished["verify"]["flagged"]) == (5, 0)
     assert all(isinstance(e["seconds"], float) for e in finished.values())
     assert all(e.data == {} for e in events if e.event == "node_started")
+
+
+@pytest.mark.anyio
+async def test_a_resolved_diagnosis_reports_the_branch_it_took_and_calls_no_model(tmp_path):
+    async with pipeline(tmp_path, ra_status="resolved") as (session, criteria):
+        events, on_event = collect()
+        llm = ScriptedLLM(faithful_from_prompt)
+        outcome = await run_pipeline(session, llm, PID, criteria, AS_OF, on_event)
+
+    assert llm.calls == []
+    assert [(e.event, e.node) for e in events] == [
+        ("node_started", "extract"), ("node_finished", "extract"),
+        ("node_started", "gap_packet"), ("node_finished", "gap_packet"),
+        ("node_started", "verify"), ("node_finished", "verify"),
+    ]
+    finished = {e.node: e.data for e in events if e.event == "node_finished"}
+    assert finished["gap_packet"]["route"] == "gap_packet" and finished["verify"]["flagged"] == 0
+    assert outcome.state.route == "gap_packet" and set(outcome.seconds) == {"extract", "gap_packet", "verify"}
+    # what code wrote is rehydrated for the reviewer like anything a model wrote
+    cited_real = {r.id for a in outcome.packet.assertions for r in a.citations}
+    assert cited_real and not any(i.startswith("<") for i in cited_real)
 
 
 @pytest.mark.anyio

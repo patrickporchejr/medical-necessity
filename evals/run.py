@@ -37,7 +37,8 @@ class CaseResult:
     patient_id: str
     provider: str
     as_of: str
-    model: str | None = None
+    model: str | None = None  # None when no model was called
+    route: str | None = None  # "assemble", or "gap_packet" when the gate failed and code wrote the packet
     ok: bool = False
     error: str | None = None
     seconds: dict[str, float] = field(default_factory=dict)
@@ -74,10 +75,13 @@ async def run_case(
 
             by_verify = [v.supported for v in verification.assertions]
             by_truth = [a.resolved for a in score.assertions]
-            result.model = state.assembled_by
-            result.input_tokens, result.output_tokens = usage["input_tokens"], usage["output_tokens"]
-            result.fallback = usage["fallback"]
-            result.citations_repaired = usage["citations_repaired"]
+            result.model, result.route = state.assembled_by, state.route
+            if usage is None:  # the gap_packet route: no model call, so nothing was spent
+                result.input_tokens = result.output_tokens = 0
+            else:
+                result.input_tokens, result.output_tokens = usage["input_tokens"], usage["output_tokens"]
+                result.fallback = usage["fallback"]
+                result.citations_repaired = usage["citations_repaired"]
             result.packet = state.packet.model_dump()
             result.assertions = [
                 {
@@ -102,6 +106,7 @@ async def run_case(
                     k: v
                     for k, v in {
                         "model": result.model,
+                        "route": result.route,
                         "citation_resolution_rate": result.citation_resolution_rate,
                         "citation_level_rate": result.citation_level_rate,
                         "gap_accuracy": result.gap_accuracy,
@@ -146,7 +151,10 @@ async def connect(mcp_url: str | None):
 
 
 def format_result(result: CaseResult, real: Packet | None) -> str:
-    head = f"{result.provider}: {result.model or 'no model answered'}"
+    if result.route == "gap_packet":
+        head = f"{result.provider}: no model called (gate criterion not established)"
+    else:
+        head = f"{result.provider}: {result.model or 'no model answered'}"
     if not result.ok:
         return f"{head}\n  FAILED  {result.error}"
     tokens = f"{result.input_tokens} in / {result.output_tokens} out"
