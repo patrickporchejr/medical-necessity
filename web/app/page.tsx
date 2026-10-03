@@ -20,24 +20,29 @@ export default function QueuePage() {
       .catch((e) => setError(`Cannot reach the API: ${e.message}`));
   }, []);
 
-  // Poll while anything is still queued or running.
+  // Keep the queue current, including cases started elsewhere (another tab, or the API itself):
+  // quickly while anything is queued or running, slowly otherwise.
   useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
     let stop = false;
     const tick = async () => {
+      let delay = 5000;
       try {
         const list = await api<Case[]>("/cases");
         if (stop) return;
         setCases(list);
-        if (list.some((c) => !settled(c))) setTimeout(tick, 1500);
+        if (list.some((c) => !settled(c))) delay = 1500;
       } catch {
-        if (!stop) setTimeout(tick, 3000);
+        // the API is down or restarting; try again at the slow pace
       }
+      if (!stop) timer = setTimeout(tick, delay);
     };
     tick();
     return () => {
       stop = true;
+      clearTimeout(timer);
     };
-  }, [busy]);
+  }, []);
 
   async function start() {
     setBusy(true);
