@@ -28,6 +28,11 @@ class Settings(BaseSettings):
     data_dir: Path = Path(__file__).resolve().parents[2] / "data"
     mcp_host: str = "127.0.0.1"
     mcp_port: int = 8001
+    # Where the API finds the MCP server. Blank starts one in process over data_dir; compose
+    # points it at the mcp service.
+    mcp_url: str = ""
+    # Browser origins allowed to call the API (the reviewer dashboard).
+    cors_origins: list[str] = ["http://localhost:3000"]
 
     # The date "now" means when judging durations such as "at least 90 days of methotrexate".
     # Pin it (AS_OF_DATE=YYYY-MM-DD) to make a run, or an eval, reproducible.
