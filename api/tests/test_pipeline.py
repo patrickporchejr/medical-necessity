@@ -112,6 +112,39 @@ async def test_two_runs_do_not_share_a_vault(tmp_path):
     assert first.packet == second.packet
 
 
+def overclaims_tb_once(prompt: str) -> PacketDraft:
+    """Faithful, except that the first draft claims TB screening on the RA diagnosis's record."""
+    draft = faithful_from_prompt(prompt)
+    if "Criterion ra_diagnosis" not in prompt:  # a repair prompt: answer it faithfully
+        return draft
+    ra = next(a for a in draft.assertions if a.criterion_id == "ra_diagnosis").citations[0]
+    return PacketDraft(assertions=[
+        a if a.criterion_id != "tb_screening" else Assertion(criterion_id="tb_screening", text="screened", citations=[ra])
+        for a in draft.assertions
+    ])
+
+
+@pytest.mark.anyio
+async def test_a_repaired_case_reports_both_passes_and_returns_the_draft_rehydrated(tmp_path):
+    async with pipeline(tmp_path) as (session, criteria):
+        events, on_event = collect()
+        outcome = await run_pipeline(session, ScriptedLLM(overclaims_tb_once), PID, criteria, AS_OF, on_event)
+
+    assert [(e.event, e.node) for e in events if e.event == "node_finished"] == [
+        ("node_finished", "extract"), ("node_finished", "assemble"), ("node_finished", "verify"),
+        ("node_finished", "assemble"), ("node_finished", "verify"),
+    ]
+    first_verify, second_verify = [e.data for e in events if e.node == "verify" and e.event == "node_finished"]
+    assert first_verify["flagged_criteria"] == ["tb_screening"] and second_verify["flagged"] == 0
+    assert [e.data["repairs"] for e in events if e.node == "assemble" and e.event == "node_finished"] == [0, 1]
+    # a node's seconds are summed over its runs
+    laps = [e.data["seconds"] for e in events if e.node == "assemble" and e.event == "node_finished"]
+    assert outcome.seconds["assemble"] == pytest.approx(sum(laps), abs=0.011)
+    assert outcome.state.repairs == 1 and not outcome.verification.flagged
+    tb = next(a for a in outcome.draft_packet.assertions if a.criterion_id == "tb_screening")
+    assert tb.kind == "evidence" and not tb.citations[0].id.startswith("<")  # real ids, for the reviewer
+
+
 # --- events -----------------------------------------------------------------------------------
 
 @pytest.mark.anyio
@@ -263,7 +296,9 @@ def wrongly_claims_tb_screening(prompt: str) -> PacketDraft:
 @pytest.mark.anyio
 async def test_the_verdicts_come_back_with_real_ids_and_no_placeholders(tmp_path):
     async with pipeline(tmp_path) as (session, criteria):
-        outcome = await run_pipeline(session, ScriptedLLM(wrongly_claims_tb_screening), PID, criteria, AS_OF)
+        # no repair, so the flag reaches the reviewer (the loop has its own tests)
+        outcome = await run_pipeline(session, ScriptedLLM(wrongly_claims_tb_screening), PID, criteria, AS_OF,
+                                     max_repairs=0)
 
     # inside the run the verdict speaks in placeholders...
     state_reasons = [r for v in outcome.state.verification.assertions for r in v.reasons]

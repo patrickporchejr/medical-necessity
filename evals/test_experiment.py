@@ -240,10 +240,15 @@ def test_syncing_updates_existing_examples_creates_new_ones_and_survives_a_rerun
 
 # --- scoring ------------------------------------------------------------------------------------
 
+def packet(**over):
+    base = dict(citation_resolution_rate=1.0, citation_level_rate=1.0, gap_accuracy=1.0,
+                assertions=[{"criterion_id": "a", "kind": "gap", "truth_resolved": True}], unaddressed=[])
+    return base | over
+
+
 def result(**over):
-    base = dict(ok=True, citation_resolution_rate=1.0, citation_level_rate=1.0, gap_accuracy=1.0,
-                assertions=[{"criterion_id": "a", "kind": "gap", "truth_resolved": True}],
-                unaddressed=[], citations_repaired=0, verify_agrees_with_truth=True)
+    base = packet() | dict(ok=True, citations_repaired=0, repairs=0, first_pass=packet(),
+                           verify_agrees_with_truth=True)
     return base | over
 
 
@@ -251,7 +256,20 @@ def test_a_correct_packet_scores_true_on_everything():
     scores = score_case(result(), {"a": "gap"})
     assert scores == {"completed": True, "citation_resolution_rate": 1.0, "citation_level_rate": 1.0,
                       "gap_accuracy": 1.0, "decisions_correct": True, "packet_fully_correct": True,
+                      "first_pass_citation_resolution_rate": 1.0, "first_pass_citation_level_rate": 1.0,
+                      "first_pass_gap_accuracy": 1.0, "first_pass_decisions_correct": True,
+                      "first_pass_packet_fully_correct": True, "repaired": 0.0,
                       "ids_well_formed": True, "verify_matches_truth": True}
+
+
+def test_a_repaired_case_scores_its_first_pass_and_its_final_packet_separately():
+    wrong = [{"criterion_id": "a", "kind": "evidence", "truth_resolved": False}]
+    first = packet(assertions=wrong, citation_resolution_rate=0.0, gap_accuracy=None)
+    scores = score_case(result(repairs=1, first_pass=first), {"a": "gap"})
+    assert scores["repaired"] == 1.0
+    assert scores["packet_fully_correct"] is True and scores["first_pass_packet_fully_correct"] is False
+    assert scores["first_pass_decisions_correct"] is False and scores["first_pass_citation_resolution_rate"] == 0.0
+    assert "first_pass_gap_accuracy" not in scores
 
 
 def test_a_wrong_call_a_repaired_id_and_an_unaddressed_criterion_are_each_visible():
@@ -298,6 +316,25 @@ async def test_an_overclaiming_model_is_caught_by_the_evaluators(truth):
     assert s["citation_resolution_rate"] == pytest.approx(0.5)
 
 
+def overclaims_until_repaired(prompt: str):
+    """Overclaims on the first draft, then answers the repair prompt faithfully."""
+    repairing = "An automated check of your previous assertions" in prompt
+    return (faithful_from_prompt if repairing else overclaiming_from_prompt)(prompt)
+
+
+@needs_cohort
+@pytest.mark.anyio
+async def test_the_repair_loop_is_scored_on_both_passes_so_it_cannot_hide_the_model(truth):
+    [row] = await evaluate(truth, Scripted(overclaims_until_repaired), ["Loyd638"])
+    s = row.scores
+    assert s["repaired"] == 1.0 and s["verify_matches_truth"]
+    assert s["packet_fully_correct"] is True and s["first_pass_packet_fully_correct"] is False
+    assert s["first_pass_citation_resolution_rate"] == pytest.approx(0.5)
+    summary = summarize("anthropic:m", "anthropic", "m", [row])
+    assert summary["repaired_runs"] == 1
+    assert summary["averages"]["first_pass_packet_fully_correct"] == 0.0
+
+
 @needs_cohort
 @pytest.mark.anyio
 async def test_a_failed_run_reports_completed_false_and_no_scores(truth):
@@ -316,7 +353,8 @@ async def test_ra_not_active_cases_cost_nothing_and_the_summary_shows_it(truth):
     assert by_route["gap_packet"]["estimated_cost_usd"] == 0.0 and by_route["assemble"]["estimated_cost_usd"] > 0
     assert summary["routes"]["gap_packet"] == {"runs": 1, "estimated_cost_usd": 0.0}
     assert summary["routes"]["assemble"]["runs"] == 1
-    assert all(s for s in by_route["gap_packet"]["scores"].values())
+    assert all(v for k, v in by_route["gap_packet"]["scores"].items() if k != "repaired")
+    assert by_route["gap_packet"]["scores"]["repaired"] == 0.0  # code wrote it: never sent back to a model
 
 
 def test_a_gap_packet_run_costs_nothing_even_for_a_model_with_no_known_price():
