@@ -4,6 +4,8 @@ A clinical evaluation engine built with **LangGraph** and **LangSmith** to autom
 
 The agent reads a synthetic patient chart through MCP FHIR tools, gathers the chart evidence for each of the payer's criteria, drafts the medical-necessity packet, and verifies that every assertion in that packet resolves to a real record in the chart. A human reviewer approving, editing, or rejecting the packet is planned (see [Status](#status)).
 
+New to the domain or the acronyms? See the [Glossary](GLOSSARY.md).
+
 ## Architecture Overview
 <img width="831" height="581" alt="image" src="https://github.com/user-attachments/assets/8defb40f-0eec-4b05-adb4-253ee0c14ff4" />
 
