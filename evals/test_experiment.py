@@ -247,7 +247,7 @@ def packet(**over):
 
 
 def result(**over):
-    base = packet() | dict(ok=True, citations_repaired=0, repairs=0, first_pass=packet(),
+    base = packet() | dict(ok=True, citations_repaired=0, schema_retries=0, repairs=0, first_pass=packet(),
                            verify_agrees_with_truth=True)
     return base | over
 
@@ -259,7 +259,7 @@ def test_a_correct_packet_scores_true_on_everything():
                       "first_pass_citation_resolution_rate": 1.0, "first_pass_citation_level_rate": 1.0,
                       "first_pass_gap_accuracy": 1.0, "first_pass_decisions_correct": True,
                       "first_pass_packet_fully_correct": True, "repaired": 0.0,
-                      "ids_well_formed": True, "verify_matches_truth": True}
+                      "ids_well_formed": True, "schema_valid_first_try": True, "verify_matches_truth": True}
 
 
 def test_a_repaired_case_scores_its_first_pass_and_its_final_packet_separately():
@@ -270,11 +270,14 @@ def test_a_repaired_case_scores_its_first_pass_and_its_final_packet_separately()
     assert scores["packet_fully_correct"] is True and scores["first_pass_packet_fully_correct"] is False
     assert scores["first_pass_decisions_correct"] is False and scores["first_pass_citation_resolution_rate"] == 0.0
     assert "first_pass_gap_accuracy" not in scores
+    # a repair call that failed left the first packet in place: not a repair
+    assert score_case(result(repairs=1, repair_failed="LLMRefusal"), {"a": "gap"})["repaired"] == 0.0
 
 
 def test_a_wrong_call_a_repaired_id_and_an_unaddressed_criterion_are_each_visible():
     assert score_case(result(), {"a": "evidence"})["decisions_correct"] is False
     assert score_case(result(citations_repaired=2), {"a": "gap"})["ids_well_formed"] is False
+    assert score_case(result(schema_retries=1), {"a": "gap"})["schema_valid_first_try"] is False
     assert score_case(result(unaddressed=["b"]), {"a": "gap"})["packet_fully_correct"] is False
     assert score_case(result(assertions=[{"criterion_id": "a", "kind": "gap", "truth_resolved": False}]),
                       {"a": "gap"})["packet_fully_correct"] is False

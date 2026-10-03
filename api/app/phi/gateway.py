@@ -40,6 +40,10 @@ class PhiGateway:
             raise PermissionError("patient_id must be a placeholder issued by this gateway")
         return shift_iso_dates(iso_date, vault.date_offset(vault.original(patient_id)))
 
+    def scrub_message(self, text: str) -> str:
+        """Scrub text that did not come from a tool, such as an error quoting model output."""
+        return self.anonymizer.scrub_message(text)
+
     async def list_tools(self):
         return await self._session.list_tools()
 

@@ -139,11 +139,15 @@ def score_case(out: dict, expected: dict[str, str]) -> dict[str, bool | float]:
     if out["ok"]:
         scores |= packet_scores(out, expected)
         scores |= {f"first_pass_{k}": v for k, v in packet_scores(out["first_pass"], expected).items()}
-        # A float, so it is a rate in the averages and never reads as a pass or a fail.
-        scores["repaired"] = float(out["repairs"] > 0)
+        # A float, so it is a rate in the averages and never reads as a pass or a fail. A repair
+        # call that failed, leaving the first packet in place, does not count.
+        scores["repaired"] = float(out["repairs"] > 0 and not out.get("repair_failed"))
         # Did the model write every id exactly as given? A repaired id still resolves, so this is
         # a reliability signal, not a truthfulness one.
         scores["ids_well_formed"] = out["citations_repaired"] == 0
+        # Did every model call's first reply validate (the draft and any repair)? A retried one
+        # completed, so this too is reliability.
+        scores["schema_valid_first_try"] = out["schema_retries"] == 0
     # The harness's own check: the runtime `verify` node and the offline ground truth must
     # agree on every assertion. A failure here is a bug in verify or extract, not the model.
     scores["verify_matches_truth"] = bool(out["ok"] and out["verify_agrees_with_truth"])
@@ -348,7 +352,9 @@ def summarize(spec: str, provider: str, model: str, rows: list[Row], config: dic
         "config": config,
         "runs": len(rows),
         "task_failures": sum(r.error is not None for r in rows),
-        "repaired_runs": sum(bool(o.get("repairs")) for o in outputs),
+        "repaired_runs": sum(bool(o.get("repairs")) and not o.get("repair_failed") for o in outputs),
+        "repair_failures": sum(bool(o.get("repair_failed")) for o in outputs),
+        "schema_retries": sum(o.get("schema_retries") or 0 for o in outputs),
         "averages": averages(rows),
         "tokens": {"input": tokens_in, "output": tokens_out},
         "estimated_cost_usd": None if cost is None else round(cost, 4),
