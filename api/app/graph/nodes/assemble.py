@@ -4,6 +4,13 @@ The model decides, criterion by criterion, whether the evidence supports a claim
 which records to cite. It is not told the verdict: whether a claim holds is `verify`'s
 job, and that check must stay independent of the model that made the claim. It does get
 the facts code is better at than a model, such as how long an order has been in effect.
+
+On a repair (the graph sends a flagged packet back here) the model sees only the criteria
+verify flagged or found unaddressed: their evidence, what it wrote for them, and verify's
+reasons. Its new assertions replace those criteria's and nothing else, so a supported
+assertion is never put at risk by a second draw. verify's reasons are its verdict, so for the
+repaired criteria verify is no longer an independent check. That is why the first packet is
+kept, and evals score it as well as the final one.
 """
 
 import re
@@ -12,7 +19,7 @@ from typing import Any
 from pydantic import BaseModel
 
 from app.graph.criteria import Criteria
-from app.graph.state import Assertion, CaseState, CriterionEvidence, Packet, ResourceRef
+from app.graph.state import Assertion, CaseState, CriterionEvidence, Packet, ResourceRef, Verification
 from app.llm.client import LLMClient
 from app.llm.prompts.assemble import SYSTEM
 from app.observability import agent_span, node_span, record_agent_usage
@@ -55,12 +62,15 @@ def _summarize(update: dict[str, Any]) -> dict[str, Any]:
         "evidence_assertions": sum(a.kind == "evidence" for a in assertions),
         "gap_assertions": sum(a.kind == "gap" for a in assertions),
         "citations": sum(len(a.citations) for a in assertions),
+        "repairs": update.get("repairs", 0),  # 0 on the first draft, 1 on the first repair
         **update.get("llm_usage", {}),  # tokens, fallback, and how many ids needed repair
     }
 
 
 @node_span("graph.assemble", _summarize)
 async def assemble(state: CaseState, criteria: Criteria, llm: LLMClient) -> dict[str, Any]:
+    if state.verification is not None:
+        return await _repair(state, criteria, llm)
     with agent_span("assemble", llm.provider, "Drafts the prior authorization packet from the chart evidence") as agent:
         result = await llm.generate(SYSTEM, render_evidence(state, criteria), PacketDraft)
         record_agent_usage(agent, result)
@@ -77,6 +87,94 @@ async def assemble(state: CaseState, criteria: Criteria, llm: LLMClient) -> dict
             "citations_repaired": repaired,
         },
     }
+
+
+def repair_targets(state: CaseState, criteria: Criteria) -> list[str]:
+    """The criteria a repair would redo: those with a flagged assertion or none at all, in the
+    criteria file's order. A flagged assertion naming no known criterion has no evidence to
+    redraft from, so it is left flagged rather than repaired."""
+    v = state.verification
+    if v is None:
+        return []
+    flagged = {a.assertion.criterion_id for a in v.flagged} | set(v.unaddressed)
+    return [c.id for c in criteria.criteria if c.id in flagged]
+
+
+async def _repair(state: CaseState, criteria: Criteria, llm: LLMClient) -> dict[str, Any]:
+    targets = repair_targets(state, criteria)
+    with agent_span("assemble", llm.provider, "Redrafts the criteria verify flagged") as agent:
+        result = await llm.generate(SYSTEM, render_repair(state, criteria, targets), PacketDraft)
+        record_agent_usage(agent, result)
+    redrafted, repaired = repair_citations(result.parsed.assertions)
+    packet = state.packet.model_copy(update={"assertions": merge_repair(state.packet, redrafted, targets)})
+    usage = state.llm_usage or {}
+    return {
+        "packet": packet,
+        "draft_packet": state.draft_packet or state.packet,
+        "draft_verification": state.draft_verification or state.verification,
+        "repairs": state.repairs + 1,
+        "route": "assemble",
+        "assembled_by": f"{result.provider}:{result.model}",
+        "llm_usage": {  # every call of the case, first draft and repairs together
+            "input_tokens": _add(usage.get("input_tokens"), result.input_tokens),
+            "output_tokens": _add(usage.get("output_tokens"), result.output_tokens),
+            "fallback": bool(usage.get("fallback")) or result.fallback,
+            "citations_repaired": usage.get("citations_repaired", 0) + repaired,
+        },
+    }
+
+
+def merge_repair(draft: Packet, redrafted: list[Assertion], targets: list[str]) -> list[Assertion]:
+    """The draft with each target criterion's assertions replaced by the redraft's. Anything the
+    redraft says about a criterion it was not asked about is ignored, and a target it leaves out
+    keeps its old assertion, still flagged: a repair can fix a flag but never drop one."""
+    new: dict[str, list[Assertion]] = {}
+    for a in redrafted:
+        if a.criterion_id in targets:
+            new.setdefault(a.criterion_id, []).append(a)
+    out: list[Assertion] = []
+    for a in draft.assertions:
+        if a.criterion_id not in new:
+            out.append(a)
+        elif not any(o.criterion_id == a.criterion_id for o in out):
+            out += new[a.criterion_id]  # in the place the criterion had
+    mentioned = {a.criterion_id for a in draft.assertions}
+    for criterion_id in targets:  # criteria the draft never addressed go last, in criteria order
+        if criterion_id not in mentioned:
+            out += new.get(criterion_id, [])
+    return out
+
+
+def _add(a: int | None, b: int | None) -> int | None:
+    """A token total, unknown if either part is."""
+    return None if a is None or b is None else a + b
+
+
+def render_repair(state: CaseState, criteria: Criteria, targets: list[str]) -> str:
+    """The repair prompt: the same evidence rendering, for the target criteria only, each with
+    what the model wrote and why verify rejected it. Everything here is already de-identified."""
+    v: Verification = state.verification
+    by_id = {e.criterion_id: e for e in state.evidence}
+    lines = [f"Service requested: {criteria.service}"]
+    if state.as_of:
+        lines.append(f"As of: {state.as_of}")
+    lines += ["", "An automated check of your previous assertions against the chart rejected the ones below. "
+              "Write a new assertion for each criterion listed here, and for no other."]
+    for criterion in criteria.criteria:
+        if criterion.id not in targets:
+            continue
+        lines += ["", f"Criterion {criterion.id}: {' '.join(criterion.description.split())}"]
+        lines += _render_evidence(by_id.get(criterion.id))
+        previous = [a for a in v.assertions if a.assertion.criterion_id == criterion.id]
+        if not previous:
+            lines.append("  Your previous packet had no assertion for this criterion.")
+        for a in previous:
+            cites = ", ".join(f"{c.resource_type} {c.id}" for c in a.assertion.citations) or "none"
+            lines.append(f'  You wrote ({a.assertion.kind}, citing {cites}): "{a.assertion.text}"')
+            if a.supported:
+                lines.append("    The check accepted this assertion.")
+            lines += [f"    Rejected: {reason}" for reason in a.reasons]
+    return "\n".join(lines)
 
 
 def render_evidence(state: CaseState, criteria: Criteria) -> str:

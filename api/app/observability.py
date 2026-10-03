@@ -31,7 +31,7 @@ SAFE_INPUT_KEYS = frozenset({"patient_key"})
 SAFE_OUTPUT_KEYS = frozenset({
     "ok", "error", "provider", "model", "seconds", "input_tokens", "output_tokens",
     "fallback", "citations_repaired", "assertions", "unaddressed", "citation_resolution_rate",
-    "citation_level_rate", "gap_accuracy", "verify_agrees_with_truth",
+    "citation_level_rate", "gap_accuracy", "verify_agrees_with_truth", "first_pass",
 })
 
 _client: Client | None = None

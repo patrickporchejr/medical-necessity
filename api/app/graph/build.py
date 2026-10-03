@@ -3,12 +3,18 @@ through it.
 
     extract -> assemble   -> verify     the gate criterion is established: a model drafts
             -> gap_packet -> verify     it is not: code writes the packet, no model call
+                 ^            |
+                 +------------+         verify flagged the model's packet: repair, at most
+                                        `max_repairs` times
 
-The one routing decision is after `extract`. Without an active RA diagnosis no packet can be
-approved, so there is nothing for a model to weigh. The nodes stay plain async functions that
-take their dependencies as arguments; `build_graph` binds those dependencies for one case and
-wires the edges. The gateway and the LLM are per case (each case has its own vault), so the
-graph is built per case too. Compiling is cheap.
+Two routing decisions. After `extract`: without an active RA diagnosis no packet can be
+approved, so there is nothing for a model to weigh. After `verify`: a model-drafted packet with
+flagged or unaddressed criteria goes back to `assemble` with verify's reasons and is verified
+again, at most `max_repairs` times (once by default). Whatever is still flagged then stays
+flagged for the reviewer. The nodes stay plain async functions that take their dependencies
+as arguments; `build_graph` binds those dependencies for one case and wires the edges. The
+gateway and the LLM are per case (each case has its own vault), so the graph is built per case
+too. Compiling is cheap.
 
 `run_pipeline` is the one place a case is run, for the API and the evals alike. It owns the
 per-run vault, gateway and prompt guard, and reports progress as events that carry metadata
@@ -24,7 +30,7 @@ from typing import Any, Awaitable, Callable, Literal, Protocol
 from langgraph.graph import END, START, StateGraph
 
 from app.graph.criteria import Criteria
-from app.graph.nodes.assemble import assemble
+from app.graph.nodes.assemble import assemble, repair_targets
 from app.graph.nodes.extract import ChartGateway, extract
 from app.graph.nodes.gap_packet import gap_packet
 from app.graph.nodes.verify import verify
@@ -39,6 +45,7 @@ from app.phi.rehydrate import rehydrate
 from app.phi.vault import Vault
 
 GATE = "ra_diagnosis"  # the criterion every other one rests on
+MAX_REPAIRS = 1  # times a flagged packet goes back to assemble before it is left to the reviewer
 
 
 class ToolSession(Protocol):
@@ -55,7 +62,16 @@ def route_after_extract(state: CaseState) -> Literal["assemble", "gap_packet"]:
     return "gap_packet" if gate is not None and not established(gate) else "assemble"
 
 
-def build_graph(gateway: ChartGateway, criteria: Criteria, llm: LLMClient, as_of: date):
+def route_after_verify(state: CaseState, criteria: Criteria, max_repairs: int) -> Literal["assemble", "__end__"]:
+    """Back to the model while its packet has something to repair and repairs are left. A
+    code-written gap packet is never sent to a model."""
+    if state.route == "assemble" and state.repairs < max_repairs and repair_targets(state, criteria):
+        return "assemble"
+    return END
+
+
+def build_graph(gateway: ChartGateway, criteria: Criteria, llm: LLMClient, as_of: date,
+                max_repairs: int = MAX_REPAIRS):
     """`gateway` is the PHI gateway and `llm` is already behind the prompt guard: the graph
     adds no path to raw data or to an unguarded model."""
 
@@ -80,7 +96,9 @@ def build_graph(gateway: ChartGateway, criteria: Criteria, llm: LLMClient, as_of
     graph.add_conditional_edges("extract", route_after_extract, ["assemble", "gap_packet"])
     graph.add_edge("assemble", "verify")
     graph.add_edge("gap_packet", "verify")
-    graph.add_edge("verify", END)
+    graph.add_conditional_edges(
+        "verify", lambda state: route_after_verify(state, criteria, max_repairs), ["assemble", END]
+    )
     return graph.compile()
 
 
@@ -103,7 +121,8 @@ class PipelineOutcome:
     packet: Packet  # the same packet with real ids and dates restored. For the reviewer only:
     verification: Verification  # ...and the verdicts, whose ids and reasons have placeholders too.
     # Neither may go into an event, a log or a trace.
-    seconds: dict[str, float]  # per node
+    seconds: dict[str, float]  # per node, summed over a node's runs when the repair loop ran
+    draft_packet: Packet | None = None  # the model's first packet, rehydrated; None if no repair ran
 
 
 EventHandler = Callable[[PipelineEvent], Awaitable[None] | None]
@@ -117,6 +136,7 @@ async def run_pipeline(
     criteria: Criteria,
     as_of: date,
     on_event: EventHandler | None = None,
+    max_repairs: int = MAX_REPAIRS,
 ) -> PipelineOutcome:
     """One real patient through the graph. `patient_id` is the real id and `llm` is the raw
     client: the vault, the gateway and the prompt guard are made here, per run, so nothing
@@ -136,7 +156,7 @@ async def run_pipeline(
     try:
         with tracing():
             state = CaseState(patient_id=await gateway.adopt_patient(patient_id))
-            graph = build_graph(gateway, criteria, GuardedLLM(llm, vault), as_of)
+            graph = build_graph(gateway, criteria, GuardedLLM(llm, vault), as_of, max_repairs)
             try:
                 # "tasks" reports each node as it starts and again when it finishes, so the
                 # events follow whichever branch the graph took. A task's input is the whole
@@ -149,22 +169,23 @@ async def run_pipeline(
                         continue
                     update = task["result"]
                     state = state.model_copy(update=update)
-                    seconds[node] = round(time.perf_counter() - clock, 2)
+                    lap = round(time.perf_counter() - clock, 2)
+                    seconds[node] = round(seconds.get(node, 0.0) + lap, 2)
                     summary = NODE_FUNCTIONS[node].summarize(update)
-                    await emit("node_finished", node, {**summary, "seconds": seconds[node]})
+                    await emit("node_finished", node, {**summary, "seconds": lap})
             except Exception as err:
                 await emit("node_failed", current or "graph", {
                     "error_type": type(err).__name__,
                     "error": gateway.anonymizer.scrub_message(str(err)),
                 })
                 raise
+        real = lambda model: rehydrate(model.model_dump(), vault, state.patient_id)
         return PipelineOutcome(
             state=state,
-            packet=Packet.model_validate(rehydrate(state.packet.model_dump(), vault, state.patient_id)),
-            verification=Verification.model_validate(
-                rehydrate(state.verification.model_dump(), vault, state.patient_id)
-            ),
+            packet=Packet.model_validate(real(state.packet)),
+            verification=Verification.model_validate(real(state.verification)),
             seconds=seconds,
+            draft_packet=None if state.draft_packet is None else Packet.model_validate(real(state.draft_packet)),
         )
     finally:
         vault.clear()  # the re-ID map dies with the run, not whenever it is garbage collected

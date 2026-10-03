@@ -10,7 +10,7 @@ New to the domain or the acronyms? See the [Glossary](GLOSSARY.md).
 <img width="831" height="581" alt="image" src="https://github.com/user-attachments/assets/8defb40f-0eec-4b05-adb4-253ee0c14ff4" />
 
 ## Key Features
-- **Stateful Routing:** the graph is a LangGraph `StateGraph` with typed state and one conditional edge. After `extract`, a case whose RA diagnosis is not established (absent, or resolved rather than active) skips the model: code writes the packet, so the case costs no tokens. The route taken is recorded in the state, in the run's events and in LangSmith.
+- **Stateful Routing:** the graph is a LangGraph `StateGraph` with typed state and two conditional edges. After `extract`, a case whose RA diagnosis is not established (absent, or resolved rather than active) skips the model: code writes the packet, so the case costs no tokens. After `verify`, a model-drafted packet with flagged or unaddressed criteria goes back to `assemble` once with verify's reasons (the repair loop); the first draft is kept, and evals score it alongside the final packet. The route taken and any repair are recorded in the state, in the run's events and in LangSmith.
 - **Observability & Evals:** With a LangSmith key set, every run is traced, and the evals score each model as an experiment: citation resolution against ground truth, decision accuracy, tokens and estimated cost. Per-node timings are captured, and `evals/run.py` prints them, but experiment summaries do not report latency yet.
 - **Deterministic Guardrails:** they fail closed. A model reply that does not match the schema raises and the run stops; there is no retry. A tool error in `extract` stops the run. In `verify`, a citation that cannot be fetched counts as not found and its assertion is flagged. The one fallback is the provider's: on Claude Opus 5 and Fable, a refusal is re-run server-side on another model.
 
@@ -30,7 +30,7 @@ New to the domain or the acronyms? See the [Glossary](GLOSSARY.md).
 Built:
 - MCP server with read-only FHIR tools over the Synthea bundles (`api/app/mcp/`)
 - The PHI boundary: gateway, vault, date shifting, rehydration and the outbound prompt guard (`api/app/phi/`, `api/app/llm/guard.py`)
-- The graph, `extract → assemble | gap_packet → verify`, and `run_pipeline`, the one runner for a case (`api/app/graph/`)
+- The graph, `extract → assemble | gap_packet → verify`, with a capped repair loop from `verify` back to `assemble`, and `run_pipeline`, the one runner for a case (`api/app/graph/`)
 - Anthropic and Gemini clients on LangChain chat models (`api/app/llm/langchain_client.py`)
 - Metadata-only LangSmith tracing (`api/app/observability.py`)
 - Evals: one-patient runs, LangSmith experiments, the citation resolution metric and recorded results (`evals/`)
@@ -61,14 +61,18 @@ This is the design decision worth arguing about, and the six questions it exists
 
 ### The graph
 
-Four nodes, two paths. They are plain async functions wired into a LangGraph `StateGraph` in `graph/build.py`:
+Four nodes, two paths and one loop. They are plain async functions wired into a LangGraph `StateGraph` in `graph/build.py`:
 
 ```
-extract ─┬─ ra_diagnosis established ──▶ assemble ───┬─▶ verify
-         └─ not established ───────────▶ gap_packet ─┘
+extract ─┬─ ra_diagnosis established ──▶ assemble ───┬─▶ verify ──▶ done
+         │                                  ▲        │      │
+         │                                  └────────┼──────┘  flagged or unaddressed criteria,
+         └─ not established ───────────▶ gap_packet ─┘          model-drafted, repairs left (max 1)
 ```
 
 The routing decision is the conditional edge after `extract`, made by `route_after_extract` with the same `established` rule `verify` and the eval ground truth use. Without an active diagnosis no packet can be approved, so there is nothing for a model to weigh. `run_pipeline` in the same module is the one way a case is run, by the evals today and by the API once its routes are built: it makes the per-run vault, PHI gateway and prompt guard, and reports progress as events that carry metadata only. The events follow whichever node actually ran.
+
+The repair loop is the conditional edge after `verify` (`route_after_verify`). The repair call sees only the flagged and unaddressed criteria: their evidence, what the model wrote, and verify's reasons. Its answers replace those criteria and nothing else. A criterion it leaves out keeps its old assertion, still flagged. Because verify's reasons are its verdict, verify is no longer independent for a repaired criterion, so the first packet is kept (`draft_packet`, `draft_verification`) and evals report `first_pass_*` scores next to the final ones. A code-written gap packet never loops.
 
 - **`extract`** — for each criterion in the payer's criteria file, pulls the chart evidence bearing on it via MCP FHIR tools: records filtered by code, and keyword-matching lines from the most recent notes
 - **`assemble`** — drafts the packet against the payer's criteria for that service

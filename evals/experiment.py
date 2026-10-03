@@ -132,25 +132,37 @@ def sync_dataset(client: Client, examples: list[schemas.Example]) -> list[schema
 # complete gets no scores at all, only `completed = False`, so failures cannot hide in averages.
 
 def score_case(out: dict, expected: dict[str, str]) -> dict[str, bool | float]:
-    """Every score for one case, from its result and the expected kind per criterion."""
+    """Every score for one case, from its result and the expected kind per criterion. The packet
+    scores come twice: for the final packet, and with a `first_pass_` prefix for the model's first
+    one, so the repair loop cannot hide model quality. They are equal when no repair ran."""
     scores: dict[str, bool | float] = {"completed": out["ok"]}
     if out["ok"]:
-        # The citation-resolution metrics, scored against ground truth by evals/metrics.
-        for key in ("citation_resolution_rate", "citation_level_rate", "gap_accuracy"):
-            if out[key] is not None:
-                scores[key] = out[key]
-        # Did the model make the right call on each criterion, and is every claim it made sound?
-        chosen = {a["criterion_id"]: a["kind"] for a in out["assertions"]}
-        scores["decisions_correct"] = chosen == expected
-        scores["packet_fully_correct"] = (
-            chosen == expected and all(a["truth_resolved"] for a in out["assertions"]) and not out["unaddressed"]
-        )
+        scores |= packet_scores(out, expected)
+        scores |= {f"first_pass_{k}": v for k, v in packet_scores(out["first_pass"], expected).items()}
+        # A float, so it is a rate in the averages and never reads as a pass or a fail.
+        scores["repaired"] = float(out["repairs"] > 0)
         # Did the model write every id exactly as given? A repaired id still resolves, so this is
         # a reliability signal, not a truthfulness one.
         scores["ids_well_formed"] = out["citations_repaired"] == 0
     # The harness's own check: the runtime `verify` node and the offline ground truth must
     # agree on every assertion. A failure here is a bug in verify or extract, not the model.
     scores["verify_matches_truth"] = bool(out["ok"] and out["verify_agrees_with_truth"])
+    return scores
+
+
+def packet_scores(packet: dict, expected: dict[str, str]) -> dict[str, bool | float]:
+    """One packet's scores: its assertions, unaddressed criteria and rates against ground truth."""
+    scores: dict[str, bool | float] = {}
+    # The citation-resolution metrics, scored against ground truth by evals/metrics.
+    for key in ("citation_resolution_rate", "citation_level_rate", "gap_accuracy"):
+        if packet[key] is not None:
+            scores[key] = packet[key]
+    # Did the model make the right call on each criterion, and is every claim it made sound?
+    chosen = {a["criterion_id"]: a["kind"] for a in packet["assertions"]}
+    scores["decisions_correct"] = chosen == expected
+    scores["packet_fully_correct"] = (
+        chosen == expected and all(a["truth_resolved"] for a in packet["assertions"]) and not packet["unaddressed"]
+    )
     return scores
 
 
@@ -336,6 +348,7 @@ def summarize(spec: str, provider: str, model: str, rows: list[Row], config: dic
         "config": config,
         "runs": len(rows),
         "task_failures": sum(r.error is not None for r in rows),
+        "repaired_runs": sum(bool(o.get("repairs")) for o in outputs),
         "averages": averages(rows),
         "tokens": {"input": tokens_in, "output": tokens_out},
         "estimated_cost_usd": None if cost is None else round(cost, 4),

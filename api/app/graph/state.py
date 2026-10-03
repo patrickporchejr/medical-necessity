@@ -124,3 +124,9 @@ class CaseState(BaseModel):
     # is in its state, so this rides along; it is metadata, never prompt or response text.
     llm_usage: dict[str, Any] | None = None
     verification: Verification | None = None
+    # The repair loop. When verify flags a model-drafted packet, the flagged criteria go back to
+    # assemble with verify's reasons. The first packet and its verdict are kept here; `packet`
+    # and `verification` are always the latest. Both stay None when no repair ran.
+    draft_packet: Packet | None = None
+    draft_verification: Verification | None = None
+    repairs: int = 0

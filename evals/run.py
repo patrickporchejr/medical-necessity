@@ -46,6 +46,7 @@ class CaseResult:
     output_tokens: int | None = None
     fallback: bool = False
     citations_repaired: int = 0  # ids that lost their angle brackets and were restored
+    repairs: int = 0  # times verify's flags sent the packet back to the model
     packet: dict | None = None  # de-identified: exactly what the model wrote, placeholders and all
     assertions: list[dict] = field(default_factory=list)
     unaddressed: list[str] = field(default_factory=list)
@@ -53,6 +54,10 @@ class CaseResult:
     citation_level_rate: float | None = None
     gap_accuracy: float | None = None
     verify_agrees_with_truth: bool | None = None
+    # The model's first packet scored the same way, before any repair: assertions, unaddressed and
+    # the three rates. Without it the repair loop would hide how good the model is on its own. The
+    # same as the final packet's scores when no repair ran.
+    first_pass: dict | None = None
 
 
 async def run_case(
@@ -72,6 +77,7 @@ async def run_case(
             state, real = outcome.state, outcome.packet
             usage, verification = state.llm_usage, state.verification
             score = score_packet(real, patient_id, truth)
+            first = score if outcome.draft_packet is None else score_packet(outcome.draft_packet, patient_id, truth)
 
             by_verify = [v.supported for v in verification.assertions]
             by_truth = [a.resolved for a in score.assertions]
@@ -82,6 +88,7 @@ async def run_case(
                 result.input_tokens, result.output_tokens = usage["input_tokens"], usage["output_tokens"]
                 result.fallback = usage["fallback"]
                 result.citations_repaired = usage["citations_repaired"]
+            result.repairs = state.repairs
             result.packet = state.packet.model_dump()
             result.assertions = [
                 {
@@ -100,6 +107,14 @@ async def run_case(
             result.verify_agrees_with_truth = (
                 by_verify == by_truth and verification.unaddressed == score.unaddressed
             )
+            result.first_pass = {
+                "assertions": [{"criterion_id": s.criterion_id, "kind": s.kind, "truth_resolved": s.resolved}
+                               for s in first.assertions],
+                "unaddressed": first.unaddressed,
+                "citation_resolution_rate": first.citation_resolution_rate,
+                "citation_level_rate": first.citation_level_rate,
+                "gap_accuracy": first.gap_accuracy,
+            }
             result.ok = True
             span.add_metadata(
                 {
@@ -113,6 +128,7 @@ async def run_case(
                         "verify_agrees_with_truth": result.verify_agrees_with_truth,
                         "unaddressed": result.unaddressed,
                         "citations_repaired": result.citations_repaired,
+                        "repairs": result.repairs,
                     }.items()
                     if v is not None
                 }
@@ -172,6 +188,11 @@ def format_result(result: CaseResult, real: Packet | None) -> str:
         lines += [f"      - {reason}" for reason in a["reasons"]]
     if result.citations_repaired:
         lines.append(f"  ids restored to <ID> form: {result.citations_repaired}")
+    if result.repairs:
+        first = result.first_pass
+        wrong = sum(not a["truth_resolved"] for a in first["assertions"])
+        lines.append(f"  repaired: the first packet had {wrong} assertion(s) wrong against ground truth"
+                     f" and {len(first['unaddressed'])} criteria unaddressed")
     if result.unaddressed:
         lines.append(f"  criteria never addressed: {', '.join(result.unaddressed)}")
     rate = lambda x: "n/a" if x is None else f"{x:.2f}"
