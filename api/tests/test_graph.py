@@ -5,7 +5,9 @@ import pytest
 from app.graph.build import build_graph, route_after_extract
 from app.graph.nodes.assemble import PacketDraft, merge_repair
 from app.graph.state import Assertion, CaseState, Packet, ResourceRef
-from tests.test_assemble import INVALID, FlakyLLM, ScriptedLLM, faithful_draft
+from app.llm.client import LLMRefusal
+from app.llm.guard import PhiLeak
+from tests.test_assemble import FlakyLLM, invalid, ScriptedLLM, faithful_draft
 from tests.test_extract import ORDERED
 from tests.test_observability import leaks
 from tests.test_verify import case
@@ -201,7 +203,7 @@ def test_a_repair_replaces_only_the_criteria_it_was_asked_about():
 @pytest.mark.anyio
 async def test_a_repair_reply_that_fails_validation_is_retried_too(tmp_path):
     async with case(tmp_path, mtx_status="active") as c:
-        llm = FlakyLLM(overclaiming_draft(c), INVALID, faithful_draft(c))
+        llm = FlakyLLM(overclaiming_draft(c), invalid(), faithful_draft(c))
         final = await run_graph(c, llm)
     repair, retry = llm.calls[1][1], llm.calls[2][1]
     assert retry.startswith(repair) and "Your previous reply failed validation: " in retry
@@ -209,3 +211,36 @@ async def test_a_repair_reply_that_fails_validation_is_retried_too(tmp_path):
     # every call is counted: draft 10+5, failed repair 7+3, retried repair 10+5
     usage = final.llm_usage
     assert (usage["schema_retries"], usage["input_tokens"], usage["output_tokens"]) == (1, 27, 13)
+
+
+@pytest.mark.anyio
+async def test_a_refused_repair_sends_the_first_draft_on_with_its_flags(tmp_path):
+    async with case(tmp_path, mtx_status="active") as c:
+        llm = FlakyLLM(overclaiming_draft(c), LLMRefusal("fake-1 refused the request"))
+        final = await run_graph(c, llm)
+    assert len(llm.calls) == 2 and final.repairs == 1
+    assert final.packet.assertions == overclaiming_draft(c).assertions == final.draft_packet.assertions
+    assert [a.assertion.criterion_id for a in final.verification.flagged] == ["tb_screening"]
+    assert final.assembled_by == "fake:fake-1"
+    usage = final.llm_usage
+    assert usage["repair_failed"] == "LLMRefusal" and (usage["input_tokens"], usage["output_tokens"]) == (10, 5)
+
+
+@pytest.mark.anyio
+async def test_a_repair_that_never_validates_sends_the_first_draft_on_and_counts_every_call(tmp_path):
+    async with case(tmp_path, mtx_status="active") as c:
+        llm = FlakyLLM(overclaiming_draft(c), invalid(), invalid())
+        final = await run_graph(c, llm)
+    assert len(llm.calls) == 3 and final.repairs == 1
+    assert final.packet.assertions == overclaiming_draft(c).assertions and final.verification.flagged
+    usage = final.llm_usage
+    assert usage["repair_failed"] == "LLMSchemaError" and usage["schema_retries"] == 1
+    assert (usage["input_tokens"], usage["output_tokens"]) == (10 + 7 + 7, 5 + 3 + 3)
+
+
+@pytest.mark.anyio
+async def test_a_phi_leak_on_a_repair_still_fails_the_case(tmp_path):
+    async with case(tmp_path, mtx_status="active") as c:
+        llm = FlakyLLM(overclaiming_draft(c), PhiLeak("Prompt contains a real NAME value"))
+        with pytest.raises(PhiLeak):
+            await run_graph(c, llm)

@@ -139,8 +139,9 @@ def score_case(out: dict, expected: dict[str, str]) -> dict[str, bool | float]:
     if out["ok"]:
         scores |= packet_scores(out, expected)
         scores |= {f"first_pass_{k}": v for k, v in packet_scores(out["first_pass"], expected).items()}
-        # A float, so it is a rate in the averages and never reads as a pass or a fail.
-        scores["repaired"] = float(out["repairs"] > 0)
+        # A float, so it is a rate in the averages and never reads as a pass or a fail. A repair
+        # call that failed, leaving the first packet in place, does not count.
+        scores["repaired"] = float(out["repairs"] > 0 and not out.get("repair_failed"))
         # Did the model write every id exactly as given? A repaired id still resolves, so this is
         # a reliability signal, not a truthfulness one.
         scores["ids_well_formed"] = out["citations_repaired"] == 0
@@ -351,7 +352,8 @@ def summarize(spec: str, provider: str, model: str, rows: list[Row], config: dic
         "config": config,
         "runs": len(rows),
         "task_failures": sum(r.error is not None for r in rows),
-        "repaired_runs": sum(bool(o.get("repairs")) for o in outputs),
+        "repaired_runs": sum(bool(o.get("repairs")) and not o.get("repair_failed") for o in outputs),
+        "repair_failures": sum(bool(o.get("repair_failed")) for o in outputs),
         "schema_retries": sum(o.get("schema_retries") or 0 for o in outputs),
         "averages": averages(rows),
         "tokens": {"input": tokens_in, "output": tokens_out},

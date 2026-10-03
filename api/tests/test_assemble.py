@@ -233,14 +233,15 @@ class FlakyLLM(ScriptedLLM):
         return LLMResult(parsed=reply, provider="fake", model="fake-1", input_tokens=10, output_tokens=5)
 
 
-INVALID = LLMSchemaError("fake-1 returned output that does not match PacketDraft (assertions: Field required)",
-                         input_tokens=7, output_tokens=3)
+def invalid() -> LLMSchemaError:
+    return LLMSchemaError("fake-1 returned output that does not match PacketDraft (assertions: Field required)",
+                          input_tokens=7, output_tokens=3)
 
 
 @pytest.mark.anyio
 async def test_a_reply_that_fails_validation_is_retried_once_with_the_error_fed_back(tmp_path):
     async with case(tmp_path) as c:
-        llm = FlakyLLM(INVALID, faithful_draft(c))
+        llm = FlakyLLM(invalid(), faithful_draft(c))
         update = await assemble(c.state, c.criteria, llm)
     first, second = (user for _, user, _ in llm.calls)
     assert second.startswith(first) and "Your previous reply failed validation: " in second
@@ -254,10 +255,11 @@ async def test_a_reply_that_fails_validation_is_retried_once_with_the_error_fed_
 @pytest.mark.anyio
 async def test_a_second_invalid_reply_fails_the_case(tmp_path):
     async with case(tmp_path) as c:
-        llm = FlakyLLM(INVALID, INVALID, faithful_draft(c))
-        with pytest.raises(LLMSchemaError):
+        llm = FlakyLLM(invalid(), invalid(), faithful_draft(c))
+        with pytest.raises(LLMSchemaError) as raised:
             await assemble(c.state, c.criteria, llm)
     assert len(llm.calls) == 2
+    assert (raised.value.input_tokens, raised.value.output_tokens) == (14, 6)  # both failed calls
 
 
 @pytest.mark.anyio

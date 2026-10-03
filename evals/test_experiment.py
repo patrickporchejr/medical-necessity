@@ -270,6 +270,8 @@ def test_a_repaired_case_scores_its_first_pass_and_its_final_packet_separately()
     assert scores["packet_fully_correct"] is True and scores["first_pass_packet_fully_correct"] is False
     assert scores["first_pass_decisions_correct"] is False and scores["first_pass_citation_resolution_rate"] == 0.0
     assert "first_pass_gap_accuracy" not in scores
+    # a repair call that failed left the first packet in place: not a repair
+    assert score_case(result(repairs=1, repair_failed="LLMRefusal"), {"a": "gap"})["repaired"] == 0.0
 
 
 def test_a_wrong_call_a_repaired_id_and_an_unaddressed_criterion_are_each_visible():

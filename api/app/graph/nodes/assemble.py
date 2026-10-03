@@ -10,7 +10,9 @@ verify flagged or found unaddressed: their evidence, what it wrote for them, and
 reasons. Its new assertions replace those criteria's and nothing else, so a supported
 assertion is never put at risk by a second draw. verify's reasons are its verdict, so for the
 repaired criteria verify is no longer an independent check. That is why the first packet is
-kept, and evals score it as well as the final one.
+kept, and evals score it as well as the final one. If the repair call yields no usable answer
+(a refusal, or a reply that still fails validation after its retry), the first packet goes on
+to the reviewer with its flags rather than failing a case that already has a complete draft.
 """
 
 import re
@@ -21,7 +23,7 @@ from pydantic import BaseModel
 
 from app.graph.criteria import Criteria
 from app.graph.state import Assertion, CaseState, CriterionEvidence, Packet, ResourceRef, Verification
-from app.llm.client import LLMClient, LLMResult, LLMSchemaError
+from app.llm.client import LLMClient, LLMError, LLMResult, LLMSchemaError
 from app.llm.prompts.assemble import SYSTEM
 from app.observability import agent_span, node_span, record_agent_usage
 
@@ -111,12 +113,16 @@ async def _repair(
     state: CaseState, criteria: Criteria, llm: LLMClient, scrub: Callable[[str], str]
 ) -> dict[str, Any]:
     targets = repair_targets(state, criteria)
+    usage = state.llm_usage or {}
     with agent_span("assemble", llm.provider, "Redrafts the criteria verify flagged") as agent:
-        result, retries = await _generate(llm, render_repair(state, criteria, targets), scrub)
+        try:
+            result, retries = await _generate(llm, render_repair(state, criteria, targets), scrub)
+        except LLMError as err:  # no usable answer; a PHI leak or a transport error still fails the case
+            agent.add_metadata({"repair_failed": type(err).__name__})
+            return _keep_draft(state, usage, err)
         record_agent_usage(agent, result)
     redrafted, repaired = repair_citations(result.parsed.assertions)
     packet = state.packet.model_copy(update={"assertions": merge_repair(state.packet, redrafted, targets)})
-    usage = state.llm_usage or {}
     return {
         "packet": packet,
         "draft_packet": state.draft_packet or state.packet,
@@ -130,6 +136,29 @@ async def _repair(
             "fallback": bool(usage.get("fallback")) or result.fallback,
             "citations_repaired": usage.get("citations_repaired", 0) + repaired,
             "schema_retries": usage.get("schema_retries", 0) + retries,
+        },
+    }
+
+
+def _keep_draft(state: CaseState, usage: dict[str, Any], err: LLMError) -> dict[str, Any]:
+    """The update for a repair that failed: the packet stays as it was, so verify passes it on
+    with its flags. The attempt still counts toward the cap, which ends the loop, and the error
+    type (never its text, which can quote model output) is recorded."""
+    schema = isinstance(err, LLMSchemaError)
+    return {
+        "packet": state.packet,
+        "assembled_by": state.assembled_by,
+        "draft_packet": state.draft_packet or state.packet,
+        "draft_verification": state.draft_verification or state.verification,
+        "repairs": state.repairs + 1,
+        "route": "assemble",
+        "llm_usage": {
+            **usage,
+            # A refusal reports no tokens, so the total stays what was known before it.
+            "input_tokens": _add(usage.get("input_tokens"), err.input_tokens) if schema else usage.get("input_tokens"),
+            "output_tokens": _add(usage.get("output_tokens"), err.output_tokens) if schema else usage.get("output_tokens"),
+            "schema_retries": usage.get("schema_retries", 0) + (1 if schema else 0),
+            "repair_failed": type(err).__name__,
         },
     }
 
@@ -165,7 +194,11 @@ async def _generate(llm: LLMClient, user: str, scrub: Callable[[str], str]) -> t
         error = scrub(str(err))[:MAX_ERROR_CHARS]
         retry = (f"{user}\n\nYour previous reply failed validation: {error}\n"
                  "Reply again, with output that matches the schema.")
-        result = await llm.generate(SYSTEM, retry, PacketDraft)
+        try:
+            result = await llm.generate(SYSTEM, retry, PacketDraft)
+        except LLMSchemaError as again:  # re-raised carrying both failed calls' tokens
+            raise LLMSchemaError(str(again), input_tokens=_add(again.input_tokens, err.input_tokens),
+                                 output_tokens=_add(again.output_tokens, err.output_tokens)) from again
         return replace(result, input_tokens=_add(result.input_tokens, err.input_tokens),
                        output_tokens=_add(result.output_tokens, err.output_tokens)), 1
 
