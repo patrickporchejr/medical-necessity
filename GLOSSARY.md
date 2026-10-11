@@ -69,10 +69,12 @@ Terms and acronyms used in this repo, grouped by where they come from. Where a t
 | **Case** | One prior auth request: one patient against the payer criteria. |
 | **Chart** | A patient's records, read through the MCP tools. |
 | **Criterion** | One requirement in the payer criteria, with an id: `ra_diagnosis`, `dmard_trial`, `active_disease`, `tb_screening`, `hepatitis_b_screening`. |
-| **Graph** | The LangGraph `StateGraph` in `api/app/graph/build.py`: `extract → assemble \| gap_packet → verify`. |
+| **Graph** | The LangGraph `StateGraph` in `api/app/graph/build.py`: `extract → assemble \| gap_packet → verify`, with a repair loop from `verify` back to `assemble`. |
 | **Node** | One step in the graph, a plain async function in `api/app/graph/nodes/`. |
 | **State** | The typed data passed between nodes (`api/app/graph/state.py`). |
-| **Conditional edge, route** | The branch after `extract`, made by `route_after_extract`: `assemble` if the RA diagnosis is established, `gap_packet` if not. |
+| **Conditional edge, route** | A branch in the graph. There are two: after `extract`, `route_after_extract` sends the case to `assemble` if the RA diagnosis is established and to `gap_packet` if not; after `verify`, `route_after_verify` sends a model-drafted packet with flagged or unaddressed criteria back to `assemble` while repairs are left. |
+| **Repair loop** | The edge from `verify` back to `assemble`, taken at most once (`MAX_REPAIRS`). The model sees only the flagged and unaddressed criteria with verify's reasons, and its answers replace those criteria. The first draft is kept so evals can score it. Not the same as citation repair, below. |
+| **Schema retry** | When a model reply does not match the packet schema, `assemble` asks once more with the validation error; a second invalid reply stops the run. Counted as `schema_retries`. |
 | **`extract`** | Pulls the chart evidence bearing on each criterion via MCP tools. |
 | **`assemble`** | Has the model draft the packet from that evidence. |
 | **`gap_packet`** | Writes the packet in code, without a model, when the diagnosis is not established. |
@@ -88,7 +90,7 @@ Terms and acronyms used in this repo, grouped by where they come from. Where a t
 | **Unsupported** | An assertion `verify` could not back with the chart. Flagged for the reviewer, never dropped. |
 | **Citation repair** | `repair_citations` in `assemble.py`: restores the angle brackets on a bare placeholder id (`CONDITION_1` → `<CONDITION_1>`) and counts each repair. |
 | **As-of date** | The date durations are computed against, pinned for evals (`AS_OF_DATE`). |
-| **Reviewer** | The human who approves, edits or rejects the packet. The dashboard and routes for this are planned. |
+| **Reviewer** | The human who approves, edits or rejects the packet. The dashboard (`web/`) shows the packet, verify's verdicts and the citation trace; approve, edit and reject were not built. |
 | **HITL** | Human in the loop: a person approves the model's output before it is acted on. |
 
 ## Evals and metrics
