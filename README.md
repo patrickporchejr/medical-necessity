@@ -1,12 +1,45 @@
 # Medical Necessity AI Engine
 
-A clinical evaluation engine built with **LangGraph** and **LangSmith** to automate prior authorization and medical necessity checks.
+**Drafts the prior authorization packet for a clinic's reviewer: for every payer criterion, the evidence from the patient's chart or an honest gap, with each claim linked to the chart record behind it.**
 
-The agent reads a synthetic patient chart through MCP FHIR tools, gathers the chart evidence for each of the payer's criteria, drafts the medical-necessity packet, and verifies that every assertion in that packet resolves to a real record in the chart. A reviewer dashboard shows the packet criterion by criterion, with verify's verdict and the chart record behind every citation.
+<!-- Demo video: add the walkthrough link here -->
 
-**Project status: complete as a demo; no further development is planned.** See [Status](#status) for what is built and what was left out.
+## The problem
 
-New to the domain or the acronyms? See the [Glossary](GLOSSARY.md).
+Before a payer will cover a specialty drug, someone at the clinic has to prove it is medically necessary. In practice that means a nurse or prior-auth specialist reading through the patient's chart, matching it against the payer's written criteria, and assembling a packet. It is slow, it delays the start of treatment, and a missed detail means a denial and another round. Prior auth is one of the highest-friction administrative workflows in US healthcare, and CMS rules for electronic prior authorization tighten through 2027.
+
+## What it does
+
+1. **Reads the chart.** The agent pulls only the records that bear on each of the payer's criteria (diagnoses, medication orders, labs and clinical notes), not the whole chart.
+2. **Drafts the packet.** For each criterion it writes the evidence that meets it, or marks it as a gap the chart cannot support.
+3. **Checks its own work.** Every claim must point to a real record in the chart that supports it. A claim that does not is flagged in red for the reviewer, never silently dropped, and gets one automatic repair attempt.
+4. **Hands it to a person.** A reviewer dashboard shows the packet criterion by criterion, with the chart record behind every citation one click away. A human makes the call.
+
+When the patient's diagnosis is not established, there is nothing for a model to weigh, so the system writes the packet without calling one, at no cost.
+
+## Results
+
+Scored against ground truth on 11 synthetic patient cases, each run 3 times on two models (66 runs):
+
+- **Every final packet was fully correct** on both models, and every citation resolved to a real, supporting chart record.
+- **The repair step fired once in 66 runs** and fixed what it was sent.
+- **Under half a cent per case** in model cost ($0.003 average), and $0 for cases that skip the model.
+
+These are results on synthetic data with one payer policy, not a clinical validation. Full numbers and caveats are in [evals/RESULTS.md](evals/RESULTS.md).
+
+## Built for trust
+
+- **Patient data is scrubbed before any model sees it.** Names, dates and identifiers are replaced in a gateway, and a guard refuses any prompt that still contains a real value. All data in this repo is synthetic (Synthea), so no real patient information is involved.
+- **Every claim is traceable.** The reviewer can open the exact record each assertion cites.
+- **A person approves.** The system drafts and checks; it does not submit.
+
+**Project status: complete as a demo; no further development is planned.** See [Status](#status) for what is built and what was left out. New to the domain or the acronyms? See the [Glossary](GLOSSARY.md).
+
+---
+
+# Technical overview
+
+The agent reads a synthetic patient chart through MCP FHIR tools, gathers the chart evidence for each of the payer's criteria, drafts the medical-necessity packet, and verifies that every assertion in that packet resolves to a real record in the chart. It is built with **LangGraph** and **LangSmith**.
 
 ## Architecture Overview
 ```mermaid
@@ -36,8 +69,6 @@ flowchart LR
 - **Stateful Routing:** the graph is a LangGraph `StateGraph` with typed state and two conditional edges. After `extract`, a case whose RA diagnosis is not established (absent, or resolved rather than active) skips the model: code writes the packet, so the case costs no tokens. After `verify`, a model-drafted packet with flagged or unaddressed criteria goes back to `assemble` once with verify's reasons (the repair loop); the first draft is kept, and evals score it alongside the final packet. The route taken and any repair are recorded in the state, in the run's events and in LangSmith.
 - **Observability & Evals:** With a LangSmith key set, every run is traced, and the evals score each model as an experiment: citation resolution against ground truth, decision accuracy, tokens and estimated cost. Per-node timings are captured, and `evals/run.py` prints them, but experiment summaries do not report latency yet.
 - **Deterministic Guardrails:** they fail closed. A model reply (the draft, or a repair) that does not match the schema is retried once, with the scrubbed validation error fed back (`schema_retries` in the run's usage and eval summaries); a second invalid reply stops the run, and a refusal or a PHI-guard hit is never retried. A tool error in `extract` stops the run. In `verify`, a citation that cannot be fetched counts as not found and its assertion is flagged. Besides that retry, the one fallback is the provider's: on Claude Opus 5 and Fable, a refusal is re-run server-side on another model.
-
-**Why prior auth.** It's the highest-friction administrative workflow in US healthcare, it has an unambiguous ROI story (denial rate, A/R days), CMS electronic PA requirements tighten through 2027, and it structurally requires a human approver — which makes it the right shape for demonstrating human-in-the-loop clinical AI.
 
 **Data.** All patient data is Synthea-generated synthetic FHIR R4 (a fixed-seed cohort of adults with rheumatoid arthritis). No PHI touches this repo, which means no BAA, and no de-identification review.
 
