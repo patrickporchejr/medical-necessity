@@ -35,7 +35,7 @@ These are results on synthetic data with one payer policy, not a clinical valida
 
 **Project status: complete as a demo; no further development is planned.** See [Status](#status) for what is built and what was left out. New to the domain or the acronyms? See the [Glossary](GLOSSARY.md).
 
-**Watch it:** [5-minute demo](https://youtu.be/DXwP9STKAlY) · [Technical walkthrough](https://youtu.be/miBdDWrSTBo)
+**Watch it:** [Demo](https://youtu.be/DXwP9STKAlY) · [Technical walkthrough](https://youtu.be/miBdDWrSTBo)
 
 ---
 
