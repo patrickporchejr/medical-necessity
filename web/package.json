@@ -8,7 +8,7 @@
     "deploy": "vercel deploy --prod --yes"
   },
   "dependencies": {
-    "next": "^15.0.0",
+    "next": "^15.5.28",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
