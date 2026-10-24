@@ -104,6 +104,9 @@ The first two shape the concurrency limit more than model rate limits do (**veri
 - **Done when:** a batch of 50 cases completes under a stated cost cap, survives a mid-run restart, and the
   queue order is demonstrably useful to a reviewer.
 
+The dashboard for this phase (one-click run, live case table, review lanes, decisions) is designed in
+[WORKLIST_UI.md](WORKLIST_UI.md), with build steps in order.
+
 ## Phase 2: more payers and service lines (criteria ingestion)
 
 The policy is one YAML file, but the service line is also in the code:
