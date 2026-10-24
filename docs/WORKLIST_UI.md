@@ -26,7 +26,8 @@ the design, because the current dashboard shows a packet and stops there.
 | Runs that failed | Case status `failed` | Re-run it |
 
 A case that has been signed, closed or returned is **resolved**. Lane priority, top to bottom, is the order
-above. "Next in queue" walks cases in that order, skipping ones waiting on the clinic.
+above. "Next in queue" walks cases in that order, skipping ones waiting on the clinic. When a lane filter is
+on, it stays inside that lane ("Next in Ready to sign (6) →") and says "lane cleared" when the lane is empty.
 
 ## Target design
 
