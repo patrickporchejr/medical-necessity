@@ -17,6 +17,7 @@ and answer decisions D1–D8.
 | M2 | Reference lab | not started | `m2/reference-lab` | CP2 |
 | M3 | Baseline run (Run 4) | not started | `m3/baseline` | CP3 |
 | M4 | Run the worklist | not started | `m4/worklist` | CP4 |
+| X1 | Per-criterion fan-out (experiment) | not started | `x1/fanout` | CPX1 |
 | M5 | Lanes and decisions | not started | `m5/lanes` | CP5 |
 | M6 | Reviewer UX | not started | `m6/reviewer-ux` | CP6 |
 | M7 | Durable state and batch limits | not started | `m7/durable-state` | CP7 |
@@ -48,6 +49,9 @@ Task states: `dispatched`, `handed back`, `in QA`, `QA failed (n)`, `accepted`, 
 | CP0 | D6 | README change, when and by whom | | |
 | CP0 | D7 | Scope | | |
 | CP0 | D8 | Agent definitions | | |
+| CP0 | D9 | Vault lifetime with saved graph state | Sealed per case: encrypted, stored apart from checkpoints, crypto-shredded at close | 2026-10-24 |
+| CP0 | D10 | Reviewer decisions as graph interrupts | Yes | 2026-10-24 |
+| CP0 | D11 | Per-criterion subagent fan-out | An eval-gated experiment (X1), kept only if it beats the baseline | 2026-10-24 |
 
 ## Checkpoint results
 
@@ -58,3 +62,4 @@ Task states: `dispatched`, `handed back`, `in QA`, `QA failed (n)`, `accepted`, 
 ## Log
 
 - 2026-10-24: plan drafted (M0).
+- 2026-10-24: D9–D11 decided in discussion; X1 added, M5 and M7 rewritten for interrupts and the sealed vault.

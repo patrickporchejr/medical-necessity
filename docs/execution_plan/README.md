@@ -35,9 +35,10 @@ Each milestone ends at a checkpoint (CP). Work does not move past a checkpoint u
 | M2 | [Reference lab and screening labs](milestones/M02_reference_lab.md) | New | data, api, evals, web | **CP2** lab results reach a packet and its citation trace |
 | M3 | [Baseline run (Run 4)](milestones/M03_baseline_run.md) | Roadmap Phase 0 | evals | **CP3** accept the new baseline numbers |
 | M4 | [Run the worklist](milestones/M04_run_the_worklist.md) | UI steps 1–3, Phase 1 | api, web | **CP4** one click runs the cohort |
-| M5 | [Lanes and decisions](milestones/M05_lanes_and_decisions.md) | UI steps 4–5, Phase 1 | api, web, data | **CP5** clear every lane, records arrive from the lab |
+| X1 | [Per-criterion fan-out (experiment)](milestones/X1_fanout_experiment.md) | New | api, evals | **CPX1** keep or drop, on the numbers |
+| M5 | [Lanes and decisions](milestones/M05_lanes_and_decisions.md) | UI steps 4–5, Phase 1 | api, web, data | **CP5** clear every lane through graph interrupts, records arrive from the lab |
 | M6 | [Reviewer UX](milestones/M06_reviewer_ux.md) | UI steps 6–8 | web | **CP6** desktop and 375px walkthrough |
-| M7 | [Durable state and batch limits](milestones/M07_durable_state.md) | Phase 1 | api, infra | **CP7** 50-case batch survives a restart under a cost cap |
+| M7 | [Durable state, sealed vault](milestones/M07_durable_state.md) | Phase 1 | api, infra | **CP7** a 50-case batch and waiting cases survive a restart, under a cost cap |
 | M8 | [Prompt-injection hardening](milestones/M08_security.md) | Phase 5 | security, evals | **CP8** injection cases in CI, outcomes unchanged |
 | M9 | [Second service line](milestones/M09_second_service_line.md) | Phase 2 | criteria, api, evals | **CP9a** approve proposed criteria; **CP9b** score on the new line |
 | M10 | [Learning from reviewers](milestones/M10_learning_from_reviewers.md) | Phase 3 | improver, evals | **CP10** merge or reject the improver's PR |
@@ -53,6 +54,14 @@ Why this order:
   the cohort later never reshuffles who has which result.
 - **The worklist backend and UI go step by step together** (M4–M6), as WORKLIST_UI.md lays out, so every
   checkpoint has something to click.
+- **The fan-out experiment (X1) runs after the baseline and before M5.** It needs the baseline to beat, and
+  M5 adds a review node to the same graph. It runs alongside M4, which touches the API and the web, not the
+  graph. An experiment can lose, and then it is dropped.
+- **Reviewer decisions resume the graph (M5).** Each case is a LangGraph thread that pauses at a review
+  interrupt, and the reviewer's decision resumes it. The thread is the case's memory. M5 keeps the thread and its
+  vault in memory; M7 makes both durable by sealing the vault per case (encrypted, stored apart from the
+  de-identified checkpoints, crypto-shredded at case close). That reverses the roadmap's "resume means re-run",
+  on purpose.
 - **Records arriving (M5) uses the lab store.** WORKLIST_UI.md step 5 says "records received" has to stay a
   manual decision because Synthea cannot add a record. A lab result released after the request makes it real.
 - **Security (M8) sits before the second service line** so the injection cases are in the eval set before
@@ -96,6 +105,8 @@ From the roadmap, and from how this repo has been run:
 6. **Demo-only code stays local.** It is never committed or pushed.
 7. **Never weaken `verify` or ground truth to make a number move.** They share rules (`api/app/graph/support.py`);
    a change to one is a change to both, and is called out at the checkpoint.
+8. **The PHI vault stays.** Graph state holds only placeholders and shifted dates; a checkpoint guard refuses any
+   write that holds a value the vault knows. The vault leaves memory only sealed (M7).
 
 ## Not in this plan
 

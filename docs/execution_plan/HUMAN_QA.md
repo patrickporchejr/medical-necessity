@@ -126,18 +126,34 @@ count × 3 runs × 2 models. You approve the spend before the run, not at the ch
    table filtered by lane.
 2. **Resolve flagged claims:** mark one as a gap; override another (it refuses without a note).
 3. **Ready to sign:** sign one. It needs the attestation, and it is only possible from the case view.
-4. **Get missing records:** request records for a **pending-lab** patient. The lab releases the result (the
-   demo control from LAB_STORE.md). Re-run: the screening criteria are now evidenced from Reference Lab, and
-   the case moves to Ready to sign. For a **nowhere** patient, request records: nothing arrives, and the screen
-   says so.
+4. **Get missing records:** request records for a **pending-lab** patient. The case shows "waiting on records".
+   The lab releases the result (the demo control from LAB_STORE.md), and the case resumes on its own: the
+   screening criteria are now evidenced from Reference Lab, the other criteria were not re-run (the timeline
+   shows it), and the case moves to Ready to sign. For a **nowhere** patient, request records: nothing
+   arrives, and the screen says so.
 5. **Confirm not eligible:** close one, return one to the prescriber.
 6. **Runs that failed:** re-run.
 7. A positive-screen case sits where D3 decided, with its reason.
 8. Reload the page: decisions are still there. The audit log lists every decision with time and action.
-9. Run through the [WORKLIST_UI.md checklist](../WORKLIST_UI.md#checklist-for-every-step).
+9. Read the checkpoint-guard test in the packet: a planted real value is refused on a checkpoint write.
+10. Run through the [WORKLIST_UI.md checklist](../WORKLIST_UI.md#checklist-for-every-step).
 
-**Pass when:** every lane's actions work and records arrive from the lab. Your decisions here are kept as
-reviewer data for M10.
+**Pass when:** every lane's actions work through the graph, and records arrive from the lab. Known limit: an API
+restart loses waiting cases until M7. Your decisions here are kept as reviewer data for M10.
+
+---
+
+## CPX1: per-criterion fan-out (experiment)
+
+**Needs live models.** You approve the estimate before the run.
+
+1. Read the X1 section in `evals/RESULTS.md`: both modes side by side, held-out separate, with run-to-run
+   variance stated.
+2. Check the keep rule from the milestone file against the numbers, not against the recommendation.
+3. Open one fan-out run's trace: one subagent per criterion, and a repair that re-sent only the flagged ones.
+
+**Decide:** keep (`assemble_mode = "fanout"` by default), or drop (setting stays `single`; code removed or kept
+off). Either answer passes the checkpoint.
 
 ---
 
@@ -148,9 +164,10 @@ with 120 cases; every action at 375px without horizontal scroll; the WORKLIST_UI
 
 ## CP7: durable state and batch limits (outline)
 
-A 50-case batch under a stated cost cap; stop the API container mid-batch and start it again, and unfinished
-cases re-run while finished ones and all decisions survive; retries with backoff on a provider error; the note
-in the packet on storing rehydrated packets with real ids, which you accept or reject.
+A 50-case batch under a stated cost cap. Stop the API container mid-batch and start it again: running cases
+continue from their last checkpoint, cases waiting on you are still waiting, and decisions survive. Query the
+checkpoint table yourself and find no real names, ids or dates. Resolve a case and confirm it can no longer be
+rehydrated (its key is shredded). Review the proposed README wording for the vault.
 
 ## CP8: prompt-injection hardening (outline)
 

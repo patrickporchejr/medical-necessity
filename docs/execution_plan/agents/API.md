@@ -21,6 +21,8 @@ The README's "The PHI boundary" and "The graph" sections, `api/app/graph/build.p
   it and tell the web agent afterwards.
 - **Shared rules.** `support.py`, `criteria.py` and `state.py` are changed by one task at a time. Each change
   names what it does to ground truth.
+- **The vault leaves memory only sealed.** `Vault.seal`/`unseal` (M7) are the only serialization; pickling stays
+  refused. Every checkpoint write passes the checkpoint guard. Rehydration happens only at the API edge.
 - `verify` judges by rules, not by what a model says. Never relax a check to make a test or score pass.
 - Bounded loops stay bounded (`MAX_REPAIRS`, the schema retry); new loops get a bound.
 - One case failing never stops others (`_run` catches per case; keep that).
