@@ -5,7 +5,7 @@ the branches disagree.
 
 ## Now
 
-**M1: in progress** on `m1/cohort`. M1.3 and M1.4 accepted; M1.1 (size the cohort) running. No live model
+**M1: in progress** on `m1/cohort`. M1.1, M1.3 and M1.4 accepted; M1.2 (generate the cohort) next. No live model
 spend in M1. Scope trimmed by D15 ([TRIMMED_ROADMAP.md](../TRIMMED_ROADMAP.md)): after M1 come G1, M3, Q1, D1.
 
 ## Milestones
@@ -37,7 +37,7 @@ States: `not started`, `planning`, `in progress`, `awaiting CP<N>`, `passed`, `c
 
 | Task | Agent | State | Since | Notes |
 |---|---|---|---|---|
-| M1.1 Size the cohort | data | dispatched | 2026-10-24 | Synthea in Docker, background |
+| M1.1 Size the cohort | data | accepted | 2026-10-24 | 228 RA patients, 102 batches, ~29 s per RA patient; `OUT` and `END_DATE` added to generate.sh; fingerprint `2477aa35…` |
 | M1.3 Strata report | evals | accepted | 2026-10-24 | `uv run --project api python evals/strata.py [--fhir-dir DIR]` |
 | M1.4 Latency in summaries | evals | accepted | 2026-10-24 | run.py now sums a node's laps across a repair |
 
@@ -62,7 +62,7 @@ Task states: `dispatched`, `handed back`, `in QA`, `QA failed (n)`, `accepted`, 
 | CP0 | D13 | Demo layers | In-app demo mode and a click-through in a demo tool; no enterprise platforms | 2026-10-24 |
 | CP0 | D14 | Click-through tool | Arcade: for LinkedIn video and GIF, not funnel analytics | 2026-10-24 |
 | M1 | D15 | Scope, replacing D7 | [TRIMMED_ROADMAP.md](../TRIMMED_ROADMAP.md): M1, then G1, M3, Q1, D1; all else cut. D1–D3, D9 and D10 lapse with M2, M5 and M7; D11 with X1. Minimize spend: cheap models, estimates first, a free static host | 2026-10-24 |
-| M1 | D16 | Situations Synthea writes too rarely | Stop generating at 213 RA patients (batch 93); don't chase 5 per situation. Build the sparse ones by editing charts in G1's hard split, and say so plainly everywhere results are reported: what Synthea gave, where it was too sparse to be statistically meaningful, what we edited and why | 2026-10-24 |
+| M1 | D16 | Situations Synthea writes too rarely | Stop generating at 228 RA patients (102 batches); don't chase 5 per situation. Build the sparse ones by editing charts in G1's hard split, and say so plainly everywhere results are reported: what Synthea gave, where it was too sparse to be statistically meaningful, what we edited and why | 2026-10-24 |
 
 ## Workflow
 
@@ -71,7 +71,7 @@ proposed. Evidence for the workflow write-up in D1. A few lines per milestone, a
 
 | Milestone | Agents | Went wrong, caught by | Your call |
 |---|---|---|---|
-| M1 (so far) | data (opus): M1.1 trial cohort; evals (opus, ~103k tokens): M1.3, M1.4 | The trial was set to 150 batches (~2.5h); the orchestrator surfaced it and you capped it at 5 per occurring situation. The cohort had 34 bundles for `TARGET=30`; the orchestrator asked the data agent to explain. M1.4 found run.py kept only a node's last lap on a repair; the evals agent fixed it with a test | Cap the trial; record the cohort lesson in M9; trim scope (D15) |
+| M1 (so far) | data (opus, ~123k tokens, 2h20m mostly waiting on Synthea): M1.1; evals (opus, ~103k tokens): M1.3, M1.4 | The data agent found Synthea simulates to the wall clock, so a seed was not reproducible; it pinned `END_DATE` and restarted. The trial was set to 150 batches (~2.5h); the orchestrator surfaced it and you capped it at 5 per occurring situation. That rule never converged (new one-case situations kept appearing); you stopped it (D16), and the orchestrator killed the run when the agent was slow to pick up the message. The cohort had 34 bundles for `TARGET=30`; the data agent traced it to a cohort generated before trimming existed, and found it cannot be regenerated exactly. M1.4 found run.py kept only a node's last lap on a repair; the evals agent fixed it with a test | Cap the trial, then stop it and build sparse situations on purpose (D16); record the cohort lesson in M9; trim scope (D15) |
 
 ## Checkpoint results
 
@@ -89,4 +89,4 @@ proposed. Evidence for the workflow write-up in D1. A few lines per milestone, a
 - 2026-10-24: CP0 passed (PR #53 merged). M1 opened; M1.1, M1.3, M1.4 dispatched.
 - 2026-10-24: M1.3 and M1.4 accepted (51 evals tests pass). Under-5 is judged over situations that occur; absent ones listed apart (D4).
 - 2026-10-24: D15 trims the scope (TRIMMED_ROADMAP.md, approved). G1, Q1, D1 added; M2 and M4–M13 and X1 cut; Workflow table started.
-- 2026-10-24: D16: M1.1 trial stopped at 213 RA patients; sparse situations to be built in G1, reported plainly.
+- 2026-10-24: M1.1 accepted. D16: M1.1 trial stopped at 228 RA patients; sparse situations to be built in G1, reported plainly.
