@@ -42,6 +42,17 @@ def test_exactly_one_call_left_for_cpg1(cases):
     assert pending == [("injection-keyword-line", "active_disease")]
 
 
+def test_targeted_marks_what_each_case_is_scored_on(cases):
+    for case in cases:
+        answers = case["criteria"].values()
+        assert all(isinstance(a["targeted"], bool) for a in answers), case["name"]
+        assert any(a["targeted"] for a in answers), case["name"]
+        for a in answers:
+            assert a["targeted"] != a["reason"].startswith(build.UNCHANGED), (case["name"], a["reason"])
+            if a["expected"] == "pending-CPG1":
+                assert a["targeted"] is True
+
+
 def test_ids_follow_the_contract():
     assert build.patient_id("negation-denies") == str(uuid.uuid5(uuid.NAMESPACE_URL, "hard/negation-denies"))
     assert build.record_id("negation-denies", 0) == str(uuid.uuid5(uuid.NAMESPACE_URL, "hard/negation-denies/0"))
@@ -53,6 +64,11 @@ def test_ids_follow_the_contract():
     (lambda c: c["criteria"].pop("tb_screening"), "criteria"),
     (lambda c: c["criteria"]["ra_diagnosis"].__setitem__("expected", "maybe"), "not in"),
     (lambda c: c["edits"][0].__setitem__("date", "2026-12-01"), "on or before"),
+    (lambda c: c["criteria"]["ra_diagnosis"].pop("targeted"), "true or false"),
+    (lambda c: c["criteria"]["ra_diagnosis"].__setitem__("targeted", "yes"), "true or false"),
+    (lambda c: [a.__setitem__("targeted", False) for a in c["criteria"].values()], "no targeted criterion"),
+    (lambda c: c["criteria"]["ra_diagnosis"].__setitem__("targeted", True), "must not start"),
+    (lambda c: c["criteria"]["active_disease"].__setitem__("targeted", False), "must start"),
 ])
 def test_spec_catches(cases, breakage, message):
     broken = copy.deepcopy(cases)

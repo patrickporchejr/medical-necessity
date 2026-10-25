@@ -16,9 +16,10 @@ and requester are copied from the base chart's newest note. Two builds give the 
 
 `--check` builds twice into temporary directories and verifies: the two builds are byte-identical,
 every case key loads through FhirStore, every record named in `edits` and `records` exists, no base
-is in evals/held_out.txt, every case answers every criterion, the sparse-situation cases sit in the
-situation they name (by evals' stratum_of), and the cohort directory is unchanged (hashed before and
-after). It prints one line per failure and exits 1 if there are any.
+is in evals/held_out.txt, every case answers every criterion and targets at least one (D20; an
+untargeted reason starts "Unchanged from the base", a targeted one does not), the sparse-situation
+cases sit in the situation they name (by evals' stratum_of), and the cohort directory is unchanged
+(hashed before and after). It prints one line per failure and exits 1 if there are any.
 """
 
 import argparse
@@ -48,6 +49,8 @@ KINDS = ("negation", "conflict", "undetermined-date", "free-text-only", "screeni
          "sparse-situation")
 EXPECTED = ("evidence", "gap", "pending-CPG1")
 SPARSE_MIN = 5
+# How an untargeted answer's reason starts (D20: the hard split is scored on targeted criteria only).
+UNCHANGED = "Unchanged from the base"
 
 METHOTREXATE = {"system": "http://www.nlm.nih.gov/research/umls/rxnorm", "code": "105585",
                 "display": "Methotrexate 2.5 MG Oral Tablet"}
@@ -255,6 +258,16 @@ def check_spec(cases: list[dict]) -> list[str]:
                 failures.append(f"{name}/{cid}: reason must be one line")
             if not isinstance(answer.get("records"), list):
                 failures.append(f"{name}/{cid}: records must be a list")
+            targeted = answer.get("targeted")
+            if not isinstance(targeted, bool):
+                failures.append(f"{name}/{cid}: targeted must be true or false")
+            elif targeted == reason.startswith(UNCHANGED):
+                failures.append(f"{name}/{cid}: a {'targeted' if targeted else 'untargeted'} reason must "
+                                f"{'not ' if targeted else ''}start with {UNCHANGED!r}")
+            if answer["expected"] == "pending-CPG1" and targeted is not True:
+                failures.append(f"{name}/{cid}: the pending-CPG1 call must be targeted")
+        if not any(a.get("targeted") is True for a in case["criteria"].values()):
+            failures.append(f"{name}: no targeted criterion")
         if case["kind"] == "sparse-situation" and not case.get("situation"):
             failures.append(f"{name}: a sparse-situation case names its situation")
     missing = set(KINDS) - {c["kind"] for c in cases}
