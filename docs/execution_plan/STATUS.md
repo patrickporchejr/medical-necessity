@@ -6,7 +6,7 @@ the branches disagree.
 ## Now
 
 **M3: in progress** on `m3/baseline` (from `main` at 489614e, G1 merged). Milestone file updated for what G1
-settled. M3.1 (estimate, no live calls) dispatched; M3.2 (the paid Run 4) waits for your yes on its figure.
+settled. M3.1 estimate accepted: $1.04, cap $1.50 recommended. M3.2 (the paid Run 4) waits for your yes.
 Live spend so far: $16.59 of the $18 approved (G1.5).
 
 ## Milestones
@@ -38,7 +38,7 @@ States: `not started`, `planning`, `in progress`, `awaiting CP<N>`, `passed`, `c
 
 | Task | Agent | State | Since | Notes |
 |---|---|---|---|---|
-| M3.1 Estimate | evals | dispatched | 2026-10-25 | Measured tokens, not chars/4; no live calls |
+| M3.1 Estimate | evals | accepted | 2026-10-25 | $1.04 (Haiku $0.46, Flash $0.58), 262 model runs of 358 (gap-packet route needs no model); $1.30 with 25%; cap $1.50 recommended. Chart size never reaches the prompt (extract caps it, ids are placeholders): b8a1ffa3 sends 1,517 chars; largest is hard 741ebb47 (4,335). Ratio method on scripted prompts vs Run 3, no tokenizer offline. Smoke: b8a1ffa3 + 741ebb47, ~$0.023, stop over $0.04. Waits for your yes |
 | G1.2b `targeted` field | data | accepted | 2026-10-25 | D20; 29 targeted, bundles byte-identical (614dcb0) |
 | G1.5 Labeling run | orchestrator | accepted | 2026-10-25 | Live, $16.56 (+$0.03 smoke), cap $18 approved. Held-out 21/94/10 unlabeled; hard 32/87/1. Runs agreed on 115 of 120 held-out and 119 of 120 hard labels both runs gave. b8a1ffa3 (largest chart, ~870k tokens) unlabeled: every reply mistyped a record id (6469669) |
 | G1.9 QA and CPG1 packet | qa | accepted | 2026-10-25 | Suite 260 passed, 18 skipped (cohort present); web build passes; agreement `--check` up to date; `api/app/graph/` unchanged. Cohort sweep not run (nothing it covers changed). Found the stale export and CPG1 outline, both fixed by the orchestrator |
@@ -132,3 +132,4 @@ proposed. Evidence for the workflow write-up in D1. A few lines per milestone, a
 - 2026-10-25: G1.9 QA passed on 4fa604b. G1.6b merged; `web/public/labels.json` re-exported (2 `expected` values); CPG1 outline and milestone file updated for D21. G1 awaiting CPG1.
 - 2026-10-25: PR #56 CI green at 00621b9. CPG1 passed; D22, D23 recorded. PR #56 to merge.
 - 2026-10-25: PR #56 merged (489614e); G1 passed. M3 opened on `m3/baseline`; milestone file updated (splits, D20/D22, as-of guard, token lesson, smoke run). M3.1 dispatched.
+- 2026-10-25: M3.1 accepted: Run 4 estimate $1.04, cap $1.50 recommended (worst case, every run repaired, ~$2.60). Waiting for approval.
