@@ -5,15 +5,16 @@ how it was tested, known issues, and the decisions it needs from you. Then you w
 and answer `pass`, `pass with follow-ups`, or `fail` with notes. Record the answer in [STATUS.md](STATUS.md),
 or say it in chat and the orchestrator records it.
 
-Sections for CP0 to CP5 are written out. Later ones are outlines, and the orchestrator fills them in when it
-plans that milestone, so you review them at the checkpoint before.
+D15 trimmed the plan to M1, G1, M3, Q1 and D1. CP0, CP1 and CP3 are written out; CPG1, CPQ1 and CPD1 are
+outlines, filled in when the orchestrator plans that milestone, so you review them at the checkpoint before.
+Sections for cut milestones are kept below the line, as history.
 
 Common setup, unless a section says otherwise:
 
 ```
 git checkout m<N>/<slug>            # the milestone branch from the packet
 cd api && uv sync && cd ../web && npm install && cd ..
-docker compose up --build           # api :8000, mcp :8001, lab :8002 from M2, web :3000
+docker compose up --build           # api :8000, mcp :8001, web :3000
 ```
 
 Scripted models are the default. A step that needs a live model says so, with its estimated cost.
@@ -68,6 +69,62 @@ patient, so the data agent runs it before the checkpoint).
 
 ---
 
+## CPG1: independent ground truth and hard cases (outline)
+
+Open the chart viewer on two held-out cases and label one criterion yourself before reading the committed label;
+they should agree, or the label's reason should convince you. Read the agreement report: every disagreement
+between computed ground truth and hand labels is a rule finding, a fixed labeling mistake, or a recorded
+ambiguity. Read the hard split's list (negation, conflicting notes, undetermined dates, free-text-only, screening
+results with one positive, prompt injection) and its expected outcomes. Decide whether "joint pain" inside an
+injected line counts as evidence. Confirm no rule changed. No live model spend.
+
+---
+
+## CP3: baseline run (Run 4)
+
+**Needs live models.** The packet carries the estimate: at Run 3 rates, about $0.004 per run, times the case
+count × runs × 2 models (3 runs on held-out and hard, 1 on working). You approve the spend before the run, not
+at the checkpoint.
+
+1. Read the new Run 4 section the evals agent drafted for `evals/RESULTS.md`. It reports accuracy, citation
+   resolution, cost and latency per model, with **the working, held-out and hard splits in separate tables**,
+   counts beside rates.
+2. Check that it says this is a new baseline on independent labels, not a comparison with Run 3, and that the
+   labels have one author.
+3. Read the list of hard cases the rules got wrong. That list is Q1's input.
+4. Check whether Haiku's first-draft misses on the "no order" cases recur (the roadmap's question).
+5. Pick two cases from the packet and open their run files; confirm the reported citation resolution matches.
+6. Review the proposed README diff (D6).
+
+**Pass when:** you accept the numbers as the baseline every later milestone is compared with.
+
+---
+
+## CPQ1: faithful wording and fixes, Run 5 (outline)
+
+**Needs live models**, approved before the run as in CP3. Run 5 is in RESULTS.md beside Run 4, per split,
+first draft and final, with counts. Every rule change links to the Run 4 case that failed, and is scored on hand
+labels. The quote check's catches on the hard split are listed, with its limit (a real quote can still be
+misread) stated. Injection cases run in CI with scripted models. Check that the held-out split was not used to
+tune, and that no improvement is claimed within run-to-run variation.
+
+---
+
+## CPD1: the demo, hosted (outline)
+
+Open the hosted link as a stranger would: recorded mode, the banner saying recorded and synthetic, no model
+calls. Walk the thin worklist (table, lanes and filter, a case in the pane, Next in queue, a decision recorded)
+at desktop and 375px. Read the solution brief as a prior-auth lead would and check every number against its
+source. Read `docs/HOW_THIS_WAS_BUILT.md` against the Workflow table in STATUS.md. You capture the Arcade
+click-through yourself. Check the monthly hosting cost is a number in the repo (expected $0). Review the
+proposed README diff.
+
+---
+
+**Cut by D15.** The sections below are kept as history and are not run.
+
+---
+
 ## CP2: the reference lab
 
 1. `curl` or open the lab service's patient listing from the packet. Pick one patient from each screening
@@ -85,22 +142,6 @@ patient, so the data agent runs it before the checkpoint).
    and ground truth both believe.
 
 **Pass when:** 2–7 behave as described, and you agree with the rule change in 8.
-
----
-
-## CP3: baseline run (Run 4)
-
-**Needs live models.** The packet carries the estimate: at Run 3 rates, about $0.004 per run, times the case
-count × 3 runs × 2 models. You approve the spend before the run, not at the checkpoint.
-
-1. Read the new Run 4 section the evals agent drafted for `evals/RESULTS.md`. It reports accuracy, citation
-   resolution, cost and latency per model, with **held-out cases in a separate table**.
-2. Check that it says this is a new baseline (the lab changed ground truth), not a comparison with Run 3.
-3. Check whether Haiku's first-draft misses on the "no order" cases recur (the roadmap's question).
-4. Pick two cases from the packet and open their run files; confirm the reported citation resolution matches.
-5. Review the proposed README diff (D6).
-
-**Pass when:** you accept the numbers as the baseline every later milestone is compared with.
 
 ---
 
@@ -162,6 +203,8 @@ off). Either answer passes the checkpoint.
 Case detail in the left pane, Next in queue (within a lane filter), Esc, page restored on return; pagination
 with 120 cases; every action at 375px without horizontal scroll; the WORKLIST_UI.md checklist.
 
+---
+
 ## CP7: durable state and batch limits (outline)
 
 A 50-case batch under a stated cost cap. Stop the API container mid-batch and start it again: running cases
@@ -169,25 +212,35 @@ continue from their last checkpoint, cases waiting on you are still waiting, and
 checkpoint table yourself and find no real names, ids or dates. Resolve a case and confirm it can no longer be
 rehydrated (its key is shredded). Review the proposed README wording for the vault.
 
+---
+
 ## CP8: prompt-injection hardening (outline)
 
 The injection cases (in notes and in lab `comment`s) are in the eval set and in CI. Packet outcomes are unchanged
 by them; any injected claim ends flagged. You decide whether keyword matches inside an injected line are a
 finding or the accepted limit of keyword rules. Per-run and per-batch token caps refuse a run over the cap.
 
+---
+
 ## CP9a / CP9b: second service line (outline)
 
 9a: you approve or reject each proposed criteria YAML. Nothing enters `data/payer_criteria/` without you.
 9b: the second line runs end to end with a reported score on the M3 eval setup, held-out separate.
+
+---
 
 ## CP10: learning from reviewers (outline)
 
 The improver's PR, with before and after scores on the working and held-out sets. You merge or reject it.
 The packet says how many reviewer decisions it learned from, and that they are synthetic and one reviewer's.
 
+---
+
 ## CP11: denials and appeals (outline)
 
 A denied case round-trips: denial in, cited appeal draft out, your decision logged.
+
+---
 
 ## CP13: the demo (outline)
 
@@ -195,6 +248,8 @@ Approve the storyboard (buyer story and technical deep-dive) before anything is 
 brief as a hospital's prior-auth lead would, and check every number against its source. Then: reset brings back the starting state every time;
 each scenario plays the same way twice in recorded mode with no model spend; the guided tour walks both
 stories at desktop width; you capture the click-through in Arcade yourself and export the LinkedIn video; the hosted demo opens behind the password in recorded mode.
+
+---
 
 ## CP12a / CP12b: deploy (outline)
 

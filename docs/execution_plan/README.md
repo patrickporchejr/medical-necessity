@@ -1,10 +1,9 @@
 # Execution plan
 
-Status: draft for checkpoint 0, 2026-10-24. Nothing below has started. This plan turns
-[ROADMAP.md](../ROADMAP.md) and [WORKLIST_UI.md](../WORKLIST_UI.md) into an ordered sequence of
-milestones, carried out by one orchestrator agent and a small set of subagents, with a human QA
-checkpoint at the end of every milestone. It adds one piece neither doc has: a synthetic reference lab
-that some patients' TB and hepatitis B results come from ([LAB_STORE.md](LAB_STORE.md)).
+Status: CP0 passed; scope trimmed by D15 on 2026-10-24. This plan turns [ROADMAP.md](../ROADMAP.md) into an
+ordered sequence of milestones, carried out by one orchestrator agent and a small set of subagents, with a
+human QA checkpoint at the end of every milestone. [TRIMMED_ROADMAP.md](../TRIMMED_ROADMAP.md) says which
+milestones still run and why; the cut ones keep their files, marked `cut` in [STATUS.md](STATUS.md).
 
 ## How to read this
 
@@ -13,12 +12,13 @@ Start here, then go only as deep as you need:
 | Level | Read | For |
 |---|---|---|
 | 1 | This page | The sequence, the checkpoints, who does what |
+| 1 | [TRIMMED_ROADMAP.md](../TRIMMED_ROADMAP.md) | What the project is for, what runs, what was cut and why |
 | 2 | [HUMAN_QA.md](HUMAN_QA.md) | What you test at each checkpoint and what you decide |
 | 2 | [ORCHESTRATOR.md](ORCHESTRATOR.md) | How the work is dispatched, tracked and gated |
 | 2 | [STATUS.md](STATUS.md) | Where the work is right now |
 | 3 | [milestones/](milestones/) | One file per milestone: tasks, owners, order, done-when |
 | 3 | [agents/](agents/) | One brief per subagent: scope, files it owns, rules |
-| 3 | [LAB_STORE.md](LAB_STORE.md) | Design of the new reference lab |
+| 3 | [LAB_STORE.md](LAB_STORE.md) | Design of the reference lab (M2, cut) |
 
 The orchestrator reads levels 1 and 2 at the start of every session, and a milestone file when that
 milestone starts. A subagent is handed its own brief and one task from one milestone file, not the whole plan.
@@ -32,52 +32,36 @@ Each milestone ends at a checkpoint (CP). Work does not move past a checkpoint u
 |---|---|---|---|---|
 | M0 | [This plan](milestones/M00_plan.md) | — | orchestrator | **CP0** review the plan, answer the open decisions |
 | M1 | [Bigger cohort, eval hygiene](milestones/M01_cohort_and_eval_hygiene.md) | Roadmap Phase 0 | data, evals | **CP1** strata counts, held-out split frozen |
-| M2 | [Reference lab and screening labs](milestones/M02_reference_lab.md) | New | data, api, evals, web | **CP2** lab results reach a packet and its citation trace |
+| G1 | Independent ground truth and hard cases | New | evals, data | **CPG1** hand labels, hard split, every disagreement explained |
 | M3 | [Baseline run (Run 4)](milestones/M03_baseline_run.md) | Roadmap Phase 0 | evals | **CP3** accept the new baseline numbers |
-| M4 | [Run the worklist](milestones/M04_run_the_worklist.md) | UI steps 1–3, Phase 1 | api, web | **CP4** one click runs the cohort |
-| X1 | [Per-criterion fan-out (experiment)](milestones/X1_fanout_experiment.md) | New | api, evals | **CPX1** keep or drop, on the numbers |
-| M5 | [Lanes and decisions](milestones/M05_lanes_and_decisions.md) | UI steps 4–5, Phase 1 | api, web, data | **CP5** clear every lane through graph interrupts, records arrive from the lab |
-| M6 | [Reviewer UX](milestones/M06_reviewer_ux.md) | UI steps 6–8 | web | **CP6** desktop and 375px walkthrough |
-| M7 | [Durable state, sealed vault](milestones/M07_durable_state.md) | Phase 1 | api, infra | **CP7** a 50-case batch and waiting cases survive a restart, under a cost cap |
-| M8 | [Prompt-injection hardening](milestones/M08_security.md) | Phase 5 | security, evals | **CP8** injection cases in CI, outcomes unchanged |
-| M9 | [Second service line](milestones/M09_second_service_line.md) | Phase 2 | criteria, api, evals | **CP9a** approve proposed criteria; **CP9b** score on the new line |
-| M10 | [Learning from reviewers](milestones/M10_learning_from_reviewers.md) | Phase 3 | improver, evals | **CP10** merge or reject the improver's PR |
-| M11 | [Denials and appeals](milestones/M11_denials_and_appeals.md) | Phase 4 | api, evals, web | **CP11** a denied case round-trips |
-| M12 | [Deploy on AWS](milestones/M12_deploy.md) | Phase 6 | infra | **CP12a** approve cost and design; **CP12b** a stranger runs a batch |
-| M13 | [The demo](milestones/M13_demo.md) | New | demo, api, web | **CP13** storyboard, solution brief, demo mode, the Arcade click-through, the hosted demo |
+| Q1 | Faithful wording and the fixes Run 4 calls for (Run 5) | New, metric from M10 | api, evals | **CPQ1** Run 5 beside Run 4, every fix linked to a failed case |
+| D1 | The demo, hosted | M4–M6, M12, M13, cut down | web, api, demo | **CPD1** a stranger opens the link; brief and workflow write-up in the README |
+
+Cut by D15, files kept: [M2](milestones/M02_reference_lab.md), [M4](milestones/M04_run_the_worklist.md),
+[X1](milestones/X1_fanout_experiment.md), [M5](milestones/M05_lanes_and_decisions.md),
+[M6](milestones/M06_reviewer_ux.md), [M7](milestones/M07_durable_state.md), [M8](milestones/M08_security.md),
+[M9](milestones/M09_second_service_line.md), [M10](milestones/M10_learning_from_reviewers.md),
+[M11](milestones/M11_denials_and_appeals.md), [M12](milestones/M12_deploy.md), [M13](milestones/M13_demo.md).
+G1, Q1 and D1 get their milestone files at the checkpoint before each.
 
 Why this order:
 
-- **The lab store comes before the baseline run.** It changes the expected outcome of every RA-active case
-  (TB and hepatitis B stop being gaps for some patients), so running the baseline first would mean paying
-  for it twice and comparing against numbers that no longer apply.
-- **The cohort grows before the lab store**, but the lab data is a pure function of the patient id, so growing
-  the cohort later never reshuffles who has which result.
-- **The worklist backend and UI go step by step together** (M4–M6), as WORKLIST_UI.md lays out, so every
-  checkpoint has something to click.
-- **The fan-out experiment (X1) runs after the baseline and before M5.** It needs the baseline to beat, and
-  M5 adds a review node to the same graph. It runs alongside M4, which touches the API and the web, not the
-  graph. An experiment can lose, and then it is dropped.
-- **Reviewer decisions resume the graph (M5).** Each case is a LangGraph thread that pauses at a review
-  interrupt, and the reviewer's decision resumes it. The thread is the case's memory. M5 keeps the thread and its
-  vault in memory; M7 makes both durable by sealing the vault per case (encrypted, stored apart from the
-  de-identified checkpoints, crypto-shredded at case close). That reverses the roadmap's "resume means re-run",
-  on purpose.
-- **Records arriving (M5) uses the lab store.** WORKLIST_UI.md step 5 says "records received" has to stay a
-  manual decision because Synthea cannot add a record. A lab result released after the request makes it real.
-- **Security (M8) sits before the second service line** so the injection cases are in the eval set before
-  new criteria are scored against it. The roadmap calls it cheap and says to interleave it.
-- **Learning from reviewers (M10) comes after M9**, because it needs reviewer decisions to learn from. The
-  decisions you make during CP5–CP9 are that data (one reviewer, synthetic cases; HUMAN_QA.md says so).
-- **The demo (M13) starts after CP7**, when the worklist, decisions and durable state exist to show, and runs
-  alongside M12, whose hosting it uses. It is a real feature: a demo mode with reset, scenarios and recorded
-  model output, plus a click-through made in a demo tool.
-- **M11 is the first to cut** (the roadmap's call). **M12 may start in parallel after CP7**, since the state
-  store shapes the deployment; it still waits for its own cost approval at CP12a.
+- **Independent labels (G1) come before the paid baseline (M3).** Run 3's 1.000 was scored against ground
+  truth computed with the pipeline's own rules, so it checked wiring, not correctness. Paying for Run 4 on the
+  same labels would repeat that.
+- **G1 changes no rules**, so Run 4 measures today's pipeline honestly, on the hard cases too (negation,
+  conflicting notes, screening results, prompt injection).
+- **Q1 comes after Run 4** because its fixes are chosen from what Run 4 got wrong, each justified by a failed
+  case and scored against hand labels. Its quote check changes `assemble` and `verify`, so it cannot go before
+  the baseline either.
+- **The demo (D1) comes last** so it shows Run 5's numbers, and records output from the pipeline as it will
+  stay. It is recorded only, so hosting it costs nothing per visit.
+- **Spend is minimal throughout:** two paid runs (Run 4, Run 5) on the cheapest models, each estimated and
+  approved first, and a free static host for the demo.
 
-Detail matches distance: M1–M5 are planned to the task, M6–M8 to the step, and M9–M12 to the outcome.
-The orchestrator writes the detailed plan for a later milestone at the checkpoint before it, when what was
-learned is known. Each detailed plan is reviewed at that checkpoint.
+Detail matches distance: M1 and M3 are planned to the task; G1, Q1 and D1 to the outcome in
+[TRIMMED_ROADMAP.md](../TRIMMED_ROADMAP.md). The orchestrator writes the detailed plan for a milestone at the
+checkpoint before it, when what was learned is known. Each detailed plan is reviewed at that checkpoint.
 
 ## Who does what
 
@@ -89,14 +73,14 @@ learned is known. Each detailed plan is reviewed at that checkpoint.
 | api | [agents/API.md](agents/API.md) | The graph, PHI gateway, case API, dispatcher, persistence |
 | web | [agents/WEB.md](agents/WEB.md) | The reviewer dashboard |
 | qa | [agents/QA.md](agents/QA.md) | Verifies every task before it is accepted, and assembles the checkpoint packet |
-| security | [agents/SECURITY.md](agents/SECURITY.md) | Injection cases and run caps (M8) |
-| criteria | [agents/CRITERIA.md](agents/CRITERIA.md) | Criteria ingestion and the second service line (M9) |
-| improver | [agents/IMPROVER.md](agents/IMPROVER.md) | Proposed prompt and criteria changes from reviewer data (M10). Never sees the held-out set |
-| infra | [agents/INFRA.md](agents/INFRA.md) | Postgres, containers, AWS (M7, M12) |
-| demo | [agents/DEMO.md](agents/DEMO.md) | Storyboard, scenarios and click-through copy (M13) |
+| security | [agents/SECURITY.md](agents/SECURITY.md) | Not used after D15: injection cases moved to G1 (evals) |
+| criteria | [agents/CRITERIA.md](agents/CRITERIA.md) | Not used after D15 (M9 cut) |
+| improver | [agents/IMPROVER.md](agents/IMPROVER.md) | Not used after D15 (M10 cut) |
+| infra | [agents/INFRA.md](agents/INFRA.md) | Not used after D15; D1's static hosting is web's |
+| demo | [agents/DEMO.md](agents/DEMO.md) | Solution brief and click-through copy (D1) |
 
-Agents are added when a milestone needs them, in line with the roadmap's first rule: security, criteria,
-improver, infra and demo have no work before M7.
+Agents are added when a milestone needs them, in line with the roadmap's first rule. After D15, data, evals,
+api, web, qa and demo are the only ones with work.
 
 ## Rules every agent follows
 
@@ -107,12 +91,13 @@ From the roadmap, and from how this repo has been run:
 3. **Humans approve consequential changes.** Agents open PRs; you merge. Nothing past a checkpoint without you.
 4. **No live model spend or cloud resource without an estimate and a yes.** Scripted models by default.
 5. **No README or existing doc edits unless a task names them**, and then only as a proposed diff at a checkpoint.
-6. **One-off recording helpers stay local.** The demo mode in M13 is product code and is committed; a throwaway
+6. **One-off recording helpers stay local.** D1's recorded mode is product code and is committed; a throwaway
    script for recording a single take is not.
 7. **Never weaken `verify` or ground truth to make a number move.** They share rules (`api/app/graph/support.py`);
-   a change to one is a change to both, and is called out at the checkpoint.
-8. **The PHI vault stays.** Graph state holds only placeholders and shifted dates; a checkpoint guard refuses any
-   write that holds a value the vault knows. The vault leaves memory only sealed (M7).
+   a change to one is a change to both, and is called out at the checkpoint. From G1, held-out and hard cases
+   are scored against hand labels, which no rule change touches.
+8. **The PHI vault stays.** Graph state holds only placeholders and shifted dates, and the vault is never
+   written to disk.
 
 ## Not in this plan
 
