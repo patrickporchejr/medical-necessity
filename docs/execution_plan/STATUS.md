@@ -35,8 +35,8 @@ States: `not started`, `planning`, `in progress`, `awaiting CP<N>`, `passed`, `c
 | Task | Agent | State | Since | Notes |
 |---|---|---|---|---|
 | M1.1 Size the cohort | data | dispatched | 2026-10-24 | Synthea in Docker, background |
-| M1.3 Strata report | evals | dispatched | 2026-10-24 | |
-| M1.4 Latency in summaries | evals | dispatched | 2026-10-24 | |
+| M1.3 Strata report | evals | accepted | 2026-10-24 | `uv run --project api python evals/strata.py [--fhir-dir DIR]` |
+| M1.4 Latency in summaries | evals | accepted | 2026-10-24 | run.py now sums a node's laps across a repair |
 
 Task states: `dispatched`, `handed back`, `in QA`, `QA failed (n)`, `accepted`, `blocked`.
 
@@ -73,3 +73,4 @@ Task states: `dispatched`, `handed back`, `in QA`, `QA failed (n)`, `accepted`, 
 - 2026-10-24: D14 Arcade; M13 re-aimed at buyer and technical audiences, solution brief added.
 - 2026-10-24: D1–D8 set to the recommendations; agent definitions drafted (M0.3).
 - 2026-10-24: CP0 passed (PR #53 merged). M1 opened; M1.1, M1.3, M1.4 dispatched.
+- 2026-10-24: M1.3 and M1.4 accepted (51 evals tests pass). Under-5 is judged over situations that occur; absent ones listed apart (D4).
