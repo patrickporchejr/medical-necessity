@@ -5,15 +5,15 @@ the branches disagree.
 
 ## Now
 
-**M0: awaiting CP0.** Every decision (D1–D14) is answered and the plan matches. Agent definitions for M1–M2 are
-drafted in `.claude/agents/`. Next: you merge PR #53, which passes CP0, and the orchestrator opens M1.
+**M1: in progress** on `m1/cohort`. M1.1 (size the cohort), M1.3 (strata report) and M1.4 (latency in
+summaries) are dispatched in parallel. No live model spend in M1.
 
 ## Milestones
 
 | # | Milestone | State | Branch | Checkpoint |
 |---|---|---|---|---|
-| M0 | The plan | awaiting CP0 | — | CP0 |
-| M1 | Bigger cohort, eval hygiene | not started | `m1/cohort` | CP1 |
+| M0 | The plan | passed | — | CP0 |
+| M1 | Bigger cohort, eval hygiene | in progress | `m1/cohort` | CP1 |
 | M2 | Reference lab | not started | `m2/reference-lab` | CP2 |
 | M3 | Baseline run (Run 4) | not started | `m3/baseline` | CP3 |
 | M4 | Run the worklist | not started | `m4/worklist` | CP4 |
@@ -34,7 +34,9 @@ States: `not started`, `planning`, `in progress`, `awaiting CP<N>`, `passed`, `c
 
 | Task | Agent | State | Since | Notes |
 |---|---|---|---|---|
-| — | | | | |
+| M1.1 Size the cohort | data | dispatched | 2026-10-24 | Synthea in Docker, background |
+| M1.3 Strata report | evals | dispatched | 2026-10-24 | |
+| M1.4 Latency in summaries | evals | dispatched | 2026-10-24 | |
 
 Task states: `dispatched`, `handed back`, `in QA`, `QA failed (n)`, `accepted`, `blocked`.
 
@@ -61,7 +63,7 @@ Task states: `dispatched`, `handed back`, `in QA`, `QA failed (n)`, `accepted`, 
 
 | Checkpoint | Result | Date | Follow-ups |
 |---|---|---|---|
-| CP0 | | | |
+| CP0 | Passed (PR #53 merged) | 2026-10-24 | — |
 
 ## Log
 
@@ -70,3 +72,4 @@ Task states: `dispatched`, `handed back`, `in QA`, `QA failed (n)`, `accepted`, 
 - 2026-10-24: D12–D13 decided; M13 (the demo) and the demo agent added.
 - 2026-10-24: D14 Arcade; M13 re-aimed at buyer and technical audiences, solution brief added.
 - 2026-10-24: D1–D8 set to the recommendations; agent definitions drafted (M0.3).
+- 2026-10-24: CP0 passed (PR #53 merged). M1 opened; M1.1, M1.3, M1.4 dispatched.
