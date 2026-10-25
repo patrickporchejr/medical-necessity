@@ -37,9 +37,9 @@ States: `not started`, `planning`, `in progress`, `awaiting CP<N>`, `passed`, `c
 
 | Task | Agent | State | Since | Notes |
 |---|---|---|---|---|
-| G1.1 Chart viewer | evals | dispatched | 2026-10-25 | Worktree |
-| G1.2 Hard cases | data | dispatched | 2026-10-25 | Worktree; answers in `data/hard/cases.yaml` |
-| G1.7 Review page | web | dispatched | 2026-10-25 | Worktree; against the sample fixture until G1.5 |
+| G1.1 Chart viewer | evals | handed back | 2026-10-25 | `evals/chart.py` (09f3d2f): 8 tests + 1 cohort test. Held-out estimate 3.05M tokens (15k–438k per chart). Patient name in notes replaced by `[patient]`. Waits for QA |
+| G1.2 Hard cases | data | handed back | 2026-10-25 | 24 cases (6e0f49b): the 14 kinds plus 5 per sparse situation. `--check` passes, cohort unchanged; built in `data/synthea/hard/`. 8 of 120 answers differ from the rule. Judgment calls to confirm at CPG1. Waits for QA |
+| G1.7 Review page | web | handed back | 2026-10-25 | `/labels` built, `npm run build` and tsc pass (8c96ed5). Untested: phone width, the download, the mismatch and unlabeled panels. Waits for QA |
 | M1.1 Size the cohort | data | accepted | 2026-10-24 | 228 RA patients, 102 batches, ~29 s per RA patient; `OUT` and `END_DATE` added to generate.sh; fingerprint `2477aa35…` |
 | M1.2 Generate the cohort | orchestrator | accepted | 2026-10-24 | 228 RA patients installed, fingerprint `2477aa35…`; generate.sh defaults reproduce it (`END_DATE=20260920`). Cohort-wide tests marked `cohort`, skipped by default (25.5 → 2.5 min). `-m cohort` on the updated tests: 4 passed |
 | M1.5 Held-out split | evals | accepted | 2026-10-25 | `evals/held_out.txt`, 25 cases, frozen; `evals/split.py` checks it. Situations under 10 not split (D16); cases from Runs 0–3 kept out |
