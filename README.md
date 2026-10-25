@@ -2,7 +2,7 @@
 
 **Drafts the prior authorization packet for a clinic's reviewer: for every payer criterion, the evidence from the patient's chart or an honest gap, with each claim linked to the chart record behind it.**
 
-<!-- Demo video: add the walkthrough link here -->
+**Watch it:** [Demo](https://youtu.be/DXwP9STKAlY) · [Technical walkthrough](https://youtu.be/miBdDWrSTBo)
 
 ## The problem
 
@@ -34,8 +34,6 @@ These are results on synthetic data with one payer policy, not a clinical valida
 - **A person approves.** The system drafts and checks; it does not submit.
 
 **Project status: complete as a demo; no further development is planned.** See [Status](#status) for what is built and what was left out. New to the domain or the acronyms? See the [Glossary](GLOSSARY.md).
-
-**Watch it:** [Demo](https://youtu.be/DXwP9STKAlY) · [Technical walkthrough](https://youtu.be/miBdDWrSTBo)
 
 ---
 
