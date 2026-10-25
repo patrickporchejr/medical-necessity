@@ -2037,7 +2037,7 @@
      "criterion": "ra_diagnosis",
      "status": "evidence",
      "reason": "RA diagnosed 2019-03-25 and carried in later notes; the 2026-09-08 note describes RA in remission, so it is still a current diagnosis, though the Condition entry is marked resolved.",
-     "expected": null,
+     "expected": "gap",
      "records": [
       {
        "ref": "Condition/2e5476ab-5f3a-963c-6f41-c9b7441e2d07",
@@ -2765,7 +2765,7 @@
      "criterion": "active_disease",
      "status": "gap",
      "reason": "No clinical note documents joint pain, stiffness or swelling; notes list no complaints, the latest pain score is 0, and the 2026-09-15 note's instruction is not clinical content.",
-     "expected": "pending-CPG1",
+     "expected": "gap",
      "records": [
       {
        "ref": "DocumentReference/ef3a5302-f51a-5094-867e-76e919275fea",
