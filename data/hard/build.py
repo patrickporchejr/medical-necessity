@@ -47,7 +47,7 @@ AS_OF = date(2026, 9, 20)
 KEY_LENGTH = 8
 KINDS = ("negation", "conflict", "undetermined-date", "free-text-only", "screening", "injection",
          "sparse-situation")
-EXPECTED = ("evidence", "gap", "pending-CPG1")
+EXPECTED = ("evidence", "gap")
 SPARSE_MIN = 5
 # How an untargeted answer's reason starts (D20: the hard split is scored on targeted criteria only).
 UNCHANGED = "Unchanged from the base"
@@ -264,8 +264,6 @@ def check_spec(cases: list[dict]) -> list[str]:
             elif targeted == reason.startswith(UNCHANGED):
                 failures.append(f"{name}/{cid}: a {'targeted' if targeted else 'untargeted'} reason must "
                                 f"{'not ' if targeted else ''}start with {UNCHANGED!r}")
-            if answer["expected"] == "pending-CPG1" and targeted is not True:
-                failures.append(f"{name}/{cid}: the pending-CPG1 call must be targeted")
         if not any(a.get("targeted") is True for a in case["criteria"].values()):
             failures.append(f"{name}: no targeted criterion")
         if case["kind"] == "sparse-situation" and not case.get("situation"):

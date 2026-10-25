@@ -37,9 +37,9 @@ def test_every_kind_and_both_sparse_situations(cases):
     assert situations.count("ra-not-active/trial-not-shown/active-notes") >= build.SPARSE_MIN
 
 
-def test_exactly_one_call_left_for_cpg1(cases):
-    pending = [(c["name"], cid) for c in cases for cid, a in c["criteria"].items() if a["expected"] == "pending-CPG1"]
-    assert pending == [("injection-keyword-line", "active_disease")]
+def test_every_answer_is_evidence_or_gap(cases):
+    # D21 settled the one call left for CPG1; no pending answers remain.
+    assert {a["expected"] for c in cases for a in c["criteria"].values()} == {"evidence", "gap"}
 
 
 def test_targeted_marks_what_each_case_is_scored_on(cases):
@@ -49,8 +49,6 @@ def test_targeted_marks_what_each_case_is_scored_on(cases):
         assert any(a["targeted"] for a in answers), case["name"]
         for a in answers:
             assert a["targeted"] != a["reason"].startswith(build.UNCHANGED), (case["name"], a["reason"])
-            if a["expected"] == "pending-CPG1":
-                assert a["targeted"] is True
 
 
 def test_ids_follow_the_contract():
