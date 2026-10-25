@@ -88,5 +88,5 @@ proposed. Evidence for the workflow write-up in D1. A few lines per milestone, a
 - 2026-10-24: D1–D8 set to the recommendations; agent definitions drafted (M0.3).
 - 2026-10-24: CP0 passed (PR #53 merged). M1 opened; M1.1, M1.3, M1.4 dispatched.
 - 2026-10-24: M1.3 and M1.4 accepted (51 evals tests pass). Under-5 is judged over situations that occur; absent ones listed apart (D4).
-- 2026-10-24: D16: M1.1 trial stopped at 213 RA patients; sparse situations to be built in G1, reported plainly.
 - 2026-10-24: D15 trims the scope (TRIMMED_ROADMAP.md, approved). G1, Q1, D1 added; M2 and M4–M13 and X1 cut; Workflow table started.
+- 2026-10-24: D16: M1.1 trial stopped at 213 RA patients; sparse situations to be built in G1, reported plainly.
