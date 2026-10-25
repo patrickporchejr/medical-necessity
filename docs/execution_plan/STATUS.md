@@ -5,7 +5,7 @@ the branches disagree.
 
 ## Now
 
-**M1: in progress** on `m1/cohort`. M1.1, M1.3 and M1.4 accepted; M1.2 done except one check: the three updated cohort tests have not yet run under `-m cohort`. Next: that check, then M1.5 and M1.6. Draft PR open. No live model
+**M1: in progress** on `m1/cohort`. M1.1–M1.6 accepted. M1.7 (QA and the CP1 packet) in progress. Draft PR #55. No live model
 spend in M1. Scope trimmed by D15 ([TRIMMED_ROADMAP.md](../TRIMMED_ROADMAP.md)): after M1 come G1, M3, Q1, D1.
 
 ## Milestones
@@ -38,7 +38,9 @@ States: `not started`, `planning`, `in progress`, `awaiting CP<N>`, `passed`, `c
 | Task | Agent | State | Since | Notes |
 |---|---|---|---|---|
 | M1.1 Size the cohort | data | accepted | 2026-10-24 | 228 RA patients, 102 batches, ~29 s per RA patient; `OUT` and `END_DATE` added to generate.sh; fingerprint `2477aa35…` |
-| M1.2 Generate the cohort | orchestrator | handed back | 2026-10-24 | 228 RA patients installed, fingerprint `2477aa35…`; generate.sh defaults reproduce it (`END_DATE=20260920`). Cohort-wide tests marked `cohort`, skipped by default (25.5 → 2.5 min). Pending: `-m cohort` on the 3 updated tests |
+| M1.2 Generate the cohort | orchestrator | accepted | 2026-10-24 | 228 RA patients installed, fingerprint `2477aa35…`; generate.sh defaults reproduce it (`END_DATE=20260920`). Cohort-wide tests marked `cohort`, skipped by default (25.5 → 2.5 min). `-m cohort` on the updated tests: 4 passed |
+| M1.5 Held-out split | evals | accepted | 2026-10-25 | `evals/held_out.txt`, 25 cases, frozen; `evals/split.py` checks it. Situations under 10 not split (D16); cases from Runs 0–3 kept out |
+| M1.6 Cases per stratum | evals | accepted | 2026-10-25 | Working selection 5 per situation, 32 cases, smallest and largest chart kept |
 | M1.3 Strata report | evals | accepted | 2026-10-24 | `uv run --project api python evals/strata.py [--fhir-dir DIR]` |
 | M1.4 Latency in summaries | evals | accepted | 2026-10-24 | run.py now sums a node's laps across a repair |
 
@@ -72,7 +74,7 @@ proposed. Evidence for the workflow write-up in D1. A few lines per milestone, a
 
 | Milestone | Agents | Went wrong, caught by | Your call |
 |---|---|---|---|
-| M1 (so far) | data (opus, ~123k tokens, 2h20m mostly waiting on Synthea): M1.1; evals (opus, ~103k tokens): M1.3, M1.4 | The data agent found Synthea simulates to the wall clock, so a seed was not reproducible; it pinned `END_DATE` and restarted. The trial was set to 150 batches (~2.5h); the orchestrator surfaced it and you capped it at 5 per occurring situation. That rule never converged (new one-case situations kept appearing); you stopped it (D16), and the orchestrator killed the run when the agent was slow to pick up the message. The cohort had 34 bundles for `TARGET=30`; the data agent traced it to a cohort generated before trimming existed, and found it cannot be regenerated exactly. M1.4 found run.py kept only a node's last lap on a repair; the evals agent fixed it with a test | Cap the trial, then stop it and build sparse situations on purpose (D16); record the cohort lesson in M9; trim scope (D15) |
+| M1 (so far) | data (opus, ~123k tokens, 2h20m mostly waiting on Synthea): M1.1; evals (opus, ~103k tokens): M1.3, M1.4; evals (opus, ~121k tokens): M1.5, M1.6; orchestrator: M1.2 | The data agent found Synthea simulates to the wall clock, so a seed was not reproducible; it pinned `END_DATE` and restarted. The trial was set to 150 batches (~2.5h); the orchestrator surfaced it and you capped it at 5 per occurring situation. That rule never converged (new one-case situations kept appearing); you stopped it (D16), and the orchestrator killed the run when the agent was slow to pick up the message. The cohort had 34 bundles for `TARGET=30`; the data agent traced it to a cohort generated before trimming existed, and found it cannot be regenerated exactly. M1.4 found run.py kept only a node's last lap on a repair; the evals agent fixed it with a test. Growing the cohort to 228 made the suite take 25.5 min (3 stale counts failed); the orchestrator made the cohort-wide tests opt-in. In M1.5 the evals agent kept the 2 cases from Runs 0–3 out of held-out, since prompts were tuned on them; nobody had asked for that | Cap the trial, then stop it and build sparse situations on purpose (D16); record the cohort lesson in M9; trim scope (D15) |
 
 ## Checkpoint results
 
@@ -92,3 +94,4 @@ proposed. Evidence for the workflow write-up in D1. A few lines per milestone, a
 - 2026-10-24: D15 trims the scope (TRIMMED_ROADMAP.md, approved). G1, Q1, D1 added; M2 and M4–M13 and X1 cut; Workflow table started.
 - 2026-10-24: M1.1 accepted. D16: M1.1 trial stopped at 228 RA patients; sparse situations to be built in G1, reported plainly.
 - 2026-10-24: M1.2: 228-patient cohort installed (34-patient one backed up locally; it cannot be regenerated). 12 cohort-wide tests marked `cohort` and skipped by default; 3 tests updated for 228. Everyday suite 198 passed.
+- 2026-10-25: M1.2 confirmed (`-m cohort`, 4 passed). M1.5 and M1.6 accepted (210 passed); held-out split frozen at 25. M1.7 dispatched.

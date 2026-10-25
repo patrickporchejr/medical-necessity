@@ -10,11 +10,13 @@ import pytest
 
 from dataset import open_ground_truth
 from experiment import (
+    CASES_PER_STRATUM,
     Row,
     build_examples,
     client_for,
     cohort_fingerprint,
     git_commit,
+    load_held_out,
     package_version,
     patient_key,
     prompt_files,
@@ -53,10 +55,14 @@ def test_the_dataset_covers_every_situation_with_a_small_and_a_large_chart(truth
     # every situation that occurs in the cohort is covered, including a resolved diagnosis
     assert strata == {stratum_of(truth, c.patient_id) for c in truth.cases()}
     assert any(s.startswith("ra-not-active/") for s in strata) and any(s.startswith("ra-active/") for s in strata)
+    held = set(load_held_out())
+    assert not held & {patient_key(p) for p, _ in selected}  # the working split reads no held-out case
     for stratum in strata:
         pool = [c.patient_id for c in truth.cases() if stratum_of(truth, c.patient_id) == stratum]
         sizes = {p: len(truth.store.chart(p).documents) for p in pool}
         picked = [p for p, s in selected if s == stratum]
+        assert len(picked) == min(CASES_PER_STRATUM, len([p for p in pool if patient_key(p) not in held]))
+        # the cohort's smallest and largest chart, not only the working split's: the split keeps them
         assert min(sizes[p] for p in picked) == min(sizes.values())
         assert max(sizes[p] for p in picked) == max(sizes.values())
     assert select_patients(truth) == selected  # deterministic
@@ -123,10 +129,11 @@ def test_the_config_block_depends_only_on_inputs_and_names_everything_a_result_d
                               examples=fake_examples(["c2b0e5c3", "0a1b2c3d"]), truth=fake_truth(ids))
     config = make()
     assert config == make()  # a rerun of the same inputs writes the same block
-    assert set(config) == {"provider", "model", "as_of", "repeat", "dataset", "case_keys", "cohort",
+    assert set(config) == {"provider", "model", "as_of", "repeat", "split", "dataset", "case_keys", "cohort",
                            "prompts_sha256", "criteria_sha256", "git_commit", "genai_prices"}
     assert (config["provider"], config["model"], config["as_of"], config["repeat"]) == (
         "anthropic", "claude-haiku-4-5-20251001", "2026-09-20", 3)
+    assert (config["split"], config["dataset"]) == ("work", "prior-auth-adalimumab-ra")  # the default
     assert config["case_keys"] == ["0a1b2c3d", "c2b0e5c3"]
     assert config["cohort"] == {"patients": 2, "sha256": cohort_fingerprint(ids)}
     assert re.fullmatch(r"[0-9a-f]{64}", config["prompts_sha256"])

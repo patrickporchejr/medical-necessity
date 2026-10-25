@@ -3,6 +3,11 @@
     python evals/experiment.py                                    # both providers' configured models
     python evals/experiment.py --models anthropic:claude-haiku-4-5-20251001 gemini:gemini-3.8-flash --repeat 3
     python evals/experiment.py --patients loyd638 aaron697        # a subset, for a quick look
+    python evals/experiment.py --split held_out                   # the held-out split (or: both)
+
+The working split (the default) is what tuning reads. The held-out split is listed in
+evals/held_out.txt (method at its top) and runs only when asked for; each split is its own
+experiment, LangSmith dataset and summary file, so the two are never averaged together.
 
 Run from the repo root so the one top-level .env is found. Each model is one experiment on the
 same dataset; every case runs `--repeat` times, because a model's answer is not deterministic.
@@ -41,7 +46,9 @@ from dataset import CRITERIA_FILE, GroundTruth, open_ground_truth
 from run import RUNS_DIR, connect, run_case
 
 DATASET_NAME = "prior-auth-adalimumab-ra"
-CASES_PER_STRATUM = 2  # the smallest and the largest chart in each stratum
+CASES_PER_STRATUM = 5  # per stratum of the working split, the smallest and largest chart among them
+SPLITS = ("work", "held_out")
+HELD_OUT_FILE = Path(__file__).parent / "held_out.txt"  # the only place the split is defined
 KEY_LENGTH = 8  # a case is known by the first 8 characters of its patient id, nothing longer
 LOCAL_DATASET_ID = uuid.uuid5(uuid.NAMESPACE_URL, DATASET_NAME)
 APP_DIR = Path(app.llm.prompts.__file__).parents[2]
@@ -64,55 +71,107 @@ def stratum_of(truth: GroundTruth, patient_id: str) -> str:
     return f"{ra}/{trial}/{notes}"
 
 
-def select_patients(truth: GroundTruth) -> list[tuple[str, str]]:
-    """(patient_id, stratum): from each situation the rules distinguish, the smallest and the
-    largest chart, so the note-reading cap is exercised as well as the easy cases."""
+def load_held_out(path: Path | None = None) -> list[str]:
+    """The held-out case keys, in file order (sorted). Lines starting with # are the method."""
+    path = path or HELD_OUT_FILE
+    keys = [ln.strip() for ln in path.read_text().splitlines() if ln.strip() and not ln.startswith("#")]
+    bad = [k for k in keys if len(k) != KEY_LENGTH]
+    if bad or keys != sorted(set(keys)):
+        raise ValueError(f"{path.name} must hold sorted, unique {KEY_LENGTH}-character keys (bad: {bad[:3]})")
+    return keys
+
+
+def split_of(truth: GroundTruth) -> dict[str, str]:
+    """patient_id -> "work" or "held_out", for every case. Fails if the held-out file names a
+    case the cohort lacks: the split is frozen, so a changed cohort needs a decision, not a guess."""
+    held = set(load_held_out())
+    ids = [c.patient_id for c in truth.cases()]
+    if missing := held - {patient_key(p) for p in ids}:
+        raise ValueError(f"{HELD_OUT_FILE.name} names {len(missing)} case(s) not in this cohort: "
+                         f"{sorted(missing)[:3]}; the split was made for another cohort")
+    return {p: "held_out" if patient_key(p) in held else "work" for p in ids}
+
+
+def spread(ordered: list, k: int) -> list:
+    """k items evenly spaced over a sorted list, both ends included; all of them if k >= len."""
+    if len(ordered) <= k:
+        return list(ordered)
+    return [ordered[round(i * (len(ordered) - 1) / (k - 1))] for i in range(k)] if k > 1 else ordered[:1]
+
+
+def select_patients(truth: GroundTruth, split: str = "work") -> list[tuple[str, str]]:
+    """(patient_id, stratum) for one split. Working split: from each situation the rules
+    distinguish, CASES_PER_STRATUM charts spread evenly by note count, the smallest and the
+    largest among them, so the note-reading cap is exercised as well as the easy cases. Held-out
+    split: every held-out case (it is small and hand-labeled in G1). Only the split asked for is
+    read, so tuning on the working split never touches a held-out chart."""
+    if split not in SPLITS:
+        raise ValueError(f"split must be one of {SPLITS}, got {split!r}")
+    in_split = split_of(truth)
     groups: dict[str, list[tuple[int, str]]] = {}
-    for case in truth.cases():
-        groups.setdefault(stratum_of(truth, case.patient_id), []).append(
-            (len(truth.store.chart(case.patient_id).documents), case.patient_id)
-        )
+    for pid, s in in_split.items():
+        if s == split:
+            groups.setdefault(stratum_of(truth, pid), []).append((len(truth.store.chart(pid).documents), pid))
     chosen = []
     for stratum in sorted(groups):
         ordered = sorted(groups[stratum])
-        picks = {ordered[0][1], ordered[-1][1]} if CASES_PER_STRATUM >= 2 else {ordered[0][1]}
-        chosen += [(pid, stratum) for _, pid in ordered if pid in picks]
+        picks = ordered if split == "held_out" else spread(ordered, CASES_PER_STRATUM)
+        chosen += [(pid, stratum) for _, pid in picks]
     return chosen
 
 
+def dataset_name(split: str) -> str:
+    """Held-out examples live in their own LangSmith dataset, so the working one never shows them."""
+    return DATASET_NAME if split == "work" else f"{DATASET_NAME}-held-out"
+
+
+def example_id(key: str, split: str = "work") -> uuid.UUID:
+    namespace = LOCAL_DATASET_ID if split == "work" else uuid.uuid5(uuid.NAMESPACE_URL, dataset_name(split))
+    return uuid.uuid5(namespace, key)
+
+
 def build_examples(
-    truth: GroundTruth, patient_ids: list[str] | None = None, dataset_id: uuid.UUID = LOCAL_DATASET_ID
+    truth: GroundTruth, patient_ids: list[str] | None = None, dataset_id: uuid.UUID = LOCAL_DATASET_ID,
+    split: str = "work",
 ) -> list[schemas.Example]:
     """One example per patient. The expected labels come from ground truth, never typed by hand,
     so changing a rule such as how a completed order is treated relabels every case."""
-    # Named patients always run, selected or not; the default is the stratified selection.
-    chosen = ([(p, stratum_of(truth, p)) for p in patient_ids] if patient_ids is not None
-              else select_patients(truth))
+    # Named patients always run, selected or not, but only from the split asked for: a held-out
+    # case cannot be run by name while tuning. The default is the split's selection.
+    if patient_ids is not None:
+        in_split = split_of(truth)
+        if wrong := [patient_key(p) for p in patient_ids if in_split[p] != split]:
+            raise SystemExit(f"case(s) {', '.join(wrong)} are not in the {split} split"
+                             + ("; pass --split held_out to run held-out cases" if split == "work" else ""))
+        chosen = [(p, stratum_of(truth, p)) for p in patient_ids]
+    else:
+        chosen = select_patients(truth, split)
     keys = [patient_key(p) for p, _ in chosen]
     assert len(set(keys)) == len(keys), "two patients share a key; lengthen KEY_LENGTH"
     return [
         schemas.Example(
-            id=uuid.uuid5(LOCAL_DATASET_ID, patient_key(patient_id)),
+            id=example_id(patient_key(patient_id), split),
             dataset_id=dataset_id,
             inputs={"patient_key": patient_key(patient_id)},
             outputs={"kinds": {cid: "evidence" if truth.established(patient_id, cid) else "gap"
                                for cid in truth.criterion_ids}},  # criterion id -> "evidence" | "gap"
             metadata={"name": f"{stratum} · {patient_key(patient_id)}", "stratum": stratum,
-                      "notes": len(truth.store.chart(patient_id).documents)},
+                      "split": split, "notes": len(truth.store.chart(patient_id).documents)},
         )
         for patient_id, stratum in chosen
     ]
 
 
-def sync_dataset(client: Client, examples: list[schemas.Example]) -> list[schemas.Example]:
+def sync_dataset(client: Client, examples: list[schemas.Example],
+                 name: str = DATASET_NAME) -> list[schemas.Example]:
     """Make the LangSmith dataset hold these examples with these labels (examples already there
     are updated, new ones created, others left alone), and return them as the server knows them.
     Ids are stable per patient key, so a rerun updates rather than duplicates."""
-    if client.has_dataset(dataset_name=DATASET_NAME):
-        dataset = client.read_dataset(dataset_name=DATASET_NAME)
+    if client.has_dataset(dataset_name=name):
+        dataset = client.read_dataset(dataset_name=name)
     else:
         dataset = client.create_dataset(
-            DATASET_NAME, description="Prior-authorization packets scored against Synthea ground truth"
+            name, description="Prior-authorization packets scored against Synthea ground truth"
         )
     # `upsert_examples_multipart` rejects an id that already exists (409), so updates and
     # creates go through separate calls.
@@ -306,14 +365,15 @@ def package_version(name: str) -> str | None:
 
 
 def run_config(provider: str, model: str, *, as_of: date, repeat: int,
-               examples: list[schemas.Example], truth: GroundTruth) -> dict:
+               examples: list[schemas.Example], truth: GroundTruth, split: str = "work") -> dict:
     patient_ids = truth.store.patient_ids()
     return {
         "provider": provider,
         "model": model,
         "as_of": as_of.isoformat(),
         "repeat": repeat,
-        "dataset": DATASET_NAME,
+        "split": split,
+        "dataset": dataset_name(split),
         "case_keys": sorted(e.inputs["patient_key"] for e in examples),
         "cohort": {"patients": len(patient_ids), "sha256": cohort_fingerprint(patient_ids)},
         "prompts_sha256": sha256_of(prompt_files(), APP_DIR),
@@ -362,6 +422,7 @@ def summarize(spec: str, provider: str, model: str, rows: list[Row], config: dic
             by_route.setdefault(o["route"], []).append(c)
     return {
         "experiment": spec,
+        "split": (config or {}).get("split"),  # "work" or "held_out"; never averaged together
         "config": config,
         "runs": len(rows),
         "task_failures": sum(r.error is not None for r in rows),
@@ -401,23 +462,24 @@ def print_rows(spec: str, rows: list[Row]) -> None:
     print("  averages: " + ", ".join(f"{k} {v}" for k, v in averages(rows).items()) + "\n")
 
 
-async def run_experiments(args, truth: GroundTruth, patient_ids: list[str] | None) -> list[dict]:
+async def run_experiments(args, truth: GroundTruth, patient_ids: list[str] | None,
+                          split: str = "work") -> list[dict]:
     client = get_client()  # None without a LangSmith key: the run stays local
-    examples = build_examples(truth, patient_ids)
+    examples = build_examples(truth, patient_ids, split=split)
     if client is not None:
-        examples = sync_dataset(client, examples)
+        examples = sync_dataset(client, examples, dataset_name(split))
     summaries = []
     async with connect(args.mcp_url) as session:
         for spec in args.models:
             llm, provider, model = client_for(spec)
             config = run_config(provider, model, as_of=settings.as_of, repeat=args.repeat,
-                                examples=examples, truth=truth)
+                                examples=examples, truth=truth, split=split)
             rows = await run_experiment(
-                session, llm, truth, examples, name=spec, repeat=args.repeat,
+                session, llm, truth, examples, name=f"{spec} {split}", repeat=args.repeat,
                 concurrency=args.concurrency, client=client, upload=client is not None,
                 metadata=config,
             )
-            print_rows(spec, rows)
+            print_rows(f"{spec} [{split}]", rows)
             summaries.append(summarize(spec, provider, model, rows, config))
     return summaries
 
@@ -428,33 +490,45 @@ def main(argv: list[str] | None = None) -> int:
                         default=[f"anthropic:{settings.anthropic_model}", f"gemini:{settings.gemini_model}"])
     parser.add_argument("--repeat", type=int, default=3)
     parser.add_argument("--concurrency", type=int, default=4)
-    parser.add_argument("--patients", nargs="+", help="name fragments or ids; default is the whole dataset")
+    parser.add_argument("--patients", nargs="+", help="name fragments or ids, all from --split; default is the split's selection")
+    parser.add_argument("--split", choices=[*SPLITS, "both"], default="work",
+                        help="held-out cases run only when asked for; each split gets its own summary file")
     parser.add_argument("--mcp-url")
     parser.add_argument("--out-dir", type=Path, default=RUNS_DIR)
     args = parser.parse_args(argv)
 
     mode = setup_observability(settings)
     truth = open_ground_truth(settings.as_of)
+    splits = list(SPLITS) if args.split == "both" else [args.split]
     patient_ids = None
     if args.patients:
+        if len(splits) > 1:
+            raise SystemExit("--patients names cases from one split; pick --split work or held_out")
         from run import resolve_patient
         patient_ids = [resolve_patient(truth, p) for p in args.patients]
-    cases = build_examples(truth, patient_ids)
-    print(f"dataset {DATASET_NAME}: {len(cases)} cases x {args.repeat} runs x {len(args.models)} models "
-          f"= {len(cases) * args.repeat * len(args.models)} pipeline runs; as of {settings.as_of}; traces: {mode}\n")
+    for split in splits:
+        cases = build_examples(truth, patient_ids, split=split)
+        print(f"dataset {dataset_name(split)} ({split} split): {len(cases)} cases x {args.repeat} runs x "
+              f"{len(args.models)} models = {len(cases) * args.repeat * len(args.models)} pipeline runs; "
+              f"as of {settings.as_of}; traces: {mode}")
+    print()
 
-    summaries = asyncio.run(run_experiments(args, truth, patient_ids))
-    flush()
-
+    # One summary file per split, so working-split results can be handed on without held-out ones.
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    written = datetime.now(timezone.utc)
-    path = args.out_dir / f"experiment_{written:%Y%m%dT%H%M%SZ}.json"
-    # The timestamp lives here, outside every experiment's config block.
-    path.write_text(json.dumps({"dataset": DATASET_NAME, "as_of": settings.as_of.isoformat(),
-                                "written_at": written.isoformat(timespec="seconds"),
-                                "experiments": summaries}, indent=2, default=str))
-    print(f"summary: {path}")
-    return 0 if all(s["task_failures"] == 0 for s in summaries) else 1
+    failed = False
+    for split in splits:
+        summaries = asyncio.run(run_experiments(args, truth, patient_ids, split))
+        flush()
+        written = datetime.now(timezone.utc)
+        path = args.out_dir / f"experiment_{written:%Y%m%dT%H%M%SZ}_{split}.json"
+        # The timestamp lives here, outside every experiment's config block.
+        path.write_text(json.dumps({"dataset": dataset_name(split), "split": split,
+                                    "as_of": settings.as_of.isoformat(),
+                                    "written_at": written.isoformat(timespec="seconds"),
+                                    "experiments": summaries}, indent=2, default=str))
+        print(f"summary ({split}): {path}")
+        failed |= any(s["task_failures"] for s in summaries)
+    return 1 if failed else 0
 
 
 if __name__ == "__main__":
