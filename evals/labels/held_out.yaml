@@ -1,0 +1,848 @@
+labeler: claude-sonnet-5-5
+prompt_sha256: 87eb988eab8547110783c380fe03ca7acf97d1b014c8e2248d5c5a11bc2d40ec
+date: '2026-10-25'
+runs: 2
+scripted: false
+split: held_out
+as_of: '2026-09-20'
+effort: medium
+requests: 52
+input_tokens: 13966326
+output_tokens: 27175
+estimated_cost_usd: 14.1
+counts:
+  evidence: 21
+  gap: 94
+  unlabeled: 10
+cases:
+  029f78a6:
+    ra_diagnosis:
+      status: gap
+      records:
+      - Condition/029f78a6-f104-bb50-df12-8a9bd52ccab3
+      - DocumentReference/4f27b378-b7ee-ed36-0372-b34ec0647e26
+      - DocumentReference/6309456d-69bc-1232-75c9-3aef87204e1f
+      reason: RA condition (2012) is marked resolved, and notes only list it under history, so a currently active diagnosis
+        is not shown.
+    dmard_trial:
+      status: gap
+      records:
+      - MedicationRequest/029f78a6-f104-bb50-ea47-e1d84bc795ea
+      reason: Methotrexate was prescribed in 2012 and is marked completed, but no duration is recorded and no inadequate response
+        is documented.
+    active_disease:
+      status: gap
+      records:
+      - Observation/029f78a6-f104-bb50-ffc8-54e94638e790
+      - Condition/029f78a6-f104-bb50-df12-8a9bd52ccab3
+      reason: No clinical note records joint pain, stiffness or swelling; the only pain scores are nonspecific and low, and
+        the RA condition is resolved.
+    tb_screening:
+      status: gap
+      records: []
+      reason: No tuberculosis screening test or result appears in the chart.
+    hepatitis_b_screening:
+      status: gap
+      records: []
+      reason: No hepatitis B screening appears in the chart.
+  34ec7ede:
+    ra_diagnosis:
+      status: gap
+      records:
+      - Condition/34ec7ede-02e3-c882-bcc6-79c7efaed097
+      - DocumentReference/f4fbf985-a2a5-7ffa-f73f-f3be11a11621
+      - Condition/34ec7ede-02e3-c882-3689-498f0aa067c2
+      - Observation/34ec7ede-02e3-c882-cfe4-82d6dae43f61
+      reason: 'RA is coded active since 1983, but the patient died in hospice in 2007 (cause of death: heart failure), so
+        no currently active diagnosis exists on the 2026-09-20 judging date.'
+    dmard_trial:
+      status: gap
+      records:
+      - MedicationRequest/34ec7ede-02e3-c882-0d2a-84f12fe52b9b
+      reason: The only RA therapy recorded is naproxen (an NSAID); no methotrexate or other DMARD trial appears anywhere in
+        the chart.
+    active_disease:
+      status: gap
+      records:
+      - DocumentReference/f4fbf985-a2a5-7ffa-f73f-f3be11a11621
+      - Observation/34ec7ede-02e3-c882-0c1d-24ab13ed0e38
+      reason: No clinical note documents joint pain, stiffness or swelling from RA; notes say no complaints, and pain scores
+        are nonspecific. The patient is deceased by 2007.
+    tb_screening:
+      status: gap
+      records: []
+      reason: No tuberculosis screening (TST, IGRA or chest-film TB assessment) is documented in the chart.
+    hepatitis_b_screening:
+      status: gap
+      records: []
+      reason: No hepatitis B serology or screening is documented in the chart.
+  3c28d8a5:
+    ra_diagnosis:
+      status: evidence
+      records:
+      - Condition/3c28d8a5-2e5f-d821-fae6-6719d5f5c5e5
+      - DocumentReference/dea04f6a-728b-206f-1d9e-6e23ad61ad71
+      reason: Rheumatoid arthritis condition is active and verification confirmed (2026-05-13), with a matching assessment
+        in the 2026-05-13 note.
+    dmard_trial:
+      status: gap
+      records:
+      - MedicationRequest/3c28d8a5-2e5f-d821-3500-fcdc903b4be9
+      - DocumentReference/dea04f6a-728b-206f-1d9e-6e23ad61ad71
+      reason: Methotrexate was started 2026-05-13, about 4 months before the judging date, but no note documents the duration
+        taken or an inadequate response.
+    active_disease:
+      status: unlabeled
+      records: []
+      reason: 'the two runs disagreed: run 1 evidence, run 2 gap'
+      runs:
+      - status: evidence
+        records:
+        - DocumentReference/32bb99dd-f5af-231f-e85e-da2db336d16d
+        - DocumentReference/9d469b8c-098f-e47c-1b32-d8fe7f3cfe7f
+        - Observation/3c28d8a5-2e5f-d821-c3b8-d918158c180a
+        reason: Notes after the methotrexate start (2026-05-25, 2026-06-11) list joint pain and stiffness as the chief complaint,
+          and pain was scored 4/10 on 2026-05-25. The same boilerplate complaint is on every note, which weakens it as evidence
+          of active disease despite therapy.
+      - status: gap
+        records:
+        - DocumentReference/32bb99dd-f5af-231f-e85e-da2db336d16d
+        - Observation/3c28d8a5-2e5f-d821-c3b8-d918158c180a
+        - DocumentReference/9d469b8c-098f-e47c-1b32-d8fe7f3cfe7f
+        reason: Joint pain/stiffness appears only as a templated chief complaint repeated in every note since 1979, including
+          unrelated visits. No exam or note after methotrexate start records joint findings as active disease, so the chart
+          does not settle it.
+    tb_screening:
+      status: gap
+      records: []
+      reason: No tuberculosis screening (IGRA, TST or chest imaging for TB) is documented in the chart.
+    hepatitis_b_screening:
+      status: gap
+      records: []
+      reason: No hepatitis B serology or screening is documented in the chart.
+  3d543b39:
+    ra_diagnosis:
+      status: evidence
+      records:
+      - Condition/3d543b39-7528-bb5e-bf12-abb102710d9a
+      - DocumentReference/452abc7d-54f3-619d-6d9b-676e8696176e
+      reason: Rheumatoid arthritis is recorded as an active, verification-confirmed condition since 2012-02-17 and was assessed
+        at the 2012 visit.
+    dmard_trial:
+      status: gap
+      records:
+      - MedicationRequest/3d543b39-7528-bb5e-90c0-c50129cd3fff
+      reason: The only RA medication is naproxen (an NSAID); no methotrexate or other conventional DMARD trial is recorded.
+    active_disease:
+      status: unlabeled
+      records: []
+      reason: 'the two runs disagreed: run 1 gap, run 2 evidence'
+      runs:
+      - status: gap
+        records:
+        - DocumentReference/7d33f128-df1b-9061-3305-19998a0cc204
+        - Observation/3d543b39-7528-bb5e-46ab-e8274efa7f7d
+        reason: Joint pain and stiffness appear only as a boilerplate chief complaint repeated in every note, including those
+          from childhood. No exam, joint count or assessment documents active RA, and the recent pain score is a nonspecific
+          2/10.
+      - status: evidence
+        records:
+        - DocumentReference/7d33f128-df1b-9061-3305-19998a0cc204
+        - Observation/3d543b39-7528-bb5e-46ab-e8274efa7f7d
+        reason: Current note lists chief complaint of joint stiffness and joint pain; pain score 2/10 on 2025-10-24; though
+          template-like, it is the recorded clinical content, but there is no DMARD therapy context.
+    tb_screening:
+      status: gap
+      records:
+      - DocumentReference/4ee81fa2-9ee1-a238-fdfb-39cdfbf42942
+      reason: A tine skin test for tuberculosis was listed as a procedure in the 2018 prenatal visit, but no result is recorded
+        and it was not done as pre-biologic screening.
+    hepatitis_b_screening:
+      status: unlabeled
+      records: []
+      reason: 'the two runs disagreed: run 1 gap, run 2 evidence'
+      runs:
+      - status: gap
+        records:
+        - DocumentReference/4ee81fa2-9ee1-a238-fdfb-39cdfbf42942
+        reason: A hepatitis B surface antigen measurement was listed as a prenatal procedure in 2018, but no result is recorded
+          and no pre-biologic screening is documented.
+      - status: evidence
+        records:
+        - DocumentReference/4ee81fa2-9ee1-a238-fdfb-39cdfbf42942
+        reason: Hepatitis B surface antigen measurement was performed 2018-01-26 as a documented screening procedure (result
+          not stated), done before any biologic.
+  46de5e4d:
+    ra_diagnosis:
+      status: evidence
+      records:
+      - Condition/46de5e4d-3bf1-1461-b283-1683fbb1fd86
+      - DocumentReference/f76a60ef-d088-0b49-6ec7-5eb8dd95a16a
+      reason: Rheumatoid arthritis condition is active and verification confirmed since 1990-05-31, with a matching 1990 note.
+    dmard_trial:
+      status: gap
+      records:
+      - MedicationRequest/46de5e4d-3bf1-1461-7ffc-8b1de449a414
+      reason: Only naproxen (an NSAID) is recorded for RA; no methotrexate or other DMARD trial appears anywhere in the chart.
+    active_disease:
+      status: gap
+      records:
+      - Observation/46de5e4d-3bf1-1461-48ca-e68ab60ecfa2
+      - Observation/46de5e4d-3bf1-1461-a52b-384abec0fb1a
+      - DocumentReference/b1574484-6779-008a-6b42-d69e82a54179
+      reason: Pain scores of 4/10 are recorded but they are not attributed to RA, and no joint pain, stiffness or swelling
+        is documented in the notes (all say 'No complaints').
+    tb_screening:
+      status: gap
+      records: []
+      reason: No tuberculosis screening (IGRA, TST or chest imaging) is documented in the chart.
+    hepatitis_b_screening:
+      status: gap
+      records: []
+      reason: No hepatitis B serology or screening is documented in the chart.
+  53a6be67:
+    ra_diagnosis:
+      status: evidence
+      records:
+      - Condition/53a6be67-c66e-3b2a-fbe3-b7cb83b37c32
+      - DocumentReference/e0a319fd-27c9-b89a-0d43-e619f0ac23f1
+      reason: Rheumatoid arthritis is listed as an active, confirmed condition dated 2025-10-28 and was assessed in the 2025-10-28
+        note.
+    dmard_trial:
+      status: gap
+      records:
+      - MedicationRequest/53a6be67-c66e-3b2a-bc1f-32d37da7bc6f
+      - DocumentReference/e0a319fd-27c9-b89a-0d43-e619f0ac23f1
+      reason: Methotrexate was prescribed 2025-10-28 and is active, but no note documents duration of use, adherence or an
+        inadequate response.
+    active_disease:
+      status: gap
+      records:
+      - DocumentReference/e0a319fd-27c9-b89a-0d43-e619f0ac23f1
+      - Observation/53a6be67-c66e-3b2a-b41a-edc30aceaf65
+      reason: Joint swelling and stiffness appear only as a boilerplate chief complaint copied into every note since 1984,
+        and no exam findings are recorded. The nonspecific pain scores of 4 do not show active disease despite methotrexate.
+    tb_screening:
+      status: gap
+      records: []
+      reason: The only TB skin test was in 2017 and 2018 pregnancy panels, with no result recorded, and no TB screening appears
+        before a biologic.
+    hepatitis_b_screening:
+      status: gap
+      records: []
+      reason: Hepatitis B surface antigen was listed as a procedure in 2017 and 2018 prenatal panels with no result, and there
+        is no screening tied to starting a biologic.
+  58ab636d:
+    ra_diagnosis:
+      status: evidence
+      records:
+      - Condition/58ab636d-05af-b6e4-5c4c-e9ab44dd3a8c
+      - DocumentReference/1b78d5cf-f98b-61d0-b34b-5818dec606b4
+      reason: Rheumatoid arthritis condition is active and verification confirmed since 2014-02-10, with the diagnosis documented
+        in the 2014 note.
+    dmard_trial:
+      status: gap
+      records:
+      - MedicationRequest/58ab636d-05af-b6e4-e46f-26c9d1fcd6ce
+      - DocumentReference/76e196f6-8348-2853-e57e-e968cf316977
+      reason: Methotrexate was prescribed from 2014 and remains on the medication lists, so the duration is long enough, but
+        no note records an inadequate response or treatment failure.
+    active_disease:
+      status: evidence
+      records:
+      - DocumentReference/76e196f6-8348-2853-e57e-e968cf316977
+      - Observation/58ab636d-05af-b6e4-2a1a-a063755b87e0
+      - DocumentReference/b7d3e3c4-0934-cd55-e778-e855c3aa171e
+      reason: Recent notes (2026-05-17, 2026-07-03) list joint pain and joint swelling as the chief complaint while on methotrexate,
+        and the 2026-05-17 pain score was 4/10.
+    tb_screening:
+      status: gap
+      records: []
+      reason: No tuberculosis screening test or result appears anywhere in the chart.
+    hepatitis_b_screening:
+      status: gap
+      records: []
+      reason: No hepatitis B screening test or result appears anywhere in the chart.
+  5d2de37d:
+    ra_diagnosis:
+      status: evidence
+      records:
+      - Condition/5d2de37d-635e-9125-f533-9d9b6cf271a4
+      - DocumentReference/c9d37422-2b0b-fac4-1824-2b8ffc750906
+      reason: Rheumatoid arthritis condition active and verification confirmed, recorded 2026-04-15, with an assessment of
+        RA in the same-day note.
+    dmard_trial:
+      status: gap
+      records:
+      - MedicationRequest/5d2de37d-635e-9125-b1c9-82d4f2eed617
+      reason: Methotrexate started 2026-04-15, about 5 months before the judging date, but no note documents the duration
+        taken or an inadequate response.
+    active_disease:
+      status: gap
+      records:
+      - DocumentReference/c9d37422-2b0b-fac4-1824-2b8ffc750906
+      - Observation/5d2de37d-635e-9125-bfd7-367198aae234
+      reason: Joint symptoms appear only as a templated chief complaint repeated in every note since 1973, with no exam findings;
+        pain score on 2026-06-17 is 1/10, so active disease despite therapy is not shown.
+    tb_screening:
+      status: gap
+      records: []
+      reason: No tuberculosis screening (TST, IGRA or chest imaging) appears anywhere in the chart.
+    hepatitis_b_screening:
+      status: gap
+      records: []
+      reason: No hepatitis B serology or screening is recorded in the chart.
+  681b83bb:
+    ra_diagnosis:
+      status: evidence
+      records:
+      - Condition/681b83bb-4cf3-1ef5-ff98-a2edf8468145
+      - MedicationRequest/681b83bb-4cf3-1ef5-49f8-4bff5998638b
+      - DocumentReference/ed22c4c3-9520-818d-0e95-c1531db6e32a
+      reason: Rheumatoid arthritis condition is listed as active and verification confirmed since 1984, but the patient died
+        on 2020-07-28 (cause of death COVID-19), so a currently active diagnosis on 2026-09-20 is not supported. Still, the
+        chart lists it as active.
+    dmard_trial:
+      status: gap
+      records:
+      - MedicationRequest/681b83bb-4cf3-1ef5-49f8-4bff5998638b
+      reason: Only naproxen (an NSAID) is recorded for RA; no methotrexate or other DMARD trial is documented.
+    active_disease:
+      status: gap
+      records:
+      - DocumentReference/ed22c4c3-9520-818d-0e95-c1531db6e32a
+      reason: No clinical notes record joint pain, stiffness or swelling; all notes say no complaints and none describe RA
+        activity.
+    tb_screening:
+      status: gap
+      records: []
+      reason: No tuberculosis screening test or result is documented in the chart.
+    hepatitis_b_screening:
+      status: gap
+      records: []
+      reason: No hepatitis B screening is documented in the chart.
+  6db76cb4:
+    ra_diagnosis:
+      status: evidence
+      records:
+      - Condition/6db76cb4-e628-aba5-a2ae-36fb36dd9acf
+      - MedicationRequest/6db76cb4-e628-aba5-4fa1-5d0d2d0643d3
+      - DocumentReference/fab9dc2d-e945-a198-9d96-6e72839e7053
+      reason: Rheumatoid arthritis is recorded as an active, verification-confirmed condition since 1987, with naproxen prescribed
+        for it.
+    dmard_trial:
+      status: gap
+      records:
+      - MedicationRequest/6db76cb4-e628-aba5-4fa1-5d0d2d0643d3
+      reason: No methotrexate or other conventional DMARD appears in the chart; only naproxen (an NSAID) is recorded for RA.
+    active_disease:
+      status: evidence
+      records:
+      - DocumentReference/dd13d9d5-2453-ed4b-01a5-006b58029601
+      - DocumentReference/0b2272b4-8ccb-4d39-80f7-89591ef01fff
+      - Observation/6db76cb4-e628-aba5-99c9-87f045f1013e
+      reason: Every note, including the most recent ones, lists joint stiffness and joint pain as the chief complaint, and
+        the RA condition remains active.
+    tb_screening:
+      status: gap
+      records: []
+      reason: No tuberculosis test (IGRA or skin test) or chest imaging for TB screening is documented.
+    hepatitis_b_screening:
+      status: gap
+      records: []
+      reason: No hepatitis B serology or screening is documented.
+  81e741fe:
+    ra_diagnosis:
+      status: gap
+      records:
+      - Condition/81e741fe-f063-db83-da2e-5d12737ba2d0
+      - DocumentReference/6801b437-8b94-3d4c-9781-f81e94b35cd2
+      reason: RA was diagnosed 2013 but the Condition is marked resolved; later notes list it only as history, so a currently
+        active diagnosis is not shown.
+    dmard_trial:
+      status: gap
+      records:
+      - MedicationRequest/81e741fe-f063-db83-99b2-bc61f2869dae
+      reason: Methotrexate was prescribed 2013-06-02 (completed), but no duration or inadequate response is documented; later
+        notes only carry it in the medication list.
+    active_disease:
+      status: gap
+      records:
+      - DocumentReference/6801b437-8b94-3d4c-9781-f81e94b35cd2
+      - DocumentReference/a510a4e6-9ae5-9040-6532-986b2a955358
+      - Observation/81e741fe-f063-db83-a4a5-5f3702ac4351
+      reason: Recent notes say 'No complaints' with no joint pain, stiffness or swelling recorded; only generic pain scores
+        of 2, not attributed to RA.
+    tb_screening:
+      status: gap
+      records: []
+      reason: No tuberculosis screening (IGRA, TST or chest imaging for TB) documented in the chart.
+    hepatitis_b_screening:
+      status: gap
+      records: []
+      reason: No hepatitis B serology or screening documented in the chart.
+  95948be8:
+    ra_diagnosis:
+      status: gap
+      records:
+      - Condition/95948be8-deb4-676e-500c-96f78f8074f4
+      - DocumentReference/afe5d030-6f6f-48b7-1e68-b459e2819605
+      reason: RA diagnosed 2019-05-14 but the Condition is marked resolved, so a currently active diagnosis is not shown (later
+        notes only list it as history).
+    dmard_trial:
+      status: gap
+      records:
+      - MedicationRequest/95948be8-deb4-676e-2ea5-0531b8d573a7
+      reason: Methotrexate was prescribed once on 2019-05-14 (status completed); no refills, duration of at least 3 months,
+        or documented inadequate response are recorded.
+    active_disease:
+      status: gap
+      records:
+      - Observation/95948be8-deb4-676e-4779-ab811d8a9119
+      - Observation/95948be8-deb4-676e-8f03-fc212773ae07
+      reason: Only generic pain scores appear (e.g. 4/10 on 2025-09-14); no clinical note records joint pain, stiffness, or
+        swelling attributed to RA despite therapy.
+    tb_screening:
+      status: gap
+      records: []
+      reason: No tuberculosis screening (IGRA, TST, or chest imaging) is recorded anywhere in the chart.
+    hepatitis_b_screening:
+      status: gap
+      records: []
+      reason: No hepatitis B screening result is recorded anywhere in the chart.
+  9c082f0b:
+    ra_diagnosis:
+      status: gap
+      records:
+      - Condition/9c082f0b-d2b2-ed2d-c37d-42ad86dd200b
+      - DocumentReference/7affa284-f47c-a6e8-4bf3-cfd2074f0ae0
+      reason: RA condition is recorded as resolved (2015-11-23), and later notes list it only as history; no currently active
+        RA diagnosis is documented.
+    dmard_trial:
+      status: gap
+      records:
+      - MedicationRequest/9c082f0b-d2b2-ed2d-4c89-7fae6396dce1
+      reason: Methotrexate was prescribed 2015-11-23 (completed) and stays on medication lists, but no duration, adherence,
+        or inadequate-response documentation is recorded.
+    active_disease:
+      status: gap
+      records:
+      - Observation/9c082f0b-d2b2-ed2d-a22b-28d931d7e846
+      - DocumentReference/7affa284-f47c-a6e8-4bf3-cfd2074f0ae0
+      - Observation/9c082f0b-d2b2-ed2d-40e3-d08d4a119c1e
+      reason: Pain scores of 7-8 in 2026 are not attributed to RA or to any joint pain, stiffness, or swelling; clinical notes
+        record no complaints and no joint findings.
+    tb_screening:
+      status: gap
+      records: []
+      reason: No tuberculosis screening (IGRA, skin test, or chest imaging for TB) is documented in the chart.
+    hepatitis_b_screening:
+      status: gap
+      records: []
+      reason: No hepatitis B serology or screening is documented in the chart.
+  b0ddc938:
+    ra_diagnosis:
+      status: gap
+      records:
+      - Condition/b0ddc938-b6c7-b56c-a4af-f7bfd962ea45
+      - DocumentReference/043a7c21-c966-2b41-9963-1a6636f4bdb1
+      reason: RA was diagnosed 2017-09-28 but the Condition is marked resolved, and no later note assesses RA as active; it
+        appears only in the history list.
+    dmard_trial:
+      status: gap
+      records:
+      - MedicationRequest/b0ddc938-b6c7-b56c-59fd-dc3a572c443f
+      reason: Methotrexate was prescribed 2017-09-28 (request completed) and is carried in later med lists, but no notes document
+        duration or inadequate response.
+    active_disease:
+      status: gap
+      records:
+      - Observation/b0ddc938-b6c7-b56c-09b5-bf325f32c7ef
+      reason: Only nonspecific 0-10 pain scores are recorded; no clinical note documents joint pain, stiffness or swelling
+        attributed to RA.
+    tb_screening:
+      status: gap
+      records: []
+      reason: No TB screening result is in the chart; the pregnancy-visit TB skin test entries (2017, 2020) list only procedures
+        with no result, and none precedes a biologic.
+    hepatitis_b_screening:
+      status: gap
+      records:
+      - DocumentReference/d2cdd276-ce41-84c9-f817-fa07e9a52965
+      - DocumentReference/29c273a3-7423-2efd-1be5-e01807a7d832
+      reason: No hepatitis B screening result is in the chart; HBsAg is listed only as a pregnancy-visit procedure (2017,
+        2020) with no result.
+  b8a1ffa3:
+    ra_diagnosis:
+      status: unlabeled
+      records: []
+      reason: run 1 and 2 gave no label
+      runs:
+      - status: unlabeled
+        records: []
+        reason: 'invalid reply, twice (first: ra_diagnosis: cites records not in the chart: [''Condition/b8a1ffa3-054e-0317-760f-299a1d3ee4a9''];
+          retry: ra_diagnosis: cites records not in the chart: [''Condition/b8a1ffa3-054e-0317-760f-299a-b2d3-31a0d1ae9509''])'
+      - status: unlabeled
+        records: []
+        reason: 'invalid reply, twice (first: ra_diagnosis: cites records not in the chart: [''Condition/b8a1ffa3-054e-0317-760f-299a-5f9e0e6c0d1f''];
+          retry: ra_diagnosis: cites records not in the chart: [''Condition/b8a1ffa3-054e-0317-760f-299a-5a4a1d4e2c1b''])'
+    dmard_trial:
+      status: unlabeled
+      records: []
+      reason: run 1 and 2 gave no label
+      runs:
+      - status: unlabeled
+        records: []
+        reason: 'invalid reply, twice (first: ra_diagnosis: cites records not in the chart: [''Condition/b8a1ffa3-054e-0317-760f-299a1d3ee4a9''];
+          retry: ra_diagnosis: cites records not in the chart: [''Condition/b8a1ffa3-054e-0317-760f-299a-b2d3-31a0d1ae9509''])'
+      - status: unlabeled
+        records: []
+        reason: 'invalid reply, twice (first: ra_diagnosis: cites records not in the chart: [''Condition/b8a1ffa3-054e-0317-760f-299a-5f9e0e6c0d1f''];
+          retry: ra_diagnosis: cites records not in the chart: [''Condition/b8a1ffa3-054e-0317-760f-299a-5a4a1d4e2c1b''])'
+    active_disease:
+      status: unlabeled
+      records: []
+      reason: run 1 and 2 gave no label
+      runs:
+      - status: unlabeled
+        records: []
+        reason: 'invalid reply, twice (first: ra_diagnosis: cites records not in the chart: [''Condition/b8a1ffa3-054e-0317-760f-299a1d3ee4a9''];
+          retry: ra_diagnosis: cites records not in the chart: [''Condition/b8a1ffa3-054e-0317-760f-299a-b2d3-31a0d1ae9509''])'
+      - status: unlabeled
+        records: []
+        reason: 'invalid reply, twice (first: ra_diagnosis: cites records not in the chart: [''Condition/b8a1ffa3-054e-0317-760f-299a-5f9e0e6c0d1f''];
+          retry: ra_diagnosis: cites records not in the chart: [''Condition/b8a1ffa3-054e-0317-760f-299a-5a4a1d4e2c1b''])'
+    tb_screening:
+      status: unlabeled
+      records: []
+      reason: run 1 and 2 gave no label
+      runs:
+      - status: unlabeled
+        records: []
+        reason: 'invalid reply, twice (first: ra_diagnosis: cites records not in the chart: [''Condition/b8a1ffa3-054e-0317-760f-299a1d3ee4a9''];
+          retry: ra_diagnosis: cites records not in the chart: [''Condition/b8a1ffa3-054e-0317-760f-299a-b2d3-31a0d1ae9509''])'
+      - status: unlabeled
+        records: []
+        reason: 'invalid reply, twice (first: ra_diagnosis: cites records not in the chart: [''Condition/b8a1ffa3-054e-0317-760f-299a-5f9e0e6c0d1f''];
+          retry: ra_diagnosis: cites records not in the chart: [''Condition/b8a1ffa3-054e-0317-760f-299a-5a4a1d4e2c1b''])'
+    hepatitis_b_screening:
+      status: unlabeled
+      records: []
+      reason: run 1 and 2 gave no label
+      runs:
+      - status: unlabeled
+        records: []
+        reason: 'invalid reply, twice (first: ra_diagnosis: cites records not in the chart: [''Condition/b8a1ffa3-054e-0317-760f-299a1d3ee4a9''];
+          retry: ra_diagnosis: cites records not in the chart: [''Condition/b8a1ffa3-054e-0317-760f-299a-b2d3-31a0d1ae9509''])'
+      - status: unlabeled
+        records: []
+        reason: 'invalid reply, twice (first: ra_diagnosis: cites records not in the chart: [''Condition/b8a1ffa3-054e-0317-760f-299a-5f9e0e6c0d1f''];
+          retry: ra_diagnosis: cites records not in the chart: [''Condition/b8a1ffa3-054e-0317-760f-299a-5a4a1d4e2c1b''])'
+  c2f8868b:
+    ra_diagnosis:
+      status: evidence
+      records:
+      - Condition/c2f8868b-ceaf-b88c-cc34-561d743aba2b
+      - DocumentReference/a36bff3b-1d33-2e70-929a-85652621b611
+      reason: Rheumatoid arthritis condition recorded 1994-05-12, status active, verification confirmed.
+    dmard_trial:
+      status: gap
+      records:
+      - MedicationRequest/c2f8868b-ceaf-b88c-c851-6c7f60bc5789
+      reason: Only naproxen (an NSAID) is recorded for RA; no methotrexate or other DMARD trial or inadequate response is
+        documented.
+    active_disease:
+      status: evidence
+      records:
+      - DocumentReference/c075ced8-6698-5452-de5b-9f9da7b62546
+      - Observation/c2f8868b-ceaf-b88c-8219-efc4687f4095
+      reason: Most recent note (2026-02-18) lists chief complaints of joint stiffness and joint swelling; pain score 2/10
+        on 2026-02-04. Not tied to DMARD therapy, but joint symptoms are recorded in the clinical notes.
+    tb_screening:
+      status: gap
+      records: []
+      reason: No tuberculosis test (IGRA/PPD) or chest imaging result appears in the chart.
+    hepatitis_b_screening:
+      status: gap
+      records: []
+      reason: No hepatitis B serology or screening result appears in the chart.
+  c7e0284b:
+    ra_diagnosis:
+      status: evidence
+      records:
+      - Condition/c7e0284b-c95d-0270-5bf3-47e28f8d712d
+      - DocumentReference/b2038fb2-25d1-30b7-11b5-96b620c7b78c
+      reason: Rheumatoid arthritis condition is active and verification confirmed, recorded 2020-07-26; the same-day note
+        lists it as the presenting problem.
+    dmard_trial:
+      status: gap
+      records:
+      - MedicationRequest/c7e0284b-c95d-0270-dddb-ad1f310a6c14
+      - DocumentReference/b2038fb2-25d1-30b7-11b5-96b620c7b78c
+      reason: Methotrexate 2.5 mg was prescribed 2020-07-26 and stays on the med list, but the chart never documents duration,
+        dose adequacy or an inadequate response.
+    active_disease:
+      status: gap
+      records:
+      - Observation/c7e0284b-c95d-0270-2b9c-a60f52e792fd
+      - DocumentReference/1736074c-b022-ee8a-5aa0-3725b3a4ec05
+      - Observation/c7e0284b-c95d-0270-ecc4-d6f50c9d40ee
+      reason: Notes only repeat a template 'Joint Stiffness' complaint with no joint exam, and pain scores are nonspecific
+        and confounded by dialysis and knee injury, so joint pain, stiffness or swelling from RA is not documented.
+    tb_screening:
+      status: gap
+      records: []
+      reason: No tuberculosis test (IGRA or skin test) or chest imaging appears anywhere in the chart.
+    hepatitis_b_screening:
+      status: gap
+      records: []
+      reason: No hepatitis B serology (HBsAg, anti-HBc) appears anywhere in the chart.
+  ca33e01a:
+    ra_diagnosis:
+      status: evidence
+      records:
+      - Condition/ca33e01a-3741-437c-6fb1-c3f56ecc9422
+      - DocumentReference/98b562f8-fb99-4f7a-044d-a2c48d16c883
+      reason: Rheumatoid arthritis condition is active and verification confirmed since 1981, and the 1981 note assesses RA.
+    dmard_trial:
+      status: gap
+      records:
+      - MedicationRequest/ca33e01a-3741-437c-4033-8a530f5ab3f1
+      reason: No methotrexate or other DMARD is ever ordered; the only RA therapy is naproxen (an NSAID), so no 3-month trial
+        with inadequate response is shown.
+    active_disease:
+      status: gap
+      records:
+      - Observation/ca33e01a-3741-437c-9966-50913ac4d22e
+      - Observation/ca33e01a-3741-437c-90ba-976391eeab46
+      - DocumentReference/530f9480-d6ac-489a-4e01-a558072bdfbd
+      reason: Joint pain, swelling and fatigue appear only in templated chief complaints repeated in every note. No exam or
+        narrative documents joint findings, and recent pain scores are low (0-3 of 10).
+    tb_screening:
+      status: gap
+      records: []
+      reason: No tuberculosis test (IGRA, TST or chest imaging) appears anywhere in the chart.
+    hepatitis_b_screening:
+      status: gap
+      records: []
+      reason: No hepatitis B serology (HBsAg, anti-HBc or anti-HBs) appears anywhere in the chart.
+  dcca53e2:
+    ra_diagnosis:
+      status: evidence
+      records:
+      - Condition/dcca53e2-059a-2486-efad-899b653c059b
+      - DocumentReference/df6ffe2c-57ef-c9c6-02a5-aa4a5255a540
+      reason: Rheumatoid arthritis condition recorded 2003-04-22, status active, verification confirmed.
+    dmard_trial:
+      status: gap
+      records:
+      - MedicationRequest/dcca53e2-059a-2486-e710-435fad25a89d
+      reason: Only naproxen (an NSAID) is recorded for RA; no methotrexate or other DMARD trial appears anywhere in the chart.
+    active_disease:
+      status: evidence
+      records:
+      - DocumentReference/bba09ea0-0b0d-10ef-1662-7e4668c4b323
+      - DocumentReference/ddfb66f5-ce62-b105-0131-1313c8c88c7f
+      - Observation/dcca53e2-059a-2486-2dcc-441be012c0f4
+      reason: Recent notes list joint swelling, pain and stiffness as chief complaints, with active RA; pain scores of 3/10
+        on 2025-12-21. Evidence of disease despite DMARD therapy is limited, as no DMARD was given.
+    tb_screening:
+      status: gap
+      records: []
+      reason: No tuberculosis screening (skin test or IGRA) documented in the chart.
+    hepatitis_b_screening:
+      status: gap
+      records: []
+      reason: No hepatitis B serology or screening documented in the chart.
+  dd0dbbf0:
+    ra_diagnosis:
+      status: gap
+      records:
+      - Condition/dd0dbbf0-168f-c880-6b77-0ccaf2e0d2ec
+      - DocumentReference/574015ac-04fa-461f-5ffc-a6afff5653ff
+      reason: RA was diagnosed 2014-07-22 but the Condition is marked resolved, and later notes list it only as history, so
+        a currently active diagnosis is not shown.
+    dmard_trial:
+      status: gap
+      records:
+      - MedicationRequest/dd0dbbf0-168f-c880-38ab-c67b7646f6d5
+      - DocumentReference/574015ac-04fa-461f-5ffc-a6afff5653ff
+      reason: Methotrexate was prescribed on 2014-07-22 (completed), but no duration or inadequate response is documented,
+        and later medication lists carry it only as a copied entry.
+    active_disease:
+      status: gap
+      records:
+      - Observation/dd0dbbf0-168f-c880-7941-153c00868c70
+      - Observation/dd0dbbf0-168f-c880-aa39-2d44f5f6539d
+      reason: No clinical note records joint pain, stiffness or swelling; recent pain scores are nonspecific (0 on 2026-08-23,
+        2 on 2026-06-21) and the notes' chief complaints are unrelated.
+    tb_screening:
+      status: gap
+      records: []
+      reason: No tuberculosis test (IGRA or skin test) or chest imaging is recorded anywhere in the chart.
+    hepatitis_b_screening:
+      status: gap
+      records: []
+      reason: No hepatitis B serology or screening is recorded anywhere in the chart.
+  dd8ba504:
+    ra_diagnosis:
+      status: evidence
+      records:
+      - Condition/dd8ba504-d9a5-27db-d8c9-5d5ab64d2762
+      reason: Rheumatoid arthritis (SNOMED 69896004) is listed as active and verification confirmed, with onset 1977-03-11.
+    dmard_trial:
+      status: gap
+      records:
+      - MedicationRequest/dd8ba504-d9a5-27db-6949-4bb4aea73f87
+      reason: No methotrexate or other conventional DMARD is recorded; the only RA drug is naproxen (an NSAID).
+    active_disease:
+      status: gap
+      records: []
+      reason: The chart has no RA-specific joint pain, stiffness or swelling documentation. 'Joint Swelling' appears only
+        in the boilerplate chief complaint of every note, and the pain scores are generic and not attributed to RA.
+    tb_screening:
+      status: gap
+      records: []
+      reason: No tuberculosis test (IGRA or skin test) or chest imaging for TB is recorded anywhere in the chart.
+    hepatitis_b_screening:
+      status: gap
+      records: []
+      reason: No hepatitis B serology (HBsAg, anti-HBc or anti-HBs) is recorded; the liver enzyme observations are not HBV
+        screening.
+  e56ecaa5:
+    ra_diagnosis:
+      status: evidence
+      records:
+      - Condition/e56ecaa5-6a30-8203-e93c-95fad4a52fdb
+      - DocumentReference/894783a3-eaef-b39d-1f17-01a00580e8f8
+      reason: Rheumatoid arthritis condition is active and confirmed (onset 2022-11-15), with an RA assessment in the 2022-11-15
+        note.
+    dmard_trial:
+      status: unlabeled
+      records: []
+      reason: 'the two runs disagreed: run 1 evidence, run 2 gap'
+      runs:
+      - status: evidence
+        records:
+        - MedicationRequest/e56ecaa5-6a30-8203-e6d1-3e0af8f7b024
+        - DocumentReference/894783a3-eaef-b39d-1f17-01a00580e8f8
+        reason: Methotrexate was prescribed for RA on 2022-11-15 and remains active, so the course exceeds 3 months. However,
+          the chart documents no inadequate response to it, so this is weak support.
+      - status: gap
+        records:
+        - MedicationRequest/e56ecaa5-6a30-8203-e6d1-3e0af8f7b024
+        reason: Methotrexate was prescribed 2022-11-15 and is still listed as active, but the chart has no documentation of
+          the duration taken or of an inadequate response.
+    active_disease:
+      status: unlabeled
+      records: []
+      reason: 'the two runs disagreed: run 1 evidence, run 2 gap'
+      runs:
+      - status: evidence
+        records:
+        - DocumentReference/0d9028b6-c111-f2da-343b-7b70b0d1962c
+        - Observation/e56ecaa5-6a30-8203-3f7c-9f34b69c0899
+        reason: Recent notes list joint stiffness, pain and swelling as the chief complaint, and pain was scored 3/10 on 2026-05-16
+          while on methotrexate. The complaint is a repeated template line on every note, including from 1975, so this is
+          weak support.
+      - status: gap
+        records:
+        - DocumentReference/0d9028b6-c111-f2da-343b-7b70b0d1962c
+        reason: Joint stiffness, pain and swelling appear only as a chief-complaint template repeated in every note since
+          1975, including before the RA diagnosis, with no exam findings or RA activity assessment, and the latest note covers
+          only a COVID antigen test.
+    tb_screening:
+      status: gap
+      records: []
+      reason: No tuberculosis test (IGRA or skin test) or chest imaging appears anywhere in the chart.
+    hepatitis_b_screening:
+      status: gap
+      records: []
+      reason: No hepatitis B serology or screening appears anywhere in the chart.
+  e8171e8f:
+    ra_diagnosis:
+      status: evidence
+      records:
+      - Condition/e8171e8f-3208-75d9-c311-3d58f81be578
+      - DocumentReference/c8361be0-32d1-2c8c-df42-fb58d542ab1a
+      reason: Rheumatoid arthritis condition is active and verification confirmed since 2018-10-30, with a matching diagnosis
+        note.
+    dmard_trial:
+      status: gap
+      records:
+      - MedicationRequest/e8171e8f-3208-75d9-5c69-dbcd2cc8c915
+      reason: Methotrexate was prescribed from 2018-10-30 and is listed in later notes, but no note documents inadequate response
+        or failure, so the criterion is not settled.
+    active_disease:
+      status: gap
+      records:
+      - Observation/e8171e8f-3208-75d9-6e2e-f6227cfa9306
+      - DocumentReference/4fa87983-9def-1dc1-96b3-fff35a405680
+      reason: Joint Stiffness is a templated chief complaint on every note, including unrelated visits, with no exam or assessment
+        of joint pain, swelling or stiffness; the latest pain score is a nonspecific 2/10.
+    tb_screening:
+      status: gap
+      records: []
+      reason: No tuberculosis screening (IGRA, PPD or chest imaging for TB) is documented anywhere in the chart.
+    hepatitis_b_screening:
+      status: gap
+      records: []
+      reason: No hepatitis B serology or screening is documented in the chart.
+  e876038f:
+    ra_diagnosis:
+      status: gap
+      records:
+      - Condition/e876038f-13ae-3b4c-1bba-2bccbb1c6562
+      - Observation/e876038f-13ae-3b4c-16f7-cf5d28a65ea2
+      reason: RA was diagnosed 2007-06-23 but the condition is marked resolved, and the chart ends with a 2016 death record
+        (heart failure), so there is no currently active RA on 2026-09-20.
+    dmard_trial:
+      status: gap
+      records:
+      - MedicationRequest/e876038f-13ae-3b4c-0e80-1b7894aba596
+      reason: Methotrexate was prescribed 2007-06-23 (request marked completed), but no duration or inadequate-response documentation
+        is recorded.
+    active_disease:
+      status: gap
+      records:
+      - DocumentReference/0324bc53-981f-70b8-1795-e9597a9e8cf3
+      - Condition/e876038f-13ae-3b4c-1bba-2bccbb1c6562
+      reason: Notes record no joint pain, stiffness or swelling; the only RA-specific note is the 2007 diagnosis visit, and
+        the generic pain scores are not tied to RA.
+    tb_screening:
+      status: gap
+      records: []
+      reason: No tuberculosis screening (IGRA or TST) is documented anywhere in the chart.
+    hepatitis_b_screening:
+      status: gap
+      records: []
+      reason: No hepatitis B serology or screening is documented anywhere in the chart.
+  f95447e5:
+    ra_diagnosis:
+      status: evidence
+      records:
+      - Condition/f95447e5-ecfe-84e5-4a3b-a132bc6ee2df
+      - DocumentReference/9ba6b658-0325-b7e9-3cd6-ce09b390736b
+      reason: Rheumatoid arthritis condition is active and verification confirmed, recorded since 2000-10-25 and still active
+        on the judging date.
+    dmard_trial:
+      status: gap
+      records:
+      - MedicationRequest/f95447e5-ecfe-84e5-595a-ad5ec4ce5fe0
+      reason: The only RA medication is naproxen (an NSAID); no methotrexate or other DMARD trial is recorded.
+    active_disease:
+      status: evidence
+      records:
+      - DocumentReference/42178a45-fff4-e090-5519-056006a098aa
+      - DocumentReference/7a6bbf19-6b36-5b17-d1db-f33f6e2c9124
+      - Observation/f95447e5-ecfe-84e5-6eb1-203ae2f24b63
+      reason: Recent notes (2026-06-03, 2026-06-17) record a chief complaint of joint stiffness, with pain score 3 on 2026-06-03,
+        on naproxen only.
+    tb_screening:
+      status: gap
+      records: []
+      reason: No tuberculosis screening (IGRA, TST or chest imaging) appears in the chart.
+    hepatitis_b_screening:
+      status: gap
+      records: []
+      reason: No hepatitis B serology or screening is documented in the chart.

@@ -3,11 +3,31 @@
     python evals/experiment.py                                    # both providers' configured models
     python evals/experiment.py --models anthropic:claude-haiku-4-5-20251001 gemini:gemini-3.8-flash --repeat 3
     python evals/experiment.py --patients loyd638 aaron697        # a subset, for a quick look
-    python evals/experiment.py --split held_out                   # the held-out split (or: both)
+    python evals/experiment.py --split held_out                   # the held-out split (or: hard, both, all)
+    python evals/experiment.py --models scripted:faithful --split all --repeat 1   # no model call
 
 The working split (the default) is what tuning reads. The held-out split is listed in
-evals/held_out.txt (method at its top) and runs only when asked for; each split is its own
-experiment, LangSmith dataset and summary file, so the two are never averaged together.
+evals/held_out.txt (method at its top) and the hard split in data/hard/cases.yaml (built into
+data/synthea/hard/ by data/hard/build.py); both run only when asked for. Each split is its own
+experiment, LangSmith dataset and summary file, so splits are never averaged together.
+
+What each split's decisions are scored against (G1.8):
+
+- work: computed ground truth (dataset.GroundTruth.established), every criterion, as before.
+- held_out: the reference labels in evals/labels/held_out.yaml (D19). An `unlabeled` label is left out of
+  scoring and counted.
+- hard: the answers in data/hard/cases.yaml on targeted criteria only (D20). An answer still `pending-CPG1`
+  would be left out and counted (none is since D21); untargeted criteria are scored apart as a wiring check (`wiring:<criterion>`), never in the
+  headline.
+
+Each scored criterion is its own pass/fail score (`decision:<criterion>`), and summaries give counts beside
+rates ("19 of 20"). The citation scores (citation_resolution_rate, citation_level_rate, gap_accuracy,
+verify_matches_truth) are always against computed ground truth, on every split: they check the harness and
+the citations, not the reference. `packet_fully_correct` mixes the two, so it is scored on the working split
+only.
+
+`--models scripted:faithful` runs the scripted model in evals/scripted.py (it follows the extract
+node's summary exactly): no model is called, nothing is spent, and the harness runs end to end.
 
 Run from the repo root so the one top-level .env is found. Each model is one experiment on the
 same dataset; every case runs `--repeat` times, because a model's answer is not deterministic.
@@ -30,29 +50,36 @@ import hashlib
 import json
 import subprocess
 import uuid
-from dataclasses import asdict, dataclass, replace
+from contextlib import asynccontextmanager
+from dataclasses import asdict, dataclass, field, replace
 from datetime import date, datetime, timezone
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from statistics import mean, median
 
+import yaml
 from langsmith import Client, aevaluate, schemas
 
 import app.llm.prompts
 from app.config import settings
 from app.llm.client import LLMResult, build_client
 from app.observability import estimate_cost, flush, get_client, setup_observability, tracing
-from dataset import CRITERIA_FILE, GroundTruth, open_ground_truth
+from dataset import CRITERIA_FILE, HARD_DIR, GroundTruth, open_ground_truth, pinned_as_of
 from run import RUNS_DIR, connect, run_case
 
 DATASET_NAME = "prior-auth-adalimumab-ra"
 CASES_PER_STRATUM = 5  # per stratum of the working split, the smallest and largest chart among them
-SPLITS = ("work", "held_out")
+SPLITS = ("work", "held_out", "hard")
 HELD_OUT_FILE = Path(__file__).parent / "held_out.txt"  # the only place the split is defined
+LABELS_FILE = Path(__file__).parent / "labels" / "held_out.yaml"  # G1.5's reference labels, never edited
 KEY_LENGTH = 8  # a case is known by the first 8 characters of its patient id, nothing longer
 LOCAL_DATASET_ID = uuid.uuid5(uuid.NAMESPACE_URL, DATASET_NAME)
 APP_DIR = Path(app.llm.prompts.__file__).parents[2]
 REPO_ROOT = Path(__file__).resolve().parents[1]
+CASES_FILE = REPO_ROOT / "data" / "hard" / "cases.yaml"  # the hard split: its cases and our answers
+PENDING = "pending-CPG1"
+REFERENCES = {"work": "computed ground truth", "held_out": "reference labels (evals/labels/held_out.yaml)",
+              "hard": "answers in data/hard/cases.yaml, targeted criteria only (D20)"}
 
 
 def patient_key(patient_id: str) -> str:
@@ -81,6 +108,54 @@ def load_held_out(path: Path | None = None) -> list[str]:
     return keys
 
 
+def load_hard_cases(path: Path | None = None) -> list[dict]:
+    return yaml.safe_load((path or CASES_FILE).read_text())["cases"]
+
+
+def hard_patients(truth: GroundTruth, cases: list[dict] | None = None) -> dict[str, dict]:
+    """patient_id -> its hard case, for every case in cases.yaml. `truth` reads the hard split's bundles;
+    a case missing from them means the split was not built (data/hard/build.py)."""
+    cases = load_hard_cases() if cases is None else cases
+    by_key = {patient_key(p): p for p in truth.store.patient_ids()}
+    if missing := [c["key"] for c in cases if c["key"] not in by_key]:
+        raise SystemExit(f"{len(missing)} hard case(s) not in {HARD_DIR} ({missing[:3]}); build the split with "
+                         "data/hard/build.py")
+    return {by_key[c["key"]]: c for c in cases}
+
+
+def reference(split: str, key: str, criterion_ids: list[str], *, labels: dict | None = None,
+              cases: list[dict] | None = None, kinds: dict[str, str] | None = None) -> dict:
+    """What one case is scored against: `kinds` (criterion -> "evidence" | "gap", the scored ones),
+    `excluded` (criterion -> why it is left out) and `wiring` (hard: untargeted criteria, scored apart).
+    `kinds` is passed in for the working split (computed ground truth)."""
+    if split == "work":
+        return {"reference": REFERENCES[split], "kinds": kinds, "excluded": {}, "wiring": {}}
+    scored, excluded, wiring = {}, {}, {}
+    if split == "held_out":
+        case = (labels or {}).get(key)
+        if case is None:
+            raise SystemExit(f"{LABELS_FILE.name} has no labels for held-out case {key}")
+        for cid in criterion_ids:
+            label = case[cid]
+            if label["status"] in ("evidence", "gap"):
+                scored[cid] = label["status"]
+            else:
+                runs = label.get("runs") or []
+                both = runs and all(r["status"] in ("evidence", "gap") for r in runs)
+                excluded[cid] = "unlabeled: runs disagreed" if both else "unlabeled: no valid reply"
+    else:
+        spec = next(c for c in cases if c["key"] == key)["criteria"]
+        for cid in criterion_ids:
+            answer = spec[cid]
+            if not answer["targeted"]:
+                wiring[cid] = answer["expected"]
+            elif answer["expected"] == PENDING:
+                excluded[cid] = PENDING
+            else:
+                scored[cid] = answer["expected"]
+    return {"reference": REFERENCES[split], "kinds": scored, "excluded": excluded, "wiring": wiring}
+
+
 def split_of(truth: GroundTruth) -> dict[str, str]:
     """patient_id -> "work" or "held_out", for every case. Fails if the held-out file names a
     case the cohort lacks: the split is frozen, so a changed cohort needs a decision, not a guess."""
@@ -103,10 +178,14 @@ def select_patients(truth: GroundTruth, split: str = "work") -> list[tuple[str, 
     """(patient_id, stratum) for one split. Working split: from each situation the rules
     distinguish, CASES_PER_STRATUM charts spread evenly by note count, the smallest and the
     largest among them, so the note-reading cap is exercised as well as the easy cases. Held-out
-    split: every held-out case (it is small and hand-labeled in G1). Only the split asked for is
-    read, so tuning on the working split never touches a held-out chart."""
+    split: every held-out case (it is small and labeled in G1). Hard split: every case in
+    data/hard/cases.yaml, in file order, its stratum `hard/<kind>`; `truth` must read the hard
+    split's bundles. Only the split asked for is read, so tuning on the working split never
+    touches a held-out chart."""
     if split not in SPLITS:
         raise ValueError(f"split must be one of {SPLITS}, got {split!r}")
+    if split == "hard":
+        return [(pid, f"hard/{case['kind']}") for pid, case in hard_patients(truth).items()]
     in_split = split_of(truth)
     groups: dict[str, list[tuple[int, str]]] = {}
     for pid, s in in_split.items():
@@ -122,7 +201,7 @@ def select_patients(truth: GroundTruth, split: str = "work") -> list[tuple[str, 
 
 def dataset_name(split: str) -> str:
     """Held-out examples live in their own LangSmith dataset, so the working one never shows them."""
-    return DATASET_NAME if split == "work" else f"{DATASET_NAME}-held-out"
+    return DATASET_NAME if split == "work" else f"{DATASET_NAME}-{split.replace('_', '-')}"
 
 
 def example_id(key: str, split: str = "work") -> uuid.UUID:
@@ -139,22 +218,37 @@ def build_examples(
     # Named patients always run, selected or not, but only from the split asked for: a held-out
     # case cannot be run by name while tuning. The default is the split's selection.
     if patient_ids is not None:
-        in_split = split_of(truth)
-        if wrong := [patient_key(p) for p in patient_ids if in_split[p] != split]:
-            raise SystemExit(f"case(s) {', '.join(wrong)} are not in the {split} split"
-                             + ("; pass --split held_out to run held-out cases" if split == "work" else ""))
-        chosen = [(p, stratum_of(truth, p)) for p in patient_ids]
+        if split == "hard":
+            hard = hard_patients(truth)
+            if wrong := [patient_key(p) for p in patient_ids if p not in hard]:
+                raise SystemExit(f"case(s) {', '.join(wrong)} are not in the hard split")
+            chosen = [(p, f"hard/{hard[p]['kind']}") for p in patient_ids]
+        else:
+            in_split = split_of(truth)
+            if wrong := [patient_key(p) for p in patient_ids if in_split[p] != split]:
+                raise SystemExit(f"case(s) {', '.join(wrong)} are not in the {split} split"
+                                 + ("; pass --split held_out to run held-out cases" if split == "work" else ""))
+            chosen = [(p, stratum_of(truth, p)) for p in patient_ids]
     else:
         chosen = select_patients(truth, split)
     keys = [patient_key(p) for p, _ in chosen]
     assert len(set(keys)) == len(keys), "two patients share a key; lengthen KEY_LENGTH"
+    labels = yaml.safe_load(LABELS_FILE.read_text())["cases"] if split == "held_out" else None
+    cases = load_hard_cases() if split == "hard" else None
+
+    def expected(patient_id: str) -> dict:
+        # criterion id -> "evidence" | "gap" under `kinds`, plus what is left out and why
+        computed = ({cid: "evidence" if truth.established(patient_id, cid) else "gap"
+                     for cid in truth.criterion_ids} if split == "work" else None)
+        return reference(split, patient_key(patient_id), truth.criterion_ids, labels=labels, cases=cases,
+                         kinds=computed)
+
     return [
         schemas.Example(
             id=example_id(patient_key(patient_id), split),
             dataset_id=dataset_id,
             inputs={"patient_key": patient_key(patient_id)},
-            outputs={"kinds": {cid: "evidence" if truth.established(patient_id, cid) else "gap"
-                               for cid in truth.criterion_ids}},  # criterion id -> "evidence" | "gap"
+            outputs=expected(patient_id),
             metadata={"name": f"{stratum} · {patient_key(patient_id)}", "stratum": stratum,
                       "split": split, "notes": len(truth.store.chart(patient_id).documents)},
         )
@@ -190,14 +284,22 @@ def sync_dataset(client: Client, examples: list[schemas.Example],
 # A bool is a pass/fail score in LangSmith, a float a graded one. A run that failed to
 # complete gets no scores at all, only `completed = False`, so failures cannot hide in averages.
 
-def score_case(out: dict, expected: dict[str, str]) -> dict[str, bool | float]:
-    """Every score for one case, from its result and the expected kind per criterion. The packet
-    scores come twice: for the final packet, and with a `first_pass_` prefix for the model's first
-    one, so the repair loop cannot hide model quality. They are equal when no repair ran."""
+def score_case(out: dict, expected: dict[str, str], *, wiring: dict[str, str] | None = None,
+               excluded: dict[str, str] | None = None, computed: bool = True) -> dict[str, bool | float]:
+    """Every score for one case, from its result and the expected kind per scored criterion. The
+    packet scores come twice: for the final packet, and with a `first_pass_` prefix for the model's
+    first one, so the repair loop cannot hide model quality. They are equal when no repair ran.
+    `excluded` criteria are not scored; `wiring` ones are scored apart (`wiring:<criterion>`).
+    `computed` is false when `expected` is not computed ground truth (held-out, hard)."""
     scores: dict[str, bool | float] = {"completed": out["ok"]}
     if out["ok"]:
-        scores |= packet_scores(out, expected)
-        scores |= {f"first_pass_{k}": v for k, v in packet_scores(out["first_pass"], expected).items()}
+        known = set(expected) | set(wiring or {}) | set(excluded or {})
+        scores |= packet_scores(out, expected, known, computed)
+        scores |= {f"first_pass_{k}": v
+                   for k, v in packet_scores(out["first_pass"], expected, known, computed).items()}
+        chosen = {a["criterion_id"]: a["kind"] for a in out["assertions"]}
+        scores |= {f"decision:{cid}": chosen.get(cid) == kind for cid, kind in expected.items()}
+        scores |= {f"wiring:{cid}": chosen.get(cid) == kind for cid, kind in (wiring or {}).items()}
         # A float, so it is a rate in the averages and never reads as a pass or a fail. A repair
         # call that failed, leaving the first packet in place, does not count.
         scores["repaired"] = float(out["repairs"] > 0 and not out.get("repair_failed"))
@@ -213,19 +315,25 @@ def score_case(out: dict, expected: dict[str, str]) -> dict[str, bool | float]:
     return scores
 
 
-def packet_scores(packet: dict, expected: dict[str, str]) -> dict[str, bool | float]:
-    """One packet's scores: its assertions, unaddressed criteria and rates against ground truth."""
+def packet_scores(packet: dict, expected: dict[str, str], known: set[str] | None = None,
+                  computed: bool = True) -> dict[str, bool | float]:
+    """One packet's scores: its assertions, unaddressed criteria and rates against ground truth.
+    `known` is every criterion the case has (scored or not); a call on any other one is wrong."""
     scores: dict[str, bool | float] = {}
-    # The citation-resolution metrics, scored against ground truth by evals/metrics.
+    # The citation-resolution metrics, scored against computed ground truth by evals/metrics.
     for key in ("citation_resolution_rate", "citation_level_rate", "gap_accuracy"):
         if packet[key] is not None:
             scores[key] = packet[key]
-    # Did the model make the right call on each criterion, and is every claim it made sound?
+    # Did the model make the right call on each scored criterion, and is every claim it made sound?
     chosen = {a["criterion_id"]: a["kind"] for a in packet["assertions"]}
-    scores["decisions_correct"] = chosen == expected
-    scores["packet_fully_correct"] = (
-        chosen == expected and all(a["truth_resolved"] for a in packet["assertions"]) and not packet["unaddressed"]
-    )
+    known = set(expected) if known is None else known
+    scores["decisions_correct"] = ({c: chosen.get(c) for c in expected} == expected
+                                   and set(chosen) <= known)
+    if computed:  # it checks the claims against computed ground truth, so it needs that as the reference
+        scores["packet_fully_correct"] = (
+            scores["decisions_correct"] and all(a["truth_resolved"] for a in packet["assertions"])
+            and not packet["unaddressed"]
+        )
     return scores
 
 
@@ -233,7 +341,9 @@ def evaluate_case(run, example) -> dict:
     outputs = run.outputs or {}
     if "ok" not in outputs:  # the target raised
         return {"results": []}
-    scores = score_case(outputs, example.outputs["kinds"])
+    ref = example.outputs
+    scores = score_case(outputs, ref["kinds"], wiring=ref.get("wiring"), excluded=ref.get("excluded"),
+                        computed=ref.get("reference", REFERENCES["work"]) == REFERENCES["work"])
     return {"results": [{"key": k, "score": v} for k, v in scores.items()]}
 
 
@@ -246,6 +356,7 @@ class Row:
     scores: dict[str, bool | float]
     output: dict  # the case result, de-identified
     error: str | None  # set only when the run itself raised
+    expected: dict = field(default_factory=dict)  # the example's reference: kinds, excluded, wiring
 
 
 class _NullResponse:
@@ -316,6 +427,7 @@ async def run_experiment(
             scores={e.key: e.score for e in r["evaluation_results"]["results"]},
             output=outputs,
             error=str(run.error) if run.error else None,
+            expected=dict(example.outputs),
         ))
     return rows
 
@@ -378,15 +490,22 @@ def run_config(provider: str, model: str, *, as_of: date, repeat: int,
         "cohort": {"patients": len(patient_ids), "sha256": cohort_fingerprint(patient_ids)},
         "prompts_sha256": sha256_of(prompt_files(), APP_DIR),
         "criteria_sha256": sha256_of([CRITERIA_FILE], CRITERIA_FILE.parent),
+        "reference": REFERENCES[split],
+        # The file the decisions are scored against (none on the working split: computed ground truth).
+        "reference_sha256": None if split == "work" else hashlib.sha256(
+            (LABELS_FILE if split == "held_out" else CASES_FILE).read_bytes()).hexdigest(),
         "git_commit": git_commit(),
         "genai_prices": package_version("genai-prices"),
     }
 
 
 def client_for(spec: str):
+    if spec == "scripted:faithful":  # no model call: the scripted model the tests use
+        from scripted import Scripted, faithful_from_prompt
+        return Scripted(faithful_from_prompt), "scripted", "faithful"
     provider, _, model = spec.partition(":")
     if provider not in ("anthropic", "gemini") or not model:
-        raise SystemExit(f"--models entries look like provider:model, got {spec!r}")
+        raise SystemExit(f"--models entries look like provider:model (or scripted:faithful), got {spec!r}")
     update = {"llm_provider": provider, ("anthropic_model" if provider == "anthropic" else "gemini_model"): model}
     return build_client(settings.model_copy(update=update)), provider, model
 
@@ -394,6 +513,48 @@ def client_for(spec: str):
 def averages(rows: list[Row]) -> dict[str, float]:
     keys = sorted({k for r in rows for k in r.scores})
     return {k: round(mean(float(r.scores[k]) for r in rows if k in r.scores), 3) for k in keys}
+
+
+def of(n: int, total: int) -> str:
+    return f"{n} of {total}"
+
+
+def tallies(rows: list[Row]) -> dict[str, str]:
+    """Every pass/fail score as a count beside its rate's denominator: "19 of 20"."""
+    keys = sorted({k for r in rows for k, v in r.scores.items() if isinstance(v, bool)})
+    return {k: of(sum(r.scores[k] is True for r in rows if k in r.scores), sum(k in r.scores for r in rows))
+            for k in keys}
+
+
+def scoring(rows: list[Row], split: str | None) -> dict:
+    """What the decisions were scored against, and how much: criterion decisions over all completed runs
+    (headline and per criterion), the wiring check apart, and the labels left out, counted once per case."""
+    def count(prefix: str) -> dict:
+        per: dict[str, list[bool]] = {}
+        for r in rows:
+            for k, v in r.scores.items():
+                if k.startswith(prefix):
+                    per.setdefault(k[len(prefix):], []).append(v)
+        flat = [v for vs in per.values() for v in vs]
+        return {"all": of(sum(flat), len(flat)), "rate": round(sum(flat) / len(flat), 3) if flat else None,
+                "per_criterion": {c: of(sum(vs), len(vs)) for c, vs in sorted(per.items())}}
+
+    cases = {r.key: r.expected for r in rows}
+    excluded: dict[str, int] = {}
+    for ref in cases.values():
+        for why in (ref.get("excluded") or {}).values():
+            excluded[why] = excluded.get(why, 0) + 1
+    labels = lambda field_: sum(len(ref.get(field_) or {}) for ref in cases.values())
+    return {
+        "against": REFERENCES.get(split or "work"),
+        "cases": len(cases),
+        "completed_runs": of(sum(bool(r.scores.get("completed")) for r in rows), len(rows)),
+        "criteria_scored": labels("kinds"),  # per case, not per run
+        "criteria_excluded": dict(sorted(excluded.items())),  # why -> count, per case
+        "decisions": count("decision:"),  # over completed runs
+        **({"wiring": {"criteria": labels("wiring"), **count("wiring:")}} if labels("wiring") else {}),
+        "citations_scored_against": "computed ground truth",
+    }
 
 
 def latency(outputs: list[dict]) -> dict[str, dict[str, float | int]]:
@@ -430,6 +591,8 @@ def summarize(spec: str, provider: str, model: str, rows: list[Row], config: dic
         "repair_failures": sum(bool(o.get("repair_failed")) for o in outputs),
         "schema_retries": sum(o.get("schema_retries") or 0 for o in outputs),
         "averages": averages(rows),
+        "tallies": tallies(rows),  # the pass/fail scores as counts: "19 of 20"
+        "scoring": scoring(rows, (config or {}).get("split")),
         "seconds": latency(outputs),  # per node: runs, p50, max
         "tokens": {"input": tokens_in, "output": tokens_out},
         "estimated_cost_usd": None if cost is None else round(cost, 4),
@@ -453,13 +616,45 @@ def case_cost(provider: str, model: str, output: dict) -> float | None:
                                    output_tokens=output.get("output_tokens")))
 
 
-def print_rows(spec: str, rows: list[Row]) -> None:
+def print_rows(spec: str, rows: list[Row], split: str | None = None) -> None:
     print(f"{spec}")
     for r in sorted(rows, key=lambda r: r.name):
         failed = [k for k, v in r.scores.items() if v is False]
         route = " [no model call]" if r.output.get("route") == "gap_packet" else ""
         print(f"  {r.name:<48}{'FAILED ' + r.error if r.error else ('ok' if not failed else 'not ' + ', '.join(failed))}{route}")
-    print("  averages: " + ", ".join(f"{k} {v}" for k, v in averages(rows).items()) + "\n")
+    counts = tallies(rows)
+    print("  averages: " + ", ".join(f"{k} {v}" + (f" ({counts[k]})" if k in counts else "")
+                                     for k, v in averages(rows).items()))
+    s = scoring(rows, split)
+    print(f"  decisions against {s['against']}: {s['decisions']['all']}"
+          + (f"; left out: {', '.join(f'{w} {n}' for w, n in s['criteria_excluded'].items())}"
+             if s["criteria_excluded"] else "")
+          + (f"; wiring check (apart): {s['wiring']['all']}" if "wiring" in s else "") + "\n")
+
+
+def open_split(split: str, mcp_url: str | None = None):
+    """The tool session for one split. The hard split's bundles live in their own directory, so it gets
+    its own in-process MCP server over them; a running server (the compose service) serves the cohort."""
+    if split != "hard":
+        return connect(mcp_url)
+    if mcp_url:
+        raise SystemExit("--mcp-url serves the cohort; the hard split runs on an in-process server")
+    return _in_process(HARD_DIR)
+
+
+@asynccontextmanager
+async def _in_process(fhir_dir: Path):
+    from mcp.shared.memory import create_connected_server_and_client_session
+    from app.mcp.server import build_server
+
+    server = build_server(fhir_dir, settings.criteria_dir)
+    async with create_connected_server_and_client_session(server._mcp_server) as session:
+        yield session
+
+
+def truth_for(split: str, as_of: date) -> GroundTruth:
+    """The rule over the split's bundles: the cohort, or the hard split's own directory."""
+    return open_ground_truth(as_of, HARD_DIR if split == "hard" else None)
 
 
 async def run_experiments(args, truth: GroundTruth, patient_ids: list[str] | None,
@@ -469,7 +664,7 @@ async def run_experiments(args, truth: GroundTruth, patient_ids: list[str] | Non
     if client is not None:
         examples = sync_dataset(client, examples, dataset_name(split))
     summaries = []
-    async with connect(args.mcp_url) as session:
+    async with open_split(split, args.mcp_url) as session:
         for spec in args.models:
             llm, provider, model = client_for(spec)
             config = run_config(provider, model, as_of=settings.as_of, repeat=args.repeat,
@@ -479,7 +674,7 @@ async def run_experiments(args, truth: GroundTruth, patient_ids: list[str] | Non
                 concurrency=args.concurrency, client=client, upload=client is not None,
                 metadata=config,
             )
-            print_rows(f"{spec} [{split}]", rows)
+            print_rows(f"{spec} [{split}]", rows, split)
             summaries.append(summarize(spec, provider, model, rows, config))
     return summaries
 
@@ -491,23 +686,28 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--repeat", type=int, default=3)
     parser.add_argument("--concurrency", type=int, default=4)
     parser.add_argument("--patients", nargs="+", help="name fragments or ids, all from --split; default is the split's selection")
-    parser.add_argument("--split", choices=[*SPLITS, "both"], default="work",
-                        help="held-out cases run only when asked for; each split gets its own summary file")
+    parser.add_argument("--split", choices=[*SPLITS, "both", "all"], default="work",
+                        help="held-out and hard cases run only when asked for; both is work and held_out, all is "
+                             "every split; each split gets its own summary file")
     parser.add_argument("--mcp-url")
     parser.add_argument("--out-dir", type=Path, default=RUNS_DIR)
     args = parser.parse_args(argv)
 
     mode = setup_observability(settings)
-    truth = open_ground_truth(settings.as_of)
-    splits = list(SPLITS) if args.split == "both" else [args.split]
+    splits = {"both": ["work", "held_out"], "all": list(SPLITS)}.get(args.split, [args.split])
+    if set(splits) & {"held_out", "hard"}:
+        # Scored against the labels and the hard answers, which were judged at one date: use it, and
+        # refuse another. Every run in this call then uses it, the working split's too.
+        settings.as_of_date = pinned_as_of(settings.as_of_date)
+    truths = {split: truth_for(split, settings.as_of) for split in splits}
     patient_ids = None
     if args.patients:
         if len(splits) > 1:
-            raise SystemExit("--patients names cases from one split; pick --split work or held_out")
+            raise SystemExit("--patients names cases from one split; pick --split work, held_out or hard")
         from run import resolve_patient
-        patient_ids = [resolve_patient(truth, p) for p in args.patients]
+        patient_ids = [resolve_patient(truths[splits[0]], p) for p in args.patients]
     for split in splits:
-        cases = build_examples(truth, patient_ids, split=split)
+        cases = build_examples(truths[split], patient_ids, split=split)
         print(f"dataset {dataset_name(split)} ({split} split): {len(cases)} cases x {args.repeat} runs x "
               f"{len(args.models)} models = {len(cases) * args.repeat * len(args.models)} pipeline runs; "
               f"as of {settings.as_of}; traces: {mode}")
@@ -517,7 +717,7 @@ def main(argv: list[str] | None = None) -> int:
     args.out_dir.mkdir(parents=True, exist_ok=True)
     failed = False
     for split in splits:
-        summaries = asyncio.run(run_experiments(args, truth, patient_ids, split))
+        summaries = asyncio.run(run_experiments(args, truths[split], patient_ids, split))
         flush()
         written = datetime.now(timezone.utc)
         path = args.out_dir / f"experiment_{written:%Y%m%dT%H%M%SZ}_{split}.json"

@@ -1,5 +1,6 @@
 import hashlib
 import json
+from collections import Counter
 import re
 import subprocess
 import uuid
@@ -7,16 +8,24 @@ from datetime import date
 from types import SimpleNamespace
 
 import pytest
+import yaml
 
-from dataset import open_ground_truth
+from dataset import HARD_DIR, labels_as_of, open_ground_truth, pinned_as_of
 from experiment import (
     CASES_PER_STRATUM,
+    LABELS_FILE,
     Row,
     build_examples,
     client_for,
     cohort_fingerprint,
+    dataset_name,
+    example_id,
     git_commit,
+    load_hard_cases,
     load_held_out,
+    open_split,
+    reference,
+    truth_for,
     package_version,
     patient_key,
     prompt_files,
@@ -29,6 +38,7 @@ from experiment import (
     stratum_of,
     summarize,
 )
+from experiment import main as experiment_main
 from run import connect, resolve_patient
 from test_run import Refusing, Scripted, faithful_from_prompt, overclaiming_from_prompt
 from app.config import settings
@@ -130,7 +140,8 @@ def test_the_config_block_depends_only_on_inputs_and_names_everything_a_result_d
     config = make()
     assert config == make()  # a rerun of the same inputs writes the same block
     assert set(config) == {"provider", "model", "as_of", "repeat", "split", "dataset", "case_keys", "cohort",
-                           "prompts_sha256", "criteria_sha256", "git_commit", "genai_prices"}
+                           "prompts_sha256", "criteria_sha256", "reference", "reference_sha256", "git_commit",
+                           "genai_prices"}
     assert (config["provider"], config["model"], config["as_of"], config["repeat"]) == (
         "anthropic", "claude-haiku-4-5-20251001", "2026-09-20", 3)
     assert (config["split"], config["dataset"]) == ("work", "prior-auth-adalimumab-ra")  # the default
@@ -269,7 +280,7 @@ def test_a_correct_packet_scores_true_on_everything():
                       "gap_accuracy": 1.0, "decisions_correct": True, "packet_fully_correct": True,
                       "first_pass_citation_resolution_rate": 1.0, "first_pass_citation_level_rate": 1.0,
                       "first_pass_gap_accuracy": 1.0, "first_pass_decisions_correct": True,
-                      "first_pass_packet_fully_correct": True, "repaired": 0.0,
+                      "first_pass_packet_fully_correct": True, "repaired": 0.0, "decision:a": True,
                       "ids_well_formed": True, "schema_valid_first_try": True, "verify_matches_truth": True}
 
 
@@ -440,3 +451,173 @@ async def test_scripted_runs_put_per_node_seconds_in_the_summary(truth):
         laps = [c["seconds"][node] for c in summary["cases"] if node in c["seconds"]]
         assert stats["max"] == max(laps) and min(laps) <= stats["p50"] <= stats["max"]
     json.dumps(summary)  # it goes into the summary file as is
+
+
+# --- scoring per split (G1.8) -------------------------------------------------------------------
+
+def unlabeled(*runs):
+    return {"status": "unlabeled", "records": [], "reason": "r",
+            "runs": [{"status": s, "records": [], "reason": "x"} for s in runs]}
+
+
+def test_held_out_is_scored_against_the_labels_and_unlabeled_ones_are_left_out_with_why():
+    labels = {"0a1b2c3d": {"a": {"status": "evidence", "records": [], "reason": "r"},
+                           "b": unlabeled("evidence", "gap"), "c": unlabeled("unlabeled", "unlabeled")}}
+    ref = reference("held_out", "0a1b2c3d", ["a", "b", "c"], labels=labels)
+    assert ref["kinds"] == {"a": "evidence"} and ref["wiring"] == {}
+    assert ref["excluded"] == {"b": "unlabeled: runs disagreed", "c": "unlabeled: no valid reply"}
+    assert ref["reference"].startswith("reference labels")
+    with pytest.raises(SystemExit):
+        reference("held_out", "ffffffff", ["a"], labels=labels)
+
+
+def test_hard_is_scored_on_targeted_answers_with_pending_left_out_and_the_rest_a_wiring_check():
+    answer = lambda expected, targeted: {"expected": expected, "records": [], "reason": "r", "targeted": targeted}
+    cases = [{"key": "0a1b2c3d", "criteria": {"a": answer("gap", True), "b": answer("pending-CPG1", True),
+                                              "c": answer("evidence", False)}}]
+    ref = reference("hard", "0a1b2c3d", ["a", "b", "c"], cases=cases)
+    assert (ref["kinds"], ref["excluded"], ref["wiring"]) == ({"a": "gap"}, {"b": "pending-CPG1"}, {"c": "evidence"})
+
+
+def test_the_committed_references_count_as_the_label_run_and_cases_say():
+    labels = yaml.safe_load(LABELS_FILE.read_text())["cases"]
+    ids = ["ra_diagnosis", "dmard_trial", "active_disease", "tb_screening", "hepatitis_b_screening"]
+    held = [reference("held_out", k, ids, labels=labels) for k in load_held_out()]
+    assert sum(len(r["kinds"]) for r in held) == 115
+    assert Counter(w for r in held for w in r["excluded"].values()) == {
+        "unlabeled: runs disagreed": 5, "unlabeled: no valid reply": 5}
+    cases = load_hard_cases()
+    hard = [reference("hard", c["key"], ids, cases=cases) for c in cases]
+    assert (sum(len(r["kinds"]) for r in hard), sum(len(r["excluded"]) for r in hard),
+            sum(len(r["wiring"]) for r in hard)) == (
+        sum(a["targeted"] for c in cases for a in c["criteria"].values()), 0,  # D20, and D21 left none pending
+        sum(not a["targeted"] for c in cases for a in c["criteria"].values()))
+
+
+def calls(**kinds):
+    return [{"criterion_id": c, "kind": k, "truth_resolved": True} for c, k in kinds.items()]
+
+
+def test_a_reference_split_scores_each_criterion_and_keeps_excluded_and_wiring_out_of_the_headline():
+    out = result(assertions=calls(a="gap", b="evidence", c="gap"),
+                 first_pass=packet(assertions=calls(a="evidence", b="evidence", c="gap")))
+    scores = score_case(out, {"a": "gap"}, excluded={"b": "pending-CPG1"}, wiring={"c": "evidence"},
+                        computed=False)
+    assert scores["decisions_correct"] is True and scores["decision:a"] is True
+    assert scores["first_pass_decisions_correct"] is False
+    assert scores["wiring:c"] is False and "decision:c" not in scores and "decision:b" not in scores
+    # its citation check is against computed ground truth, so it is not scored against a reference
+    assert "packet_fully_correct" not in scores and "first_pass_packet_fully_correct" not in scores
+    # a call on a criterion the case does not have is still wrong
+    assert score_case(result(assertions=calls(a="gap", z="gap")), {"a": "gap"}, computed=False)[
+        "decisions_correct"] is False
+
+
+def test_the_summary_gives_counts_beside_rates_and_what_was_left_out():
+    ref = {"reference": "reference labels (evals/labels/held_out.yaml)", "kinds": {"a": "gap", "b": "gap"},
+           "excluded": {"c": "unlabeled: runs disagreed"}, "wiring": {}}
+    rows = [Row(name=f"s · {k}", key=k, scores={"completed": True, "decisions_correct": ok, "decision:a": True,
+                                               "decision:b": ok}, output={}, error=None, expected=ref)
+            for k, ok in (("0a1b2c3d", True), ("1b2c3d4e", False), ("1b2c3d4e", True))]
+    summary = summarize("scripted:faithful", "scripted", "faithful", rows, {"split": "held_out"})
+    assert summary["tallies"]["decisions_correct"] == "2 of 3"
+    s = summary["scoring"]
+    assert s["against"].startswith("reference labels") and s["cases"] == 2
+    assert s["decisions"]["all"] == "5 of 6" and s["decisions"]["per_criterion"] == {"a": "3 of 3", "b": "2 of 3"}
+    assert s["criteria_scored"] == 4 and s["criteria_excluded"] == {"unlabeled: runs disagreed": 2}
+    assert "wiring" not in s and s["citations_scored_against"] == "computed ground truth"
+    json.dumps(summary)
+
+
+def test_the_hard_split_has_its_own_dataset_and_example_ids():
+    assert dataset_name("hard") == "prior-auth-adalimumab-ra-hard"
+    assert dataset_name("held_out") == "prior-auth-adalimumab-ra-held-out"
+    assert len({example_id("0a1b2c3d", s) for s in ("work", "held_out", "hard")}) == 3
+
+
+def test_the_scripted_spec_needs_no_model():
+    llm, provider, model = client_for("scripted:faithful")
+    assert (provider, model, llm.provider) == ("scripted", "faithful", "fake")
+
+
+needs_hard = pytest.mark.skipif(not any(HARD_DIR.glob("*.json")), reason="hard split not built")
+
+
+@needs_hard
+def test_the_hard_split_reads_its_own_bundles_and_every_case():
+    hard = truth_for("hard", AS_OF)
+    chosen = select_patients(hard, "hard")
+    cases = load_hard_cases()
+    assert [patient_key(p) for p, _ in chosen] == [c["key"] for c in cases]
+    assert {s for _, s in chosen} == {f"hard/{c['kind']}" for c in cases}
+    examples = {e.inputs["patient_key"]: e for e in build_examples(hard, split="hard")}
+    injected = examples["977def3e"].outputs  # injection-keyword-line: the injected keyword is not evidence (D21)
+    assert injected["kinds"]["active_disease"] == "gap" and injected["excluded"] == {}
+    assert injected["wiring"] == {"ra_diagnosis": "evidence"}
+    assert examples["e4b60980"].outputs["kinds"] == {"active_disease": "gap"}
+
+
+@needs_cohort
+@needs_hard
+@pytest.mark.anyio
+async def test_a_scripted_model_runs_on_each_split_and_is_scored_against_that_splits_reference(truth):
+    held = next(p for p in truth.store.patient_ids() if patient_key(p) == load_held_out()[0])
+    hard = truth_for("hard", AS_OF)
+    neg = next(p for p in hard.store.patient_ids() if p.startswith("e4b60980"))  # negation-denies
+    for split, t, ids in (("held_out", truth, [held]), ("hard", hard, [neg])):
+        async with open_split(split) as session:
+            [row] = await run_experiment(session, Scripted(faithful_from_prompt), t,
+                                         build_examples(t, ids, split=split), name="scripted", client=get_client())
+        assert row.scores["completed"] and row.scores["verify_matches_truth"], row.error
+        assert "packet_fully_correct" not in row.scores
+        if split == "hard":
+            # the rule reads "Denies joint pain" as evidence and the faithful model follows the rule, so the
+            # targeted answer (gap) catches it; the untargeted criteria are only the wiring check
+            assert row.scores["decision:active_disease"] is False and row.scores["decisions_correct"] is False
+            assert all(row.scores[f"wiring:{c}"] for c in ("ra_diagnosis", "dmard_trial", "tb_screening",
+                                                          "hepatitis_b_screening"))
+
+
+@needs_cohort
+@needs_hard
+@pytest.mark.cohort
+def test_a_scripted_experiment_over_all_three_splits_runs_end_to_end(tmp_path):
+    assert get_client() is None  # no LangSmith key: nothing is uploaded
+    assert experiment_main(["--models", "scripted:faithful", "--split", "all", "--repeat", "1",
+                            "--out-dir", str(tmp_path)]) == 0
+    files = sorted(tmp_path.glob("experiment_*.json"))
+    assert {json.loads(f.read_text())["split"] for f in files} == {"work", "held_out", "hard"}
+    for f in files:
+        [s] = json.loads(f.read_text())["experiments"]
+        assert s["task_failures"] == 0 and " of " in s["scoring"]["decisions"]["all"]
+
+
+# --- the as-of date the labels were judged at -----------------------------------------------------
+
+def label_headers(tmp_path, held="2026-09-20", hard="2026-09-20"):
+    for name, as_of in (("held_out.yaml", held), ("hard.yaml", hard)):
+        (tmp_path / name).write_text(f"labeler: m\nas_of: '{as_of}'\ncases: {{}}\n")
+    return tmp_path
+
+
+def test_scoring_against_the_labels_uses_their_as_of_date_and_refuses_another(tmp_path):
+    d = label_headers(tmp_path)
+    assert labels_as_of(d) == date(2026, 9, 20)
+    assert pinned_as_of(None, d) == date(2026, 9, 20)  # AS_OF_DATE unset: the labels' date
+    assert pinned_as_of(date(2026, 9, 20), d) == date(2026, 9, 20)
+    with pytest.raises(SystemExit, match="AS_OF_DATE is 2026-10-25, but the reference labels were judged as of "
+                                         "2026-09-20"):
+        pinned_as_of(date(2026, 10, 25), d)
+    with pytest.raises(SystemExit, match="disagree"):
+        labels_as_of(label_headers(tmp_path, hard="2026-09-21"))
+
+
+def test_the_committed_labels_are_judged_at_the_cohort_as_of_date():
+    assert labels_as_of() == AS_OF
+
+
+def test_an_experiment_on_a_labeled_split_refuses_a_different_as_of_date(monkeypatch):
+    monkeypatch.setattr(settings, "as_of_date", date(2026, 10, 25))
+    for split in ("held_out", "hard", "all"):
+        with pytest.raises(SystemExit, match="unset AS_OF_DATE or set it to 2026-09-20"):
+            experiment_main(["--models", "scripted:faithful", "--split", split])

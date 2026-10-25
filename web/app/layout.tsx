@@ -9,6 +9,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <header>
           <div className="bar">
             <a href="/"><strong>Prior auth reviewer</strong></a>
+            <a href="/labels">Reference labels</a>
             <span>adalimumab for rheumatoid arthritis · synthetic Synthea patients</span>
           </div>
         </header>

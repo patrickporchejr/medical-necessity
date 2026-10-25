@@ -7,11 +7,11 @@
 
 One paid run, Haiku and Flash, on the M1 cohort with G1's splits, reported in `evals/RESULTS.md` as Run 4:
 accuracy, citation resolution, cost and latency per model, for the working, held-out and hard splits apart.
-Held-out and hard are scored against G1's hand labels; the working split against computed ground truth, as a
+Held-out is scored against G1's model labels and hard against G1's by-construction answers; the working split against computed ground truth, as a
 wiring check. Rates come with counts ("19 of 20"). Every later milestone compares with this.
 
 Expect lower numbers than Run 3, especially on the hard split. That is the point: Run 3 measured agreement with
-the rules, Run 4 measures correctness. (Changed by D15: M2 is cut, so there is no lab; G1's labels are new.)
+the rules, Run 4 measures agreement with labels the code did not write. (Changed by D15: M2 is cut, so there is no lab; G1's labels are new.)
 
 ## Tasks
 
@@ -28,4 +28,4 @@ the rules, Run 4 measures correctness. (Changed by D15: M2 is cut, so there is n
 - If a model's results swing widely between its 3 runs, the write-up says so and does not call the difference
   between models a finding.
 - The splits are small. A difference of one or two cases is not a finding either.
-- The labels have one author, who also designed the rules. The write-up says so.
+- The held-out labels were written by a model and not reviewed by a human (D19). The write-up says so.
