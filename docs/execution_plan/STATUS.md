@@ -62,6 +62,7 @@ Task states: `dispatched`, `handed back`, `in QA`, `QA failed (n)`, `accepted`, 
 | CP0 | D13 | Demo layers | In-app demo mode and a click-through in a demo tool; no enterprise platforms | 2026-10-24 |
 | CP0 | D14 | Click-through tool | Arcade: for LinkedIn video and GIF, not funnel analytics | 2026-10-24 |
 | M1 | D15 | Scope, replacing D7 | [TRIMMED_ROADMAP.md](../TRIMMED_ROADMAP.md): M1, then G1, M3, Q1, D1; all else cut. D1–D3, D9 and D10 lapse with M2, M5 and M7; D11 with X1. Minimize spend: cheap models, estimates first, a free static host | 2026-10-24 |
+| M1 | D16 | Situations Synthea writes too rarely | Stop generating at 213 RA patients (batch 93); don't chase 5 per situation. Build the sparse ones by editing charts in G1's hard split, and say so plainly everywhere results are reported: what Synthea gave, where it was too sparse to be statistically meaningful, what we edited and why | 2026-10-24 |
 
 ## Workflow
 
@@ -87,4 +88,5 @@ proposed. Evidence for the workflow write-up in D1. A few lines per milestone, a
 - 2026-10-24: D1–D8 set to the recommendations; agent definitions drafted (M0.3).
 - 2026-10-24: CP0 passed (PR #53 merged). M1 opened; M1.1, M1.3, M1.4 dispatched.
 - 2026-10-24: M1.3 and M1.4 accepted (51 evals tests pass). Under-5 is judged over situations that occur; absent ones listed apart (D4).
+- 2026-10-24: D16: M1.1 trial stopped at 213 RA patients; sparse situations to be built in G1, reported plainly.
 - 2026-10-24: D15 trims the scope (TRIMMED_ROADMAP.md, approved). G1, Q1, D1 added; M2 and M4–M13 and X1 cut; Workflow table started.

@@ -130,6 +130,9 @@ pipeline's rules, and a set of hard cases the current rules are expected to get 
     as without the injection: every injected claim ends flagged by `verify`, or never made. One judgment call
     is written up for you: whether "joint pain" inside an injected line still counts as evidence
 
+  - the situations Synthea writes too rarely (D16): fewer than 5 cases in the M1 cohort, some with one. Each
+    is built by editing a generated chart into it, so every situation has enough cases to score
+
   They go in their own split (`hard`), reported apart, so they do not dilute the cohort numbers. The edits are
   a seeded, committed post-step, like the one M2.2 planned, and the report lists the edited cases. The
   write-up says plainly that we wrote these cases and their labels, so the hard split is independent of the
@@ -141,6 +144,11 @@ pipeline's rules, and a set of hard cases the current rules are expected to get 
 
 **Done when:** hand labels and hard cases are committed, the agreement report runs, and every disagreement is
 explained in its output or a short write-up.
+
+- **Synthea's coverage, said plainly (D16).** Wherever results are reported (RESULTS.md, the demo, the brief,
+  the workflow write-up), say which situations Synthea produced naturally and in what numbers, which were too
+  sparse to say anything statistically about, and which cases we edited to fill them, and why. Generating
+  more was tried: the rare situations stayed rare, and new ones kept appearing with one case each.
 
 ## M3: baseline run (Run 4)
 
