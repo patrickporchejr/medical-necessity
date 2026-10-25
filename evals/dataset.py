@@ -7,6 +7,7 @@ is what a packet is scored against once its placeholders are rehydrated.
 
 from dataclasses import dataclass
 from datetime import date
+from pathlib import Path
 
 from app.config import settings
 from app.graph.criteria import Criteria, load_criteria
@@ -15,6 +16,7 @@ from app.graph.support import criterion_supports
 from app.mcp.store import FhirStore, NotFound
 
 CRITERIA_FILE = settings.criteria_dir / "adalimumab_ra.yaml"
+HARD_DIR = settings.data_dir / "synthea" / "hard"  # G1.2's edited copies, built by data/hard/build.py
 
 
 @dataclass(frozen=True)
@@ -83,5 +85,6 @@ def _start(record) -> str:
     return next(getattr(record, k) for k in ("onset_date", "authored_on", "effective_date") if hasattr(record, k))
 
 
-def open_ground_truth(as_of: date) -> GroundTruth:
-    return GroundTruth(FhirStore(settings.fhir_dir), load_criteria(CRITERIA_FILE), as_of)
+def open_ground_truth(as_of: date, fhir_dir: Path | None = None) -> GroundTruth:
+    """The rule's answers over a bundle directory: the cohort by default, or HARD_DIR for the hard split."""
+    return GroundTruth(FhirStore(fhir_dir or settings.fhir_dir), load_criteria(CRITERIA_FILE), as_of)

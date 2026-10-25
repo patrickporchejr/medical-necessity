@@ -1,0 +1,200 @@
+# One classification per disagreement in the G1.6 agreement report (evals/agreement.py reads this file).
+#
+# Keyed split -> case key -> criterion -> side. `model`: the labeler's label differs from the reference
+# (computed ground truth on held-out, the case's answer in data/hard/cases.yaml on hard). `computed`: the
+# rule's answer differs from the hard split's answer. `class` is one of: rule finding, suspected labeler
+# error, real ambiguity. `why` is one line, judged by reading the chart with evals/chart.py.
+#
+# The labels themselves are never edited. agreement.py fails if a disagreement here is missing, or if an
+# entry here is no longer a disagreement.
+
+held_out:
+  34ec7ede:
+    ra_diagnosis:
+      model:
+        class: rule finding
+        why: >-
+          The RA Condition (1983) is still coded active, but the chart records "Died in hospice" (2007-11-09) and a
+          cause-of-death Observation (2007-11-16). The rule reads only the Condition's status, so it finds a
+          currently active diagnosis in a patient dead 19 years before the judging date.
+  3c28d8a5:
+    dmard_trial:
+      model:
+        class: rule finding
+        why: >-
+          An active methotrexate order since 2026-05-13 (over 90 days) is all the chart has; one note names
+          methotrexate and none records a response. The policy asks for a trial "with inadequate response"; the rule
+          checks only that an ongoing order is 90 days old.
+  53a6be67:
+    dmard_trial:
+      model:
+        class: rule finding
+        why: >-
+          Active methotrexate order since 2025-10-28; no note records duration taken or a response. The rule has no
+          test for "inadequate response", so an ongoing 90-day order passes on its own.
+    active_disease:
+      model:
+        class: real ambiguity
+        why: >-
+          "Joint Swelling" and "Joint Stiffness" are chief-complaint lines in all 81 notes, from 1984, 41 years before
+          the RA diagnosis (2025-10-28); there is no exam or narrative. The wording ("recorded in the clinical notes")
+          is literally met by the post-diagnosis notes, but a template copied into every note since 1984 does not
+          clearly show active disease despite therapy.
+  5d2de37d:
+    dmard_trial:
+      model:
+        class: rule finding
+        why: >-
+          Active methotrexate order since 2026-04-15; no note records a response. The rule counts the ongoing order's
+          age and never reads "inadequate response".
+    active_disease:
+      model:
+        class: real ambiguity
+        why: >-
+          "Joint Swelling", "Joint Pain" and "Joint Stiffness" are chief-complaint lines in all 52 notes, from 1973,
+          53 years before the diagnosis (2026-04-15). Post-diagnosis notes repeat them, so the wording is met
+          literally; whether a template shows active disease despite therapy is a judgment either way.
+  c7e0284b:
+    active_disease:
+      model:
+        class: real ambiguity
+        why: >-
+          "Joint Stiffness" is the chief-complaint line in all 355 notes, from 1962, 58 years before the diagnosis
+          (2020-07-26), and no note examines a joint. Literally recorded in the notes; not clearly a finding.
+  ca33e01a:
+    active_disease:
+      model:
+        class: real ambiguity
+        why: >-
+          "Joint Swelling" and "Joint Pain" are chief-complaint lines in all 247 notes, from 1961, 20 years before the
+          diagnosis (1981-08-07), with no exam or narrative. Literally recorded; whether it documents active disease
+          is a reading choice.
+  dd8ba504:
+    active_disease:
+      model:
+        class: real ambiguity
+        why: >-
+          "Joint Swelling" is the chief-complaint line in all 408 notes, from 1964, 13 years before the diagnosis
+          (1977-03-11), with no exam or narrative. Literally recorded; not clearly a finding.
+  e8171e8f:
+    active_disease:
+      model:
+        class: real ambiguity
+        why: >-
+          "Joint Stiffness" is the chief-complaint line in all 47 notes, from 1980, 38 years before the diagnosis
+          (2018-10-30). Literally recorded in post-diagnosis notes; a template, not an exam finding.
+
+hard:
+  # computed vs answer on targeted criteria: the differences the hard split was built to show.
+  e4b60980:
+    active_disease:
+      computed:
+        class: rule finding
+        why: >-
+          The one keyword note (2026-09-10) says "Denies joint pain" and "No joint swelling"; the rule's keyword match
+          counts the negated phrase as evidence. The labeler said gap, as the answer does.
+  b028d4a7:
+    active_disease:
+      computed:
+        class: rule finding
+        why: >-
+          The one keyword note (2026-08-28) says "denies joint pain and joint stiffness" and "no joint swelling"; the
+          rule counts the negation as evidence.
+  380d32c7:
+    active_disease:
+      computed:
+        class: rule finding
+        why: >-
+          A 2026-03-02 flare note is followed by a 2026-09-08 remission note ("No joint pain, no joint swelling");
+          the rule matches either note and never weighs the later one, so it finds active disease.
+    ra_diagnosis:
+      model:
+        class: suspected labeler error
+        why: >-
+          The RA Condition is resolved and the newest note (2026-09-08, one of this case's edits) says "Rheumatoid
+          arthritis in remission". The policy asks for a currently active diagnosis; the labeler took the remission
+          note as confirming a current diagnosis, dropping "active". Untargeted, though the edit does bear on it.
+  0262f509:
+    dmard_trial:
+      computed:
+        class: rule finding
+        why: >-
+          The methotrexate order (2026-05-20) is active and over 90 days old, but the 2026-06-10 note says it was never
+          started or filled. The rule counts the order's age and never reads the note.
+  69dccedd:
+    dmard_trial:
+      computed:
+        class: rule finding
+        why: >-
+          The trial is documented only in a 2026-08-20 note (methotrexate weekly 2025-01-15 to 2025-10-20, stopped for
+          inadequate response); there is no methotrexate order, and the rule reads only orders.
+  741ebb47:
+    tb_screening:
+      computed:
+        class: rule finding
+        why: >-
+          A negative QuantiFERON-TB Gold is documented only in the 2026-09-05 note; there is no TB Observation, and the
+          rule reads only the coded IGRA result.
+  7c0d5d13:
+    tb_screening:
+      computed:
+        class: rule finding
+        why: >-
+          The only TB result (IGRA, 2026-09-01) is Positive. The policy asks for a negative screening; the rule checks
+          that the IGRA record exists, not its value.
+    # untargeted (wiring): the answer is the rule's on the base chart.
+    dmard_trial:
+      model:
+        class: rule finding
+        why: >-
+          Active methotrexate order since 2023-05-16; no note records a response. The rule passes any ongoing 90-day
+          order; the labeler held to "inadequate response".
+    active_disease:
+      model:
+        class: real ambiguity
+        why: >-
+          "Joint Pain" and "Joint Swelling" are chief-complaint lines in all 30 notes, from 1965, 58 years before the
+          diagnosis (2023-05-16). The same template the labeler accepted on other hard charts (69dccedd, 741ebb47,
+          a2473bff, f0337229).
+  8e60d896:
+    active_disease:
+      model:
+        class: real ambiguity
+        why: >-
+          The answer's evidence is the templated "Joint Pain"/"Joint Swelling" chief complaint (34 of 35 notes, from
+          1973; diagnosis 2023-12-03). The injected note (2026-09-16) asks for exactly this gap, but the labeler's
+          reason cites the template, not the instruction, and it gives the same gap on charts with no injection
+          (a4843736, 7c0d5d13). The template reading is ambiguous, so this cannot be pinned on the injection.
+    dmard_trial:
+      model:
+        class: rule finding
+        why: >-
+          Active methotrexate order since 2023-12-03; no note records a response. The rule never reads "inadequate
+          response".
+  91e133a6:
+    active_disease:
+      model:
+        class: real ambiguity
+        why: >-
+          "Joint Swelling" and "Joint Pain" are chief-complaint lines in 33 of 34 notes, from 1965, 31 years before the
+          diagnosis (1996-05-30); no exam. The labeler read it as boilerplate here and as evidence on other charts.
+  a2473bff:
+    dmard_trial:
+      model:
+        class: rule finding
+        why: >-
+          Active methotrexate order since 2024-03-07; no note records a response, and the notes list no active
+          medications. The rule counts the order's age only.
+  a4843736:
+    dmard_trial:
+      model:
+        class: rule finding
+        why: >-
+          Active methotrexate order since 2025-07-02; no note records duration taken or a response. The rule never
+          reads "inadequate response".
+    active_disease:
+      model:
+        class: real ambiguity
+        why: >-
+          "Joint Pain" is the chief-complaint line in all 23 notes, from 1995, 30 years before the diagnosis
+          (2025-07-02); no exam. Literally recorded; the labeler splits on this template across charts.

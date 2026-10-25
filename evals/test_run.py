@@ -12,31 +12,12 @@ from app.graph.state import Assertion, ResourceRef
 from app.llm.client import LLMRefusal, LLMResult
 from dataset import open_ground_truth
 from run import connect, format_result, resolve_patient, run_case, write_results
+from scripted import Scripted, faithful_from_prompt  # noqa: F401 (other tests import them from here)
 
 AS_OF = date(2026, 9, 20)
 needs_cohort = pytest.mark.skipif(
     not any(settings.fhir_dir.glob("*.json")), reason="Synthea cohort not generated"
 )
-
-
-def faithful_from_prompt(prompt: str) -> PacketDraft:
-    """A model that does the job right, working only from what the prompt says."""
-    assertions = []
-    for block in re.split(r"\n(?=Criterion )", prompt)[1:]:
-        cid = re.match(r"Criterion (\w+):", block).group(1)
-        lines = [ln for ln in block.splitlines() if ln.strip().startswith("- ")]
-        required = re.search(r"Required status: (\w+)", block)
-        if required:  # only records that carry the required status count
-            lines = [ln for ln in lines if f"status {required.group(1)}" in ln]
-        refs = re.findall(r"- (\w+) (<[A-Z]+_\d+>)", "\n".join(lines))
-        status = re.search(r"Duration status: (\w+)", block)
-        if ("No matching records" in block or (status and status.group(1) != "met")
-                or (required and not refs)):
-            assertions.append(Assertion(criterion_id=cid, kind="gap", text="not established by the chart"))
-        else:
-            cites = [ResourceRef(resource_type=t, id=i) for t, i in refs]
-            assertions.append(Assertion(criterion_id=cid, text="established by the chart", citations=cites))
-    return PacketDraft(assertions=assertions)
 
 
 def overclaiming_from_prompt(prompt: str) -> PacketDraft:
@@ -65,17 +46,6 @@ def naive_ra_from_prompt(prompt: str) -> PacketDraft:
                           citations=[ResourceRef(resource_type=ref.group(1), id=ref.group(2))])
         out.append(a)
     return PacketDraft(assertions=out)
-
-
-class Scripted:
-    provider = "fake"
-
-    def __init__(self, respond):
-        self.respond = respond
-
-    async def generate(self, system, user, schema):
-        return LLMResult(parsed=self.respond(user), provider="fake", model="scripted",
-                         input_tokens=100, output_tokens=50)
 
 
 class Slow(Scripted):
