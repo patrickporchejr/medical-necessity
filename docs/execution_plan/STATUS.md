@@ -37,9 +37,9 @@ States: `not started`, `planning`, `in progress`, `awaiting CP<N>`, `passed`, `c
 
 | Task | Agent | State | Since | Notes |
 |---|---|---|---|---|
-| G1.1 Chart viewer | evals | handed back | 2026-10-25 | `evals/chart.py` (09f3d2f): 8 tests + 1 cohort test. Held-out estimate 3.05M tokens (15k–438k per chart). Patient name in notes replaced by `[patient]`. Waits for QA |
-| G1.2 Hard cases | data | handed back | 2026-10-25 | 24 cases (6e0f49b): the 14 kinds plus 5 per sparse situation. `--check` passes, cohort unchanged; built in `data/synthea/hard/`. 8 of 120 answers differ from the rule. Judgment calls to confirm at CPG1. Waits for QA |
-| G1.7 Review page | web | handed back | 2026-10-25 | `/labels` built, `npm run build` and tsc pass (8c96ed5). Untested: phone width, the download, the mismatch and unlabeled panels. Waits for QA |
+| G1.1 Chart viewer | evals | accepted | 2026-10-25 | `evals/chart.py` (09f3d2f): 8 tests + 1 cohort test. Held-out estimate 3.05M tokens (15k–438k per chart). Patient name in notes replaced by `[patient]`. Waits for QA |
+| G1.2 Hard cases | data | accepted | 2026-10-25 | 24 cases (6e0f49b): the 14 kinds plus 5 per sparse situation. `--check` passes, cohort unchanged; built in `data/synthea/hard/`. 8 of 120 answers differ from the rule. Judgment calls to confirm at CPG1. Waits for QA |
+| G1.7 Review page | web | QA failed (1) | 2026-10-25 | `/labels` built, `npm run build` and tsc pass (8c96ed5). QA: download, mismatch, unlabeled and storage work; page scrolls sideways at 375px (summary table). Back to web |
 | M1.1 Size the cohort | data | accepted | 2026-10-24 | 228 RA patients, 102 batches, ~29 s per RA patient; `OUT` and `END_DATE` added to generate.sh; fingerprint `2477aa35…` |
 | M1.2 Generate the cohort | orchestrator | accepted | 2026-10-24 | 228 RA patients installed, fingerprint `2477aa35…`; generate.sh defaults reproduce it (`END_DATE=20260920`). Cohort-wide tests marked `cohort`, skipped by default (25.5 → 2.5 min). `-m cohort` on the updated tests: 4 passed |
 | M1.5 Held-out split | evals | accepted | 2026-10-25 | `evals/held_out.txt`, 25 cases, frozen; `evals/split.py` checks it. Situations under 10 not split (D16); cases from Runs 0–3 kept out |
@@ -105,3 +105,4 @@ proposed. Evidence for the workflow write-up in D1. A few lines per milestone, a
 - 2026-10-25: M1.2 confirmed (`-m cohort`, 4 passed). M1.5 and M1.6 accepted (210 passed); held-out split frozen at 25. M1.7 dispatched.
 - 2026-10-25: M1.7 accepted. CP1 passed; D17 and D18 recorded. PR #55 to merge.
 - 2026-10-25: M1 merged (PR #55). G1 planned (D19: model-written labels, review page, two batch runs); G1.1, G1.2, G1.7 dispatched.
+- 2026-10-25: QA batch 1: G1.1 and G1.2 accepted and merged (228 passed, 16 skipped); G1.7 failed on 375px width, back to web.
