@@ -39,8 +39,9 @@ States: `not started`, `planning`, `in progress`, `awaiting CP<N>`, `passed`, `c
 |---|---|---|---|---|
 | G1.2b `targeted` field | data | accepted | 2026-10-25 | D20; 29 targeted, bundles byte-identical (614dcb0) |
 | G1.5 Labeling run | orchestrator | accepted | 2026-10-25 | Live, $16.56 (+$0.03 smoke), cap $18 approved. Held-out 21/94/10 unlabeled; hard 32/87/1. Runs agreed on 115 of 120 held-out and 119 of 120 hard labels both runs gave. b8a1ffa3 (largest chart, ~870k tokens) unlabeled: every reply mistyped a record id (6469669) |
-| G1.2c D21 answers | data | dispatched | 2026-10-25 | pending-CPG1 resolved; 380d32c7 ra_diagnosis targeted |
-| G1.6 + G1.8 Agreement report, scoring | evals | in QA | 2026-10-25 | Worktree; no live calls |
+| G1.6b D21 report, as-of guard | evals | dispatched | 2026-10-25 | 29→30 test, agreement regenerated for D21, scoring pinned to the labels' as-of |
+| G1.2c D21 answers | data | accepted | 2026-10-25 | pending-CPG1 resolved; 380d32c7 ra_diagnosis targeted |
+| G1.6 + G1.8 Agreement report, scoring | evals | accepted | 2026-10-25 | Worktree; no live calls |
 | G1.3 Labeler | evals | accepted | 2026-10-25 | `evals/label.py` (f334fba), Batch API, two runs, scripted only; 257 passed, 17 skipped |
 | G1.4 Estimate | evals | accepted | 2026-10-25 | $9.30 at batch rates, $11.62 with 25% margin (98 requests, one batch). Waits for your yes |
 | G1.1 Chart viewer | evals | accepted | 2026-10-25 | `evals/chart.py` (09f3d2f): 8 tests + 1 cohort test. Held-out estimate 3.05M tokens (15k–438k per chart). Patient name in notes replaced by `[patient]`. Waits for QA |
@@ -118,3 +119,4 @@ proposed. Evidence for the workflow write-up in D1. A few lines per milestone, a
 - 2026-10-25: G1.3 and G1.4 accepted (QA 9 of 9). G1.5 estimate $9.30–$11.62, waiting for approval.
 - 2026-10-25: G1.5 run live after a smoke test; chars/4 undercounted tokens about 2x (long record ids), so the cap went from $12 to $18 with your yes. $16.56. G1.6 and G1.8 dispatched.
 - 2026-10-25: D21 decided ahead of CPG1 (injected keyword not evidence; 380d32c7 ra_diagnosis targeted; free text counts; positive TB a gap with a next step for Q1; resolved RA denies via ra_diagnosis). G1.2c dispatched.
+- 2026-10-25: G1.6/G1.8 accepted (QA; minor: as-of falls back to today) and merged with G1.2c. G1.6b dispatched.
