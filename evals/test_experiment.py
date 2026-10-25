@@ -46,6 +46,7 @@ def truth():
 # --- the dataset --------------------------------------------------------------------------------
 
 @needs_cohort
+@pytest.mark.cohort
 def test_the_dataset_covers_every_situation_with_a_small_and_a_large_chart(truth):
     selected = select_patients(truth)
     strata = {s for _, s in selected}
@@ -62,15 +63,14 @@ def test_the_dataset_covers_every_situation_with_a_small_and_a_large_chart(truth
 
 
 @needs_cohort
+@pytest.mark.cohort
 def test_expected_labels_come_from_ground_truth(truth):
-    examples = build_examples(truth)
-    by_key = {e.inputs["patient_key"]: e for e in examples}
-    loyd = by_key[patient_key(resolve_patient(truth, "Loyd638"))]
+    [loyd] = build_examples(truth, [resolve_patient(truth, "Loyd638")])
     assert loyd.outputs["kinds"] == {
         "ra_diagnosis": "evidence", "dmard_trial": "gap", "active_disease": "evidence",
         "tb_screening": "gap", "hepatitis_b_screening": "gap",
     }
-    for example in examples:
+    for example in build_examples(truth):
         kinds = example.outputs["kinds"]
         assert kinds["tb_screening"] == kinds["hepatitis_b_screening"] == "gap"
         ra, trial, notes = example.metadata["stratum"].split("/")
@@ -80,6 +80,7 @@ def test_expected_labels_come_from_ground_truth(truth):
 
 
 @needs_cohort
+@pytest.mark.cohort
 def test_a_named_patient_is_always_included_even_outside_the_default_selection(truth):
     aaron = resolve_patient(truth, "Aaron697")
     assert aaron not in [p for p, _ in select_patients(truth)]
@@ -89,6 +90,7 @@ def test_a_named_patient_is_always_included_even_outside_the_default_selection(t
 
 
 @needs_cohort
+@pytest.mark.cohort
 def test_examples_carry_a_short_key_and_no_patient_names(truth):
     ids = [e.id for e in build_examples(truth)]
     assert len(set(ids)) == len(ids) and ids == [e.id for e in build_examples(truth)]  # stable ids
@@ -188,6 +190,7 @@ def test_the_summary_carries_the_config_block():
 
 
 @needs_cohort
+@pytest.mark.cohort
 def test_the_config_block_for_the_real_dataset_is_stable(truth):
     examples = build_examples(truth)
     config = run_config("gemini", "gemini-3.8-flash", as_of=AS_OF, repeat=3, examples=examples, truth=truth)
@@ -227,6 +230,7 @@ class FakeLangSmith:
 
 
 @needs_cohort
+@pytest.mark.cohort
 def test_syncing_updates_existing_examples_creates_new_ones_and_survives_a_rerun(truth):
     examples = build_examples(truth)
     first, rest = examples[:1], examples

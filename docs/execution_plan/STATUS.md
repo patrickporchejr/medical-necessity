@@ -5,7 +5,7 @@ the branches disagree.
 
 ## Now
 
-**M1: in progress** on `m1/cohort`. M1.1, M1.3 and M1.4 accepted; M1.2 (generate the cohort) next. No live model
+**M1: in progress** on `m1/cohort`. M1.1, M1.3 and M1.4 accepted; M1.2 done except one check: the three updated cohort tests have not yet run under `-m cohort`. Next: that check, then M1.5 and M1.6. Draft PR open. No live model
 spend in M1. Scope trimmed by D15 ([TRIMMED_ROADMAP.md](../TRIMMED_ROADMAP.md)): after M1 come G1, M3, Q1, D1.
 
 ## Milestones
@@ -38,6 +38,7 @@ States: `not started`, `planning`, `in progress`, `awaiting CP<N>`, `passed`, `c
 | Task | Agent | State | Since | Notes |
 |---|---|---|---|---|
 | M1.1 Size the cohort | data | accepted | 2026-10-24 | 228 RA patients, 102 batches, ~29 s per RA patient; `OUT` and `END_DATE` added to generate.sh; fingerprint `2477aa35…` |
+| M1.2 Generate the cohort | orchestrator | handed back | 2026-10-24 | 228 RA patients installed, fingerprint `2477aa35…`; generate.sh defaults reproduce it (`END_DATE=20260920`). Cohort-wide tests marked `cohort`, skipped by default (25.5 → 2.5 min). Pending: `-m cohort` on the 3 updated tests |
 | M1.3 Strata report | evals | accepted | 2026-10-24 | `uv run --project api python evals/strata.py [--fhir-dir DIR]` |
 | M1.4 Latency in summaries | evals | accepted | 2026-10-24 | run.py now sums a node's laps across a repair |
 
@@ -90,3 +91,4 @@ proposed. Evidence for the workflow write-up in D1. A few lines per milestone, a
 - 2026-10-24: M1.3 and M1.4 accepted (51 evals tests pass). Under-5 is judged over situations that occur; absent ones listed apart (D4).
 - 2026-10-24: D15 trims the scope (TRIMMED_ROADMAP.md, approved). G1, Q1, D1 added; M2 and M4–M13 and X1 cut; Workflow table started.
 - 2026-10-24: M1.1 accepted. D16: M1.1 trial stopped at 228 RA patients; sparse situations to be built in G1, reported plainly.
+- 2026-10-24: M1.2: 228-patient cohort installed (34-patient one backed up locally; it cannot be regenerated). 12 cohort-wide tests marked `cohort` and skipped by default; 3 tests updated for 228. Everyday suite 198 passed.

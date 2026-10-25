@@ -308,6 +308,7 @@ needs_cohort = pytest.mark.skipif(
 
 
 @needs_cohort
+@pytest.mark.cohort
 @pytest.mark.anyio
 async def test_cohort_extract_matches_the_ground_truth_the_eval_will_use():
     from app.mcp import tools
@@ -345,5 +346,5 @@ async def test_cohort_extract_matches_the_ground_truth_the_eval_will_use():
                 expected = "not_met"
             assert evidence["dmard_trial"].duration_status == expected, patient.id
             met += expected == "met"
-    assert dmard_found == 19
-    print(f"dmard_trial duration met for {met} of 34 patients as of {as_of}")
+    assert dmard_found == 136
+    print(f"dmard_trial duration met for {met} of 228 patients as of {as_of}")

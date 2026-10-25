@@ -18,14 +18,14 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 SYNTHEA_VERSION="v4.0.0"
-TARGET="${TARGET:-30}"            # RA patients to keep
+TARGET="${TARGET:-228}"           # RA patients to keep
 BATCH_SIZE="${BATCH_SIZE:-500}"
 SEED="${SEED:-42}"                # first batch seed; batch N uses SEED+N
-MAX_BATCHES="${MAX_BATCHES:-40}"
+MAX_BATCHES="${MAX_BATCHES:-110}"
 REFERENCE_DATE="${REFERENCE_DATE:-20260101}"
 # Simulation end date (YYYYMMDD). Unset, Synthea simulates up to the moment it runs, so the
-# same seed gives different charts on different days; set it to make a run reproducible.
-END_DATE="${END_DATE:-}"
+# same seed gives different charts on different days. Pinned to the evals' as-of date.
+END_DATE="${END_DATE:-20260920}"
 AGE_RANGE="${AGE_RANGE:-40-80}"
 OUT="${OUT:-synthea}"             # output directory (relative to data/ or absolute); bundles go in $OUT/fhir
 

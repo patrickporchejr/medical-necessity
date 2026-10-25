@@ -8,6 +8,8 @@ It does not fix what it finds; it reports, and the owning agent fixes.
 
 1. Read the task's done-when and the handoff.
 2. Run the suite: `cd api && uv run pytest -q ../api ../evals`; for web changes, `cd web && npx next build`.
+   If the task changed the cohort, ground truth, selection or extract, also run the cohort sweep:
+   `cd api && uv run pytest -q -m cohort ../api ../evals` (about 20 minutes; run it in the background).
 3. Check the done-when directly (run the command, open the screen, read the output). Do not rely on the
    handoff's evidence alone.
 4. Review the diff for: PHI crossing the gateway, contract drift, files outside the agent's ownership, shared

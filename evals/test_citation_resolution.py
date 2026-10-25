@@ -137,6 +137,7 @@ def seeded_faults(faithful, other_patient_ref):
 
 
 @needs_cohort
+@pytest.mark.cohort
 @pytest.mark.anyio
 async def test_verify_and_the_metric_agree_on_every_seeded_fault():
     truth = open_ground_truth(AS_OF)

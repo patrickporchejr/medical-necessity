@@ -48,6 +48,7 @@ def test_under_names_present_situations_below_the_minimum_and_absent_ones_are_ap
 
 
 @needs_cohort
+@pytest.mark.cohort
 def test_the_report_on_the_current_cohort_counts_every_patient_once(capsys):
     assert main(["--as-of", AS_OF.isoformat()]) == 0
     out = capsys.readouterr().out

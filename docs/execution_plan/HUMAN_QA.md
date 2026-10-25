@@ -62,7 +62,8 @@ patient, so the data agent runs it before the checkpoint).
    packet states how it was picked (fixed seed, stratified).
 3. Open a dry experiment summary from the scripted model. It should carry per-node `seconds` (p50 and max per
    node) next to the scores.
-4. Run the full test suite: `cd api && uv run pytest -q ../api ../evals`.
+4. Run the full test suite: `cd api && uv run pytest -q ../api ../evals`, then the cohort sweep the packet
+   reports (`-m cohort`, about 20 minutes), or read its result in the packet.
 
 **Pass when:** strata are filled or explained, the split is frozen, latency is in the summary, and tests pass.
 **Decide:** the cohort size, if the data agent found the target too large to generate in reasonable time.
