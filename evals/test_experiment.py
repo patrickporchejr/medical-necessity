@@ -10,7 +10,7 @@ from types import SimpleNamespace
 import pytest
 import yaml
 
-from dataset import HARD_DIR, open_ground_truth
+from dataset import HARD_DIR, labels_as_of, open_ground_truth, pinned_as_of
 from experiment import (
     CASES_PER_STRATUM,
     LABELS_FILE,
@@ -489,7 +489,9 @@ def test_the_committed_references_count_as_the_label_run_and_cases_say():
     cases = load_hard_cases()
     hard = [reference("hard", c["key"], ids, cases=cases) for c in cases]
     assert (sum(len(r["kinds"]) for r in hard), sum(len(r["excluded"]) for r in hard),
-            sum(len(r["wiring"]) for r in hard)) == (28, 1, 91)  # 29 targeted (D20), one pending
+            sum(len(r["wiring"]) for r in hard)) == (
+        sum(a["targeted"] for c in cases for a in c["criteria"].values()), 0,  # D20, and D21 left none pending
+        sum(not a["targeted"] for c in cases for a in c["criteria"].values()))
 
 
 def calls(**kinds):
@@ -549,9 +551,9 @@ def test_the_hard_split_reads_its_own_bundles_and_every_case():
     assert [patient_key(p) for p, _ in chosen] == [c["key"] for c in cases]
     assert {s for _, s in chosen} == {f"hard/{c['kind']}" for c in cases}
     examples = {e.inputs["patient_key"]: e for e in build_examples(hard, split="hard")}
-    pending = examples["977def3e"].outputs  # injection-keyword-line: the joint-pain call is left to CPG1
-    assert pending["excluded"] == {"active_disease": "pending-CPG1"}
-    assert pending["wiring"] == {"ra_diagnosis": "evidence"}
+    injected = examples["977def3e"].outputs  # injection-keyword-line: the injected keyword is not evidence (D21)
+    assert injected["kinds"]["active_disease"] == "gap" and injected["excluded"] == {}
+    assert injected["wiring"] == {"ra_diagnosis": "evidence"}
     assert examples["e4b60980"].outputs["kinds"] == {"active_disease": "gap"}
 
 
@@ -588,3 +590,34 @@ def test_a_scripted_experiment_over_all_three_splits_runs_end_to_end(tmp_path):
     for f in files:
         [s] = json.loads(f.read_text())["experiments"]
         assert s["task_failures"] == 0 and " of " in s["scoring"]["decisions"]["all"]
+
+
+# --- the as-of date the labels were judged at -----------------------------------------------------
+
+def label_headers(tmp_path, held="2026-09-20", hard="2026-09-20"):
+    for name, as_of in (("held_out.yaml", held), ("hard.yaml", hard)):
+        (tmp_path / name).write_text(f"labeler: m\nas_of: '{as_of}'\ncases: {{}}\n")
+    return tmp_path
+
+
+def test_scoring_against_the_labels_uses_their_as_of_date_and_refuses_another(tmp_path):
+    d = label_headers(tmp_path)
+    assert labels_as_of(d) == date(2026, 9, 20)
+    assert pinned_as_of(None, d) == date(2026, 9, 20)  # AS_OF_DATE unset: the labels' date
+    assert pinned_as_of(date(2026, 9, 20), d) == date(2026, 9, 20)
+    with pytest.raises(SystemExit, match="AS_OF_DATE is 2026-10-25, but the reference labels were judged as of "
+                                         "2026-09-20"):
+        pinned_as_of(date(2026, 10, 25), d)
+    with pytest.raises(SystemExit, match="disagree"):
+        labels_as_of(label_headers(tmp_path, hard="2026-09-21"))
+
+
+def test_the_committed_labels_are_judged_at_the_cohort_as_of_date():
+    assert labels_as_of() == AS_OF
+
+
+def test_an_experiment_on_a_labeled_split_refuses_a_different_as_of_date(monkeypatch):
+    monkeypatch.setattr(settings, "as_of_date", date(2026, 10, 25))
+    for split in ("held_out", "hard", "all"):
+        with pytest.raises(SystemExit, match="unset AS_OF_DATE or set it to 2026-09-20"):
+            experiment_main(["--models", "scripted:faithful", "--split", split])

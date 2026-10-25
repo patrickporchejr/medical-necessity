@@ -1,4 +1,5 @@
 from collections import Counter
+from datetime import date
 
 import pytest
 import yaml
@@ -118,6 +119,12 @@ def test_the_committed_classifications_name_labeled_cases_and_known_classes():
         assert cid in labels[split][key], (split, key, cid)
         assert side in ("model", "computed") and (split == "hard" or side == "model")
         assert entry["class"] in CLASSES and entry["why"].strip()
+
+
+def test_the_report_refuses_an_as_of_date_other_than_the_labels(monkeypatch):
+    monkeypatch.setattr(settings, "as_of_date", date(2026, 10, 25))
+    with pytest.raises(SystemExit, match="judged as of 2026-09-20"):
+        build()
 
 
 needs_both = pytest.mark.skipif(

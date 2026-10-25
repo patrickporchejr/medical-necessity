@@ -17,6 +17,33 @@ from app.mcp.store import FhirStore, NotFound
 
 CRITERIA_FILE = settings.criteria_dir / "adalimumab_ra.yaml"
 HARD_DIR = settings.data_dir / "synthea" / "hard"  # G1.2's edited copies, built by data/hard/build.py
+LABELS_DIR = Path(__file__).resolve().parent / "labels"  # G1.5's reference labels, never edited
+
+
+def labels_as_of(labels_dir: Path | None = None) -> date:
+    """The date the reference labels were judged at (both label files' `as_of`; cases.yaml says the same)."""
+    import yaml
+
+    dates = set()
+    for name in ("held_out.yaml", "hard.yaml"):
+        with open((labels_dir or LABELS_DIR) / name) as f:
+            for line in f:  # the header only: `as_of` sits above the cases
+                if line.startswith("as_of:"):
+                    dates.add(str(yaml.safe_load(line)["as_of"]))
+                    break
+    if len(dates) != 1:
+        raise SystemExit(f"the label files disagree on their as-of date: {sorted(dates)}")
+    return date.fromisoformat(dates.pop())
+
+
+def pinned_as_of(configured: date | None, labels_dir: Path | None = None) -> date:
+    """The as-of date anything scored against the labels must use: theirs. Unset (AS_OF_DATE blank) means
+    theirs; a different date is refused, since every answer that depends on a date would shift under it."""
+    wanted = labels_as_of(labels_dir)
+    if configured is not None and configured != wanted:
+        raise SystemExit(f"AS_OF_DATE is {configured}, but the reference labels were judged as of {wanted}; "
+                         f"unset AS_OF_DATE or set it to {wanted}")
+    return wanted
 
 
 @dataclass(frozen=True)
