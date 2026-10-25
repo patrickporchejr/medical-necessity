@@ -283,6 +283,6 @@ def test_exactly_the_targeted_hard_criteria_carry_expected():
     cases = label.hard_cases()
     expected = [label.hard_expected(c["key"], cid, cases) for c in cases for cid in POLICY.ids]
     assert len(expected) == len(cases) * len(POLICY.ids)
-    assert sum(e is not None for e in expected) == 29
     targeted = [c["criteria"][cid]["targeted"] for c in cases for cid in POLICY.ids]
+    assert any(targeted) and not all(targeted)  # counted from cases.yaml: D20 and D21 move the total
     assert [e is not None for e in expected] == targeted

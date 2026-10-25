@@ -16,8 +16,8 @@ What each split's decisions are scored against (G1.8):
 - work: computed ground truth (dataset.GroundTruth.established), every criterion, as before.
 - held_out: the reference labels in evals/labels/held_out.yaml (D19). An `unlabeled` label is left out of
   scoring and counted.
-- hard: the answers in data/hard/cases.yaml on targeted criteria only (D20). `pending-CPG1` is left out and
-  counted; untargeted criteria are scored apart as a wiring check (`wiring:<criterion>`), never in the
+- hard: the answers in data/hard/cases.yaml on targeted criteria only (D20). An answer still `pending-CPG1`
+  would be left out and counted (none is since D21); untargeted criteria are scored apart as a wiring check (`wiring:<criterion>`), never in the
   headline.
 
 Each scored criterion is its own pass/fail score (`decision:<criterion>`), and summaries give counts beside
@@ -64,7 +64,7 @@ import app.llm.prompts
 from app.config import settings
 from app.llm.client import LLMResult, build_client
 from app.observability import estimate_cost, flush, get_client, setup_observability, tracing
-from dataset import CRITERIA_FILE, HARD_DIR, GroundTruth, open_ground_truth
+from dataset import CRITERIA_FILE, HARD_DIR, GroundTruth, open_ground_truth, pinned_as_of
 from run import RUNS_DIR, connect, run_case
 
 DATASET_NAME = "prior-auth-adalimumab-ra"
@@ -695,6 +695,10 @@ def main(argv: list[str] | None = None) -> int:
 
     mode = setup_observability(settings)
     splits = {"both": ["work", "held_out"], "all": list(SPLITS)}.get(args.split, [args.split])
+    if set(splits) & {"held_out", "hard"}:
+        # Scored against the labels and the hard answers, which were judged at one date: use it, and
+        # refuse another. Every run in this call then uses it, the working split's too.
+        settings.as_of_date = pinned_as_of(settings.as_of_date)
     truths = {split: truth_for(split, settings.as_of) for split in splits}
     patient_ids = None
     if args.patients:

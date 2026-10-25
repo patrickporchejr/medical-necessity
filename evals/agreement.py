@@ -18,8 +18,9 @@ What is compared, each with counts beside rates:
 
 - held-out: model against computed, per criterion and overall. Unlabeled labels are counted apart, by why:
   the two runs gave different labels, or a run gave no valid reply.
-- hard, targeted criteria (D20): model against answer, per kind. This measures the labeler. `pending-CPG1`
-  is counted apart. Separately, computed against answer: where the rule and the answers we wrote differ.
+- hard, targeted criteria (D20): model against answer, per kind. This measures the labeler. An answer
+  still `pending-CPG1` would be counted apart (none is since D21). Separately, computed against answer:
+  where the rule and the answers we wrote differ.
 - hard, untargeted criteria: model against answer and computed against answer, as a wiring check (these
   answers are the rule's on the base chart by construction).
 - run to run: of the labels both runs gave, how many the two runs gave alike.
@@ -35,7 +36,6 @@ import re
 import sys
 from collections import Counter
 from dataclasses import dataclass
-from datetime import date
 from pathlib import Path
 from typing import Any, Callable, Iterable
 
@@ -43,7 +43,8 @@ import yaml
 
 from app.graph.nodes.extract import ONGOING
 from chart import chart_records, estimate_tokens, find_patient, format_chart
-from dataset import HARD_DIR, GroundTruth, open_ground_truth
+from app.config import settings
+from dataset import HARD_DIR, GroundTruth, open_ground_truth, pinned_as_of
 
 EVALS = Path(__file__).resolve().parent
 ROOT = EVALS.parent
@@ -357,14 +358,14 @@ def report(items: list[Item], held_out: dict, hard: dict, flat: dict, numbers: d
     # Hard per kind.
     add("## Hard, targeted criteria, per kind")
     add("")
-    add("| Kind | Targeted | Model vs answer | Computed vs answer | Pending | Unlabeled |")
-    add("|---|---|---|---|---|---|")
+    add("| Kind | Targeted | Model vs answer | Computed vs answer | Unlabeled |")
+    add("|---|---|---|---|---|")
     kinds = list(dict.fromkeys(i.kind for i in items if i.split == "hard"))
     for kind in [*kinds, None]:
         pool = [i for i in items if i.split == "hard" and i.targeted and (kind is None or i.kind == kind)]
         tm, _ = tally(pool, "model", "answer")
         tc, _ = tally(pool, "computed", "answer")
-        add(f"| {kind or '**all**'} | {len(pool)} | {tm} | {tc} | {tm.pending} | {sum(tm.unlabeled.values())} |")
+        add(f"| {kind or '**all**'} | {len(pool)} | {tm} | {tc} | {sum(tm.unlabeled.values())} |")
     add("")
     add("## Hard, untargeted criteria (wiring check), per criterion")
     add("")
@@ -449,7 +450,14 @@ def report(items: list[Item], held_out: dict, hard: dict, flat: dict, numbers: d
         f"see the rule findings above). Held-out resolved-RA charts: {res['held_out']['charts']}, labeler "
         f"{_counts(res['held_out']['model'], ('evidence', 'gap', 'unlabeled'))}; hard: {res['hard']['charts']}, "
         f"labeler {_counts(res['hard']['model'], ('evidence', 'gap', 'unlabeled'))}, answers "
-        f"{_counts(res['hard']['answer'], ('evidence', 'gap'))}.")
+        f"{_counts(res['hard']['answer'], ('evidence', 'gap'))}. D21 (5) settles the reading: resolved RA is a "
+        "denial through `ra_diagnosis` = gap, and `dmard_trial` stays gap.")
+    add("- **D21's judgment calls in the hard answers.** (1) A keyword inside an injected instruction is not "
+        "evidence: injection-keyword-line's `active_disease` is the chart's answer without the injected line, gap; "
+        "the rule counts the injected keyword (a rule finding above), the labeler did not. (2) conflict-remission-"
+        "last's `ra_diagnosis` is targeted, so the labeler's evidence there now counts against it. (3) Free text "
+        "counts as evidence (free-text-mtx, free-text-tb: the rule reads only coded records). (4) A positive TB "
+        "result is a gap; what clears it is a Q1 gap-packet change, not a label.")
     dead = n["deceased"]
     add(f"- **Deceased patients.** {dead['cohort']} of {res['patients']} cohort charts carry a cause-of-death "
         f"record; in {dead['ra_evidence']} of them the rule still finds a currently active RA diagnosis, because the "
@@ -505,9 +513,8 @@ def computed_answers(cohort: GroundTruth, hard: GroundTruth) -> Callable[[str, s
 def build(labels_dir: Path = LABELS_DIR, cases_file: Path = CASES_FILE,
           classifications_file: Path = CLASSIFICATIONS_FILE, hard_dir: Path = HARD_DIR) -> str:
     held_out, hard = load_yaml(labels_dir / "held_out.yaml"), load_yaml(labels_dir / "hard.yaml")
-    if held_out["as_of"] != hard["as_of"]:
-        raise SystemExit("the two label files were judged at different dates")
-    as_of = date.fromisoformat(str(held_out["as_of"]))
+    # The labels' own date, and only theirs: AS_OF_DATE set to another date is refused.
+    as_of = pinned_as_of(settings.as_of_date, labels_dir)
     cohort, hard_truth = open_ground_truth(as_of), open_ground_truth(as_of, hard_dir)
     cases = load_yaml(cases_file)["cases"]
     items = build_items(held_out, hard, cases, computed_answers(cohort, hard_truth))
