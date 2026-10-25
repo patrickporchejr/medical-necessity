@@ -3,6 +3,7 @@ from datetime import date
 from types import SimpleNamespace
 
 import pytest
+import yaml
 
 import experiment
 from dataset import open_ground_truth
@@ -93,6 +94,10 @@ def fake(monkeypatch, tmp_path):
     path = tmp_path / "held_out.txt"
     path.write_text("# method\n00000003\n0000000b\n")
     monkeypatch.setattr(experiment, "HELD_OUT_FILE", path)
+    labels = tmp_path / "held_out.yaml"  # what the held-out split is scored against (G1.8)
+    label = {"ra_diagnosis": {"status": "gap", "records": [], "reason": "r"}}
+    labels.write_text(yaml.safe_dump({"cases": {"00000003": label, "0000000b": label}}))
+    monkeypatch.setattr(experiment, "LABELS_FILE", labels)
     monkeypatch.setattr(experiment, "stratum_of", lambda truth, pid: pids[pid])
     truth = SimpleNamespace(
         cases=lambda: [SimpleNamespace(patient_id=p) for p in pids],
