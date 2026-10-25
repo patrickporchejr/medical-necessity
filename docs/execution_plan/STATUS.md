@@ -5,8 +5,8 @@ the branches disagree.
 
 ## Now
 
-**M0: awaiting CP0.** The plan is drafted. Next: you review it with [HUMAN_QA.md](HUMAN_QA.md#cp0-the-plan)
-and answer decisions D1–D8.
+**M0: awaiting CP0.** Every decision (D1–D14) is answered and the plan matches. Agent definitions for M1–M2 are
+drafted in `.claude/agents/`. Next: you merge PR #53, which passes CP0, and the orchestrator opens M1.
 
 ## Milestones
 
@@ -42,14 +42,14 @@ Task states: `dispatched`, `handed back`, `in QA`, `QA failed (n)`, `accepted`, 
 
 | Checkpoint | # | Decision | Answer | Date |
 |---|---|---|---|---|
-| CP0 | D1 | Reference lab as own service or in the FHIR server | | |
-| CP0 | D2 | Screening mix | | |
-| CP0 | D3 | Where positive screens land | | |
-| CP0 | D4 | Eval coverage of screening situations | | |
-| CP0 | D5 | Task tracking | | |
-| CP0 | D6 | README change, when and by whom | | |
-| CP0 | D7 | Scope | | |
-| CP0 | D8 | Agent definitions | | |
+| CP0 | D1 | Reference lab as own service or in the FHIR server | Own service (`lab`, port 8002) | 2026-10-24 |
+| CP0 | D2 | Screening mix | As proposed in LAB_STORE.md | 2026-10-24 |
+| CP0 | D3 | Where positive screens land | Resolve flagged claims, reason "screening positive" | 2026-10-24 |
+| CP0 | D4 | Eval coverage of screening situations | Existing six strata, plus at least 5 cases per screening situation overall | 2026-10-24 |
+| CP0 | D5 | Task tracking | STATUS.md only | 2026-10-24 |
+| CP0 | D6 | README change, when and by whom | The orchestrator proposes a README diff at CP3; you approve | 2026-10-24 |
+| CP0 | D7 | Scope | All of M1–M13 and X1; M11 first to cut | 2026-10-24 |
+| CP0 | D8 | Agent definitions | Create `.claude/agents/` from the briefs; models as in ORCHESTRATOR.md | 2026-10-24 |
 | CP0 | D9 | Vault lifetime with saved graph state | Sealed per case: encrypted, stored apart from checkpoints, crypto-shredded at close | 2026-10-24 |
 | CP0 | D10 | Reviewer decisions as graph interrupts | Yes | 2026-10-24 |
 | CP0 | D11 | Per-criterion subagent fan-out | An eval-gated experiment (X1), kept only if it beats the baseline | 2026-10-24 |
@@ -69,3 +69,4 @@ Task states: `dispatched`, `handed back`, `in QA`, `QA failed (n)`, `accepted`, 
 - 2026-10-24: D9–D11 decided in discussion; X1 added, M5 and M7 rewritten for interrupts and the sealed vault.
 - 2026-10-24: D12–D13 decided; M13 (the demo) and the demo agent added.
 - 2026-10-24: D14 Arcade; M13 re-aimed at buyer and technical audiences, solution brief added.
+- 2026-10-24: D1–D8 set to the recommendations; agent definitions drafted (M0.3).

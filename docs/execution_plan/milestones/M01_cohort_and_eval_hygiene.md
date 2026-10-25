@@ -37,4 +37,4 @@ M1.3 and M1.4 run in parallel with M1.1 (different owners, different files). M1.
   orchestrator does not wait idle on it (M1.3 and M1.4 proceed).
 - The `ra-not-active` situations are rare in Synthea's RA module and may need a cohort far larger than the
   others. CP1 decides whether to accept fewer than 5 there, documented.
-- `evals/RESULTS.md` links issue #27. Per decision D5, either reopen it or leave the link as history.
+- `evals/RESULTS.md` links issue #27. Tasks are tracked in STATUS.md only (D5), so the link stays as history.

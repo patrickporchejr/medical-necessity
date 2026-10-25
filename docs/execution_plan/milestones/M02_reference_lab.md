@@ -39,7 +39,7 @@ Lab MCP tools, as in [LAB_STORE.md](../LAB_STORE.md#interface). The lab result r
 | M2.4 Schema and shared rules | api | contracts | `ResourceRef.source`, `EvidenceSpec.sources` and `value_in`; `support.py` checks them; YAML updated. Unit tests for a positive result, a wrong-source citation, and a value match ignoring case. **Shared file: no other task touches these meanwhile** |
 | M2.5 Gateway and runtime | api | M2.3, M2.4 | A second `McpConnection` for the lab; the gateway routes lab tools, vaults accession ids and shifts lab dates with the patient's offset; `release_pending` is not callable through the gateway. PHI tests extended |
 | M2.6 extract and verify | api | M2.5 | `extract` queries each listed source; `verify` resolves lab citations through `get_lab_result`. A lab outage fails the case with a named reason |
-| M2.7 Ground truth and selection | evals | M2.1, M2.4 | `GroundTruth` reads the lab file, respecting `issued` against as-of; a screening situation per case; selection meets decision D4; new checks for wrong-source citations and pending results |
+| M2.7 Ground truth and selection | evals | M2.1, M2.4 | `GroundTruth` reads the lab file, respecting `issued` against as-of; a screening situation per case; selection keeps the six strata and checks at least 5 cases per screening situation overall (D4); new checks for wrong-source citations and pending results |
 | M2.8 Source in the trace | api, then web | M2.6 | `cases.py` returns `source` per citation; `CitationTrace` shows "Reference Lab" or "EHR" |
 | M2.9 QA and packet | qa | all | Full suite, `next build`, the CP2 walkthrough dry-run with scripted models, list of one patient per situation for CP2 |
 

@@ -1,7 +1,6 @@
 # Reference lab: a second source for screening results
 
-Status: design for review at CP0, built in [M2](milestones/M02_reference_lab.md). Items marked **decide** are
-open decisions listed in [HUMAN_QA.md](HUMAN_QA.md#cp0-the-plan).
+Status: design, decisions D1–D4 settled at CP0 (2026-10-24), built in [M2](milestones/M02_reference_lab.md).
 
 ## Why
 
@@ -59,7 +58,7 @@ One result looks like this, shaped like the EHR's `ObservationRecord` plus what 
 ## Who has what
 
 Each patient's screening situation is a pure function of their patient id (a hash, not a random draw), so
-regenerating or growing the cohort never changes anyone's situation. The proposed mix (**decide**):
+regenerating or growing the cohort never changes anyone's situation. The mix (D2):
 
 | Situation | Share | TB and HBsAg results |
 |---|---|---|
@@ -84,7 +83,7 @@ A second MCP server, `lab` in docker-compose (port 8002), with three read-only, 
 | `get_lab_result(patient_id, result_id)` | One result, for citation checks. Another patient's id does not resolve |
 | `release_pending(patient_id)` | Demo control for M5: marks that patient's pending results as issued now. Not exposed to the agent |
 
-**Recommended:** a separate service (**decide**). The alternative is a second store inside the existing FHIR
+**Decided (D1):** a separate service. The alternative is a second store inside the existing FHIR
 server, which is less work but hides the point: two systems, two connections, and results that have to say
 where they came from. With a separate service, the API's `Runtime` holds two `McpConnection`s, and the lab
 can be down while the EHR is up. That is a failure case worth having.
@@ -108,11 +107,11 @@ can be down while the EHR is up. That is a failure case worth having.
 
 Today `verify` checks a citation's code and status, never its value. A positive IGRA would count as evidence of
 "negative TB screening". `value_in` fixes that. A positive result then leaves the criterion not established,
-and the packet should say why: the screen was positive, not missing. How the worklist treats it is a **decide**:
+and the packet should say why: the screen was positive, not missing. Where it lands in the worklist (D3):
 
-- **Recommended:** it lands in *Resolve flagged claims* with the reason "screening positive". The reviewer
+- **Decided:** it lands in *Resolve flagged claims* with the reason "screening positive". The reviewer
   decides, because a positive latent-TB screen usually means treatment first, not a denial.
-- Alternative: a sixth lane, *Clinical follow-up*.
+- Not chosen: a sixth lane, *Clinical follow-up*.
 
 ### Lab down
 
@@ -125,9 +124,9 @@ found, and the case fails with that reason instead of producing a packet with fa
 - Ground truth changes for every RA-active case, so the M3 baseline is a new baseline, not a comparison with
   Run 3. RESULTS.md says so.
 - New situations to sample: screening in EHR, at lab, split, pending, positive, nowhere. Crossing them with the
-  six existing situations makes 36 strata, too many to fill with 5 cases each. **Recommended:** select on the
+  six existing situations makes 36 strata, too many to fill with 5 cases each. **Decided (D4):** select on the
   existing axis as today, and check separately that every screening situation has at least 5 cases across
-  the selection (**decide**).
+  the selection.
 - New checks: a lab citation resolves only against the lab; a pending result is never cited before release;
   a positive result is never asserted as meeting the criterion.
 

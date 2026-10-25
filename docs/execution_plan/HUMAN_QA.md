@@ -98,7 +98,7 @@ count × 3 runs × 2 models. You approve the spend before the run, not at the ch
 2. Check that it says this is a new baseline (the lab changed ground truth), not a comparison with Run 3.
 3. Check whether Haiku's first-draft misses on the "no order" cases recur (the roadmap's question).
 4. Pick two cases from the packet and open their run files; confirm the reported citation resolution matches.
-5. Review the proposed README diff, if D6 put it here.
+5. Review the proposed README diff (D6).
 
 **Pass when:** you accept the numbers as the baseline every later milestone is compared with.
 
@@ -133,7 +133,7 @@ count × 3 runs × 2 models. You approve the spend before the run, not at the ch
    arrives, and the screen says so.
 5. **Confirm not eligible:** close one, return one to the prescriber.
 6. **Runs that failed:** re-run.
-7. A positive-screen case sits where D3 decided, with its reason.
+7. A positive-screen case sits in Resolve flagged claims with the reason "screening positive" (D3).
 8. Reload the page: decisions are still there. The audit log lists every decision with time and action.
 9. Read the checkpoint-guard test in the packet: a planted real value is refused on a checkpoint write.
 10. Run through the [WORKLIST_UI.md checklist](../WORKLIST_UI.md#checklist-for-every-step).

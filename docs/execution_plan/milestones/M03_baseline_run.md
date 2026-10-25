@@ -16,7 +16,7 @@ with this.
 | M3.1 Estimate | evals | M2 | Case count × 3 runs × 2 models × Run 3 cost per run, plus a margin; in the handoff. The orchestrator asks you before M3.2 |
 | M3.2 Run | evals | your yes | Both models run on both splits with pinned `AS_OF_DATE`; result files committed under `evals/results/run-4/` |
 | M3.3 Write-up | evals | M3.2 | A Run 4 section in RESULTS.md: new baseline (the lab changed ground truth), tables per split, whether Haiku's "no order" misses recur, latency per node |
-| M3.4 README diff | orchestrator | M3.3 | Only if D6 says so: a proposed diff, not applied |
+| M3.4 README diff | orchestrator | M3.3 | A proposed README diff (D6), not applied; you approve it at CP3 |
 | M3.5 QA and packet | qa | all | Spot-check two cases' citation resolution against their run files; packet assembled |
 
 ## Risks

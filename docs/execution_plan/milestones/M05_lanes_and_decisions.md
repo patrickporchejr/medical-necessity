@@ -37,8 +37,8 @@ is `Command(resume=decision)` on that thread:
 ## Contracts
 
 - `lane` on each case: `flagged | ready_to_sign | missing_records | not_eligible | failed | resolved | null`,
-  derived in one function from status, route, `verify`'s verdicts and decisions. A positive screen goes where
-  D3 decides (recommended: `flagged`, reason "screening positive").
+  derived in one function from status, route, `verify`'s verdicts and decisions. A positive screen goes to
+  `flagged` with the reason "screening positive" (D3).
 - `POST /cases/{id}/decisions {action, note?, attest?}` resumes the thread. Validation (note, attestation)
   happens before the resume. `GET /audit` lists decisions with time, action, note, reviewer `"reviewer"`.
 - `request_records` asks the lab's `release_pending` for that patient (the demo control), and the thread waits.
