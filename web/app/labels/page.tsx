@@ -96,7 +96,9 @@ export default function LabelsPage() {
     const rows = data.cases.flatMap((c) =>
       c.labels.flatMap((l) => {
         const d = decisions[dkey(c.key, l.criterion)];
-        return d?.verdict ? [{ case: c.key, criterion: l.criterion, verdict: d.verdict, note: d.note ?? "" }] : [];
+        return d?.verdict || d?.note
+          ? [{ case: c.key, criterion: l.criterion, verdict: d.verdict ?? null, note: d.note ?? "" }]
+          : [];
       }),
     );
     const blob = new Blob([JSON.stringify(rows, null, 2)], { type: "application/json" });
@@ -138,7 +140,7 @@ export default function LabelsPage() {
       </div>
 
       <h2>Cases</h2>
-      <div className="panel" style={{ padding: 0 }}>
+      <div className="panel" style={{ padding: 0, overflowX: "auto" }}>
         <table>
           <thead>
             <tr>
