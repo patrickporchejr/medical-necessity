@@ -69,8 +69,11 @@ async def run_case(
     result = CaseResult(patient_id=patient_id, provider=llm.provider, as_of=as_of.isoformat())
 
     def record_lap(event: PipelineEvent) -> None:  # kept even if a later node fails
+        # Summed over a node's runs, as the pipeline's own `seconds` are: with a repair, assemble
+        # and verify run twice, and the case spent both laps.
         if event.event == "node_finished":
-            result.seconds[event.node] = event.data["seconds"]
+            node = event.node
+            result.seconds[node] = round(result.seconds.get(node, 0.0) + event.data["seconds"], 2)
 
     try:
         with tracing(), trace("eval.case", metadata={"provider": llm.provider}) as span:

@@ -383,3 +383,49 @@ async def test_what_langsmith_would_store_holds_nothing_identifying(truth, ls):
     # inputs are the short key, and no run carries the packet or the note text
     assert all(r["inputs"] in ({}, {"patient_key": patient_id[:8]}) for r in ls.runs)
     assert '"packet"' not in sent
+
+
+# --- latency ------------------------------------------------------------------------------------
+
+def timed_row(route, seconds, error=None):
+    return Row(name=f"s · {len(seconds):08d}", key="0a1b2c3d", scores={"completed": error is None},
+               output={"route": route, "seconds": seconds}, error=error)
+
+
+def test_the_summary_carries_p50_and_max_seconds_per_node_over_the_runs_that_reached_it():
+    rows = [timed_row("assemble", {"extract": 1.0, "assemble": 4.0, "verify": 0.1}),
+            timed_row("assemble", {"extract": 3.0, "assemble": 10.0, "verify": 0.3}),
+            timed_row("assemble", {"extract": 2.0, "assemble": 6.0, "verify": 0.2}),
+            timed_row("gap_packet", {"extract": 5.0, "gap_packet": 0.01, "verify": 0.4})]
+    seconds = summarize("anthropic:m", "anthropic", "m", rows)["seconds"]
+    assert seconds == {
+        "assemble": {"runs": 3, "p50": 6.0, "max": 10.0},  # the gap_packet run is not a 0 here
+        "extract": {"runs": 4, "p50": 2.5, "max": 5.0},
+        "gap_packet": {"runs": 1, "p50": 0.01, "max": 0.01},
+        "verify": {"runs": 4, "p50": 0.25, "max": 0.4},
+    }
+
+
+def test_a_run_that_failed_or_raised_counts_only_the_nodes_it_finished():
+    rows = [timed_row("assemble", {"extract": 1.0, "assemble": 2.0, "verify": 0.1}),
+            timed_row(None, {"extract": 3.0}, error="LLMRefusal: declined"),  # failed in assemble
+            Row(name="s · x", key="x", scores={}, output={}, error="boom")]  # the target raised
+    summary = summarize("anthropic:m", "anthropic", "m", rows)
+    assert summary["seconds"]["extract"] == {"runs": 2, "p50": 2.0, "max": 3.0}
+    assert summary["seconds"]["assemble"]["runs"] == 1
+    assert [c["seconds"] for c in summary["cases"]] == [r.output.get("seconds", {}) for r in rows]
+    assert summarize("anthropic:m", "anthropic", "m", [])["seconds"] == {}
+
+
+@needs_cohort
+@pytest.mark.anyio
+async def test_scripted_runs_put_per_node_seconds_in_the_summary(truth):
+    rows = await evaluate(truth, Scripted(faithful_from_prompt), ["Loyd638", "Denis399"], repeat=2)
+    summary = summarize("anthropic:m", "anthropic", "m", rows)
+    seconds = summary["seconds"]
+    assert set(seconds) == {"extract", "assemble", "gap_packet", "verify"}
+    assert {n: s["runs"] for n, s in seconds.items()} == {"extract": 4, "verify": 4, "assemble": 2, "gap_packet": 2}
+    for node, stats in seconds.items():
+        laps = [c["seconds"][node] for c in summary["cases"] if node in c["seconds"]]
+        assert stats["max"] == max(laps) and min(laps) <= stats["p50"] <= stats["max"]
+    json.dumps(summary)  # it goes into the summary file as is

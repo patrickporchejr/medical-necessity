@@ -29,7 +29,7 @@ from dataclasses import asdict, dataclass, replace
 from datetime import date, datetime, timezone
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
-from statistics import mean
+from statistics import mean, median
 
 from langsmith import Client, aevaluate, schemas
 
@@ -336,6 +336,19 @@ def averages(rows: list[Row]) -> dict[str, float]:
     return {k: round(mean(float(r.scores[k]) for r in rows if k in r.scores), 3) for k in keys}
 
 
+def latency(outputs: list[dict]) -> dict[str, dict[str, float | int]]:
+    """Per graph node, the median and the slowest of its `seconds` over the runs that recorded it
+    (a node a run never reached, such as assemble on the gap_packet route, is not counted as 0).
+    A run that failed later still recorded the nodes it finished, so their laps count. A repaired
+    run's assemble and verify are the sum of both passes, as the run recorded them."""
+    laps: dict[str, list[float]] = {}
+    for o in outputs:
+        for node, seconds in (o.get("seconds") or {}).items():
+            laps.setdefault(node, []).append(seconds)
+    return {node: {"runs": len(xs), "p50": round(median(xs), 2), "max": round(max(xs), 2)}
+            for node, xs in sorted(laps.items())}
+
+
 def summarize(spec: str, provider: str, model: str, rows: list[Row], config: dict | None = None) -> dict:
     outputs = [r.output for r in rows]
     tokens_in = sum(o.get("input_tokens") or 0 for o in outputs)
@@ -356,6 +369,7 @@ def summarize(spec: str, provider: str, model: str, rows: list[Row], config: dic
         "repair_failures": sum(bool(o.get("repair_failed")) for o in outputs),
         "schema_retries": sum(o.get("schema_retries") or 0 for o in outputs),
         "averages": averages(rows),
+        "seconds": latency(outputs),  # per node: runs, p50, max
         "tokens": {"input": tokens_in, "output": tokens_out},
         "estimated_cost_usd": None if cost is None else round(cost, 4),
         "routes": {route: {"runs": len(costs),  # runs and cost per branch the graph took
@@ -363,6 +377,7 @@ def summarize(spec: str, provider: str, model: str, rows: list[Row], config: dic
                    for route, costs in sorted(by_route.items())},
         "cases": [{"name": r.name, "route": r.output.get("route"), "scores": r.scores,
                    "estimated_cost_usd": None if c is None else round(c, 4),
+                   "seconds": r.output.get("seconds") or {},
                    "error": r.output.get("error") or r.error} for r, c in zip(rows, case_costs)],
     }
 
