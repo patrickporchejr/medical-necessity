@@ -72,3 +72,21 @@ def ls(monkeypatch):
     monkeypatch.setattr(observability, "_project", "test")
     with observability.tracing():
         yield Captured(session)
+
+
+# Tests marked `cohort` sweep every chart in the generated cohort, which takes minutes at its
+# current size. They are skipped unless asked for (`pytest -m cohort`), and run when the
+# cohort changes. evals/conftest.py imports these hooks too.
+COHORT_SKIP = pytest.mark.skip(reason="sweeps the whole cohort; run with -m cohort")
+
+
+def pytest_configure(config):
+    config.addinivalue_line("markers", "cohort: sweeps the whole generated cohort (slow); run with -m cohort")
+
+
+def pytest_collection_modifyitems(config, items):
+    if "cohort" in (config.option.markexpr or ""):
+        return
+    for item in items:
+        if "cohort" in item.keywords and COHORT_SKIP.mark not in item.own_markers:
+            item.add_marker(COHORT_SKIP)

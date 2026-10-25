@@ -18,16 +18,20 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 SYNTHEA_VERSION="v4.0.0"
-TARGET="${TARGET:-30}"            # RA patients to keep
+TARGET="${TARGET:-228}"           # RA patients to keep
 BATCH_SIZE="${BATCH_SIZE:-500}"
 SEED="${SEED:-42}"                # first batch seed; batch N uses SEED+N
-MAX_BATCHES="${MAX_BATCHES:-40}"
+MAX_BATCHES="${MAX_BATCHES:-110}"
 REFERENCE_DATE="${REFERENCE_DATE:-20260101}"
+# Simulation end date (YYYYMMDD). Unset, Synthea simulates up to the moment it runs, so the
+# same seed gives different charts on different days. Pinned to the evals' as-of date.
+END_DATE="${END_DATE:-20260920}"
 AGE_RANGE="${AGE_RANGE:-40-80}"
+OUT="${OUT:-synthea}"             # output directory (relative to data/ or absolute); bundles go in $OUT/fhir
 
 JAR=".cache/synthea-${SYNTHEA_VERSION}.jar"
 RAW=".cache/raw"
-mkdir -p .cache synthea
+mkdir -p .cache "$OUT"
 
 if [[ ! -f "$JAR" ]]; then
   echo "Downloading Synthea ${SYNTHEA_VERSION}..."
@@ -36,8 +40,8 @@ if [[ ! -f "$JAR" ]]; then
 fi
 
 # Clear previous output but keep the .gitkeep placeholder.
-find synthea -mindepth 1 ! -name .gitkeep -delete
-mkdir -p synthea/fhir
+find "$OUT" -mindepth 1 ! -name .gitkeep -delete
+mkdir -p "$OUT/fhir"
 
 # Copy RA patient bundles (any clinical status, see above) from $1 into $2;
 # print how many were copied.
@@ -72,13 +76,13 @@ for ((batch = 0; batch < MAX_BATCHES && kept < TARGET; batch++)); do
     eclipse-temurin:17-jre \
     java -jar "/data/${JAR}" \
       -p "$BATCH_SIZE" -s "$((SEED + batch))" -cs "$((SEED + batch))" \
-      -r "$REFERENCE_DATE" -a "$AGE_RANGE" \
+      -r "$REFERENCE_DATE" ${END_DATE:+-e "$END_DATE"} -a "$AGE_RANGE" \
       --exporter.baseDirectory="/data/${RAW}" \
       --exporter.fhir.export=true \
       --exporter.fhir.use_us_core_ig=true \
       --exporter.ccda.export=false \
       --exporter.csv.export=false >/dev/null
-  kept=$((kept + $(filter_ra "$RAW/fhir" synthea/fhir)))
+  kept=$((kept + $(filter_ra "$RAW/fhir" "$OUT/fhir")))
   echo "batch $((batch + 1)): $kept/$TARGET RA patients"
 done
 rm -rf "$RAW"
@@ -109,6 +113,6 @@ print(hashlib.sha256("".join(f"{p}\n" for p in kept).encode()).hexdigest())
 PY
 }
 
-fingerprint="$(trim_cohort synthea/fhir "$TARGET")"
-echo "Bundles: $(ls synthea/fhir/*.json | wc -l | tr -d ' ') in data/synthea/fhir/"
+fingerprint="$(trim_cohort "$OUT/fhir" "$TARGET")"
+echo "Bundles: $(ls "$OUT"/fhir/*.json | wc -l | tr -d ' ') in $OUT/fhir/"
 echo "Cohort fingerprint (sha256 of sorted patient ids): $fingerprint"

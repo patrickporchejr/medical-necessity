@@ -14,3 +14,15 @@ Synthea module qualifies for a second line).
   or flags what the schema cannot express. **CP9a:** you approve each proposal.
 - A second cohort, and a lab mix for it if its policy needs screening labs.
 - **CP9b:** the second line end to end on the M3 eval setup, held-out separate.
+
+## Cohort lesson from M1
+
+RA is about 0.3% of Synthea's population, and M1 needed roughly 100 batches of 500 for its rarest situation
+(trial shown, no active-disease notes) to reach 5 cases. Two causes, and a different answer to each:
+
+- **Prevalence.** Prefer a common condition (type 2 diabetes, asthma, obesity), so most of each batch is kept.
+  The roadmap's **verify** measures prevalence in Synthea before the line is chosen.
+- **Rare combinations.** Every policy has situations Synthea seldom writes (e.g. metformin tried for 3 months,
+  A1c still above target), and a common condition does not fix that. Build those cases on purpose: take a
+  generated chart and edit it into the situation, as M2.2 writes screening labs into the bundles. Each edit is a
+  seeded, committed post-step, and the eval report lists which cases were edited.

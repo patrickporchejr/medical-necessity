@@ -202,12 +202,13 @@ def cohort() -> FhirStore:
 
 
 @needs_cohort
-def test_cohort_every_patient_has_ra_and_19_have_methotrexate(cohort):
+@pytest.mark.cohort
+def test_cohort_every_patient_has_ra_and_136_have_methotrexate(cohort):
     patients = tools.list_patients(cohort)
-    assert len(patients) == 34
+    assert len(patients) == 228
     with_ra = [p for p in patients if tools.search_conditions(cohort, p.id, "69896004")]
     with_mtx = [p for p in patients if tools.search_medication_requests(cohort, p.id, "105585")]
-    assert (len(with_ra), len(with_mtx)) == (34, 19)
+    assert (len(with_ra), len(with_mtx)) == (228, 136)
 
 
 @needs_cohort
@@ -220,6 +221,7 @@ def test_cohort_notes_decode_to_text(cohort):
 
 
 @needs_cohort
+@pytest.mark.cohort
 def test_cohort_screening_labs_are_absent_by_design(cohort):
     # tb_screening / hepatitis_b_screening cannot be supported from this chart; verify must flag them.
     for p in tools.list_patients(cohort):

@@ -1,3 +1,4 @@
+import asyncio
 import json
 import re
 from dataclasses import asdict
@@ -77,6 +78,18 @@ class Scripted:
                          input_tokens=100, output_tokens=50)
 
 
+class Slow(Scripted):
+    """A scripted model that takes a known time per call, so a node's seconds have a floor."""
+
+    def __init__(self, respond, delay: float):
+        super().__init__(respond)
+        self.delay = delay
+
+    async def generate(self, system, user, schema):
+        await asyncio.sleep(self.delay)
+        return await super().generate(system, user, schema)
+
+
 class Refusing:
     provider = "fake"
 
@@ -151,6 +164,20 @@ async def test_the_saved_result_holds_nothing_identifying(truth):
                    *(c.id for c in chart.conditions), *(m.id for m in chart.medication_requests)}
     assert not [v for v in real_values if v and re.search(rf"(?<![\w-]){re.escape(v)}(?![\w-])", blob)]
     assert "<CONDITION_" in blob
+
+
+@needs_cohort
+@pytest.mark.anyio
+async def test_a_repaired_run_records_both_passes_of_a_node_not_only_the_last(truth):
+    def overclaims_until_repaired(prompt):
+        repairing = "An automated check of your previous assertions" in prompt
+        return (faithful_from_prompt if repairing else overclaiming_from_prompt)(prompt)
+
+    async with connect(None) as session:
+        result, _ = await run_case(session, Slow(overclaims_until_repaired, 0.3),
+                                   resolve_patient(truth, "Loyd638"), truth, AS_OF)
+    assert result.ok and result.repairs == 1
+    assert result.seconds["assemble"] >= 0.6  # two model calls of 0.3s each, summed
 
 
 # --- resolved RA: the diagnosis exists but is not active ----------------------------------------

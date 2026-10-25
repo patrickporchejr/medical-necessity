@@ -1,0 +1,39 @@
+# Held-out split: case keys (first 8 characters of the patient id) that tuning never reads.
+# Frozen: G1 hand-labels these cases. evals/split.py wrote it and checks it; do not edit by hand.
+# Made 2026-10-25 from the 228-patient cohort, strata as of 2026-09-20.
+#
+# Method, per situation (stratum_of in evals/experiment.py):
+# - fewer than 10 cases: not split, every case stays in the working split. Held-out cases
+#   from these would be one or two cases, too few to score, and would leave the working split
+#   under 5. G1 builds these situations on purpose in its hard split (D16).
+# - otherwise: max(3, round(0.1 * n)) cases go to held-out, drawn from the situation's
+#   cases less two kinds that stay in the working split: the smallest and the largest chart (by
+#   note count, ties by patient id), which the working selection always runs, and any case an
+#   earlier run already ran (run-0, run-1, run-2, run-3 in evals/results; the old cohort shares
+#   patients with this one). The rest are ordered by sha256("held-out-v1:" + patient id) and the first
+#   ones taken.
+029f78a6
+34ec7ede
+3c28d8a5
+3d543b39
+46de5e4d
+53a6be67
+58ab636d
+5d2de37d
+681b83bb
+6db76cb4
+81e741fe
+95948be8
+9c082f0b
+b0ddc938
+b8a1ffa3
+c2f8868b
+c7e0284b
+ca33e01a
+dcca53e2
+dd0dbbf0
+dd8ba504
+e56ecaa5
+e8171e8f
+e876038f
+f95447e5

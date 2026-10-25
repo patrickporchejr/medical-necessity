@@ -29,5 +29,5 @@ over in M7.
 
 ## Done means
 
-Tests pass (`cd api && uv run pytest -q ../api ../evals`), the generator's report matches the agreed mix, and
+Tests pass (`cd api && uv run pytest -q ../api ../evals`, and `-m cohort` when the cohort changed), the generator's report matches the agreed mix, and
 the handoff has the commands to reproduce it.

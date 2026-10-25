@@ -69,8 +69,11 @@ async def run_case(
     result = CaseResult(patient_id=patient_id, provider=llm.provider, as_of=as_of.isoformat())
 
     def record_lap(event: PipelineEvent) -> None:  # kept even if a later node fails
+        # Summed over a node's runs, as the pipeline's own `seconds` are: with a repair, assemble
+        # and verify run twice, and the case spent both laps.
         if event.event == "node_finished":
-            result.seconds[event.node] = event.data["seconds"]
+            node = event.node
+            result.seconds[node] = round(result.seconds.get(node, 0.0) + event.data["seconds"], 2)
 
     try:
         with tracing(), trace("eval.case", metadata={"provider": llm.provider}) as span:
@@ -222,12 +225,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--patient", required=True, help="patient id, or a name fragment matching exactly one")
     parser.add_argument("--provider", choices=[*PROVIDERS, "both"], default=settings.llm_provider)
     parser.add_argument("--mcp-url", help="use a running MCP server instead of an in-process one")
+    parser.add_argument("--held-out", action="store_true", help="allow a held-out case (evals/held_out.txt)")
     parser.add_argument("--out-dir", type=Path, default=RUNS_DIR)
     args = parser.parse_args(argv)
 
     mode = setup_observability(settings)
     truth = open_ground_truth(settings.as_of)
     patient_id = resolve_patient(truth, args.patient)
+    from experiment import split_of  # experiment imports this module
+    if split_of(truth)[patient_id] == "held_out" and not args.held_out:
+        raise SystemExit(f"{patient_id[:8]} is a held-out case, which tuning never reads; pass --held-out to run it")
     print(f"patient {patient_id[:8]}, as of {settings.as_of}, traces: {mode}\n")
 
     results = asyncio.run(run(args, truth, patient_id))

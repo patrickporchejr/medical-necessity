@@ -319,6 +319,7 @@ needs_cohort = pytest.mark.skipif(
 
 
 @needs_cohort
+@pytest.mark.cohort
 def test_no_identifier_survives_in_any_note_of_the_cohort():
     store = FhirStore(settings.fhir_dir)
     iso = re.compile(r"\d{4}-\d{2}-\d{2}")

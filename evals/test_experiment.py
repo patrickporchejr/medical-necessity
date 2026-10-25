@@ -10,11 +10,13 @@ import pytest
 
 from dataset import open_ground_truth
 from experiment import (
+    CASES_PER_STRATUM,
     Row,
     build_examples,
     client_for,
     cohort_fingerprint,
     git_commit,
+    load_held_out,
     package_version,
     patient_key,
     prompt_files,
@@ -46,31 +48,35 @@ def truth():
 # --- the dataset --------------------------------------------------------------------------------
 
 @needs_cohort
+@pytest.mark.cohort
 def test_the_dataset_covers_every_situation_with_a_small_and_a_large_chart(truth):
     selected = select_patients(truth)
     strata = {s for _, s in selected}
     # every situation that occurs in the cohort is covered, including a resolved diagnosis
     assert strata == {stratum_of(truth, c.patient_id) for c in truth.cases()}
     assert any(s.startswith("ra-not-active/") for s in strata) and any(s.startswith("ra-active/") for s in strata)
+    held = set(load_held_out())
+    assert not held & {patient_key(p) for p, _ in selected}  # the working split reads no held-out case
     for stratum in strata:
         pool = [c.patient_id for c in truth.cases() if stratum_of(truth, c.patient_id) == stratum]
         sizes = {p: len(truth.store.chart(p).documents) for p in pool}
         picked = [p for p, s in selected if s == stratum]
+        assert len(picked) == min(CASES_PER_STRATUM, len([p for p in pool if patient_key(p) not in held]))
+        # the cohort's smallest and largest chart, not only the working split's: the split keeps them
         assert min(sizes[p] for p in picked) == min(sizes.values())
         assert max(sizes[p] for p in picked) == max(sizes.values())
     assert select_patients(truth) == selected  # deterministic
 
 
 @needs_cohort
+@pytest.mark.cohort
 def test_expected_labels_come_from_ground_truth(truth):
-    examples = build_examples(truth)
-    by_key = {e.inputs["patient_key"]: e for e in examples}
-    loyd = by_key[patient_key(resolve_patient(truth, "Loyd638"))]
+    [loyd] = build_examples(truth, [resolve_patient(truth, "Loyd638")])
     assert loyd.outputs["kinds"] == {
         "ra_diagnosis": "evidence", "dmard_trial": "gap", "active_disease": "evidence",
         "tb_screening": "gap", "hepatitis_b_screening": "gap",
     }
-    for example in examples:
+    for example in build_examples(truth):
         kinds = example.outputs["kinds"]
         assert kinds["tb_screening"] == kinds["hepatitis_b_screening"] == "gap"
         ra, trial, notes = example.metadata["stratum"].split("/")
@@ -80,6 +86,7 @@ def test_expected_labels_come_from_ground_truth(truth):
 
 
 @needs_cohort
+@pytest.mark.cohort
 def test_a_named_patient_is_always_included_even_outside_the_default_selection(truth):
     aaron = resolve_patient(truth, "Aaron697")
     assert aaron not in [p for p, _ in select_patients(truth)]
@@ -89,6 +96,7 @@ def test_a_named_patient_is_always_included_even_outside_the_default_selection(t
 
 
 @needs_cohort
+@pytest.mark.cohort
 def test_examples_carry_a_short_key_and_no_patient_names(truth):
     ids = [e.id for e in build_examples(truth)]
     assert len(set(ids)) == len(ids) and ids == [e.id for e in build_examples(truth)]  # stable ids
@@ -121,10 +129,11 @@ def test_the_config_block_depends_only_on_inputs_and_names_everything_a_result_d
                               examples=fake_examples(["c2b0e5c3", "0a1b2c3d"]), truth=fake_truth(ids))
     config = make()
     assert config == make()  # a rerun of the same inputs writes the same block
-    assert set(config) == {"provider", "model", "as_of", "repeat", "dataset", "case_keys", "cohort",
+    assert set(config) == {"provider", "model", "as_of", "repeat", "split", "dataset", "case_keys", "cohort",
                            "prompts_sha256", "criteria_sha256", "git_commit", "genai_prices"}
     assert (config["provider"], config["model"], config["as_of"], config["repeat"]) == (
         "anthropic", "claude-haiku-4-5-20251001", "2026-09-20", 3)
+    assert (config["split"], config["dataset"]) == ("work", "prior-auth-adalimumab-ra")  # the default
     assert config["case_keys"] == ["0a1b2c3d", "c2b0e5c3"]
     assert config["cohort"] == {"patients": 2, "sha256": cohort_fingerprint(ids)}
     assert re.fullmatch(r"[0-9a-f]{64}", config["prompts_sha256"])
@@ -188,6 +197,7 @@ def test_the_summary_carries_the_config_block():
 
 
 @needs_cohort
+@pytest.mark.cohort
 def test_the_config_block_for_the_real_dataset_is_stable(truth):
     examples = build_examples(truth)
     config = run_config("gemini", "gemini-3.8-flash", as_of=AS_OF, repeat=3, examples=examples, truth=truth)
@@ -227,6 +237,7 @@ class FakeLangSmith:
 
 
 @needs_cohort
+@pytest.mark.cohort
 def test_syncing_updates_existing_examples_creates_new_ones_and_survives_a_rerun(truth):
     examples = build_examples(truth)
     first, rest = examples[:1], examples
@@ -383,3 +394,49 @@ async def test_what_langsmith_would_store_holds_nothing_identifying(truth, ls):
     # inputs are the short key, and no run carries the packet or the note text
     assert all(r["inputs"] in ({}, {"patient_key": patient_id[:8]}) for r in ls.runs)
     assert '"packet"' not in sent
+
+
+# --- latency ------------------------------------------------------------------------------------
+
+def timed_row(route, seconds, error=None):
+    return Row(name=f"s · {len(seconds):08d}", key="0a1b2c3d", scores={"completed": error is None},
+               output={"route": route, "seconds": seconds}, error=error)
+
+
+def test_the_summary_carries_p50_and_max_seconds_per_node_over_the_runs_that_reached_it():
+    rows = [timed_row("assemble", {"extract": 1.0, "assemble": 4.0, "verify": 0.1}),
+            timed_row("assemble", {"extract": 3.0, "assemble": 10.0, "verify": 0.3}),
+            timed_row("assemble", {"extract": 2.0, "assemble": 6.0, "verify": 0.2}),
+            timed_row("gap_packet", {"extract": 5.0, "gap_packet": 0.01, "verify": 0.4})]
+    seconds = summarize("anthropic:m", "anthropic", "m", rows)["seconds"]
+    assert seconds == {
+        "assemble": {"runs": 3, "p50": 6.0, "max": 10.0},  # the gap_packet run is not a 0 here
+        "extract": {"runs": 4, "p50": 2.5, "max": 5.0},
+        "gap_packet": {"runs": 1, "p50": 0.01, "max": 0.01},
+        "verify": {"runs": 4, "p50": 0.25, "max": 0.4},
+    }
+
+
+def test_a_run_that_failed_or_raised_counts_only_the_nodes_it_finished():
+    rows = [timed_row("assemble", {"extract": 1.0, "assemble": 2.0, "verify": 0.1}),
+            timed_row(None, {"extract": 3.0}, error="LLMRefusal: declined"),  # failed in assemble
+            Row(name="s · x", key="x", scores={}, output={}, error="boom")]  # the target raised
+    summary = summarize("anthropic:m", "anthropic", "m", rows)
+    assert summary["seconds"]["extract"] == {"runs": 2, "p50": 2.0, "max": 3.0}
+    assert summary["seconds"]["assemble"]["runs"] == 1
+    assert [c["seconds"] for c in summary["cases"]] == [r.output.get("seconds", {}) for r in rows]
+    assert summarize("anthropic:m", "anthropic", "m", [])["seconds"] == {}
+
+
+@needs_cohort
+@pytest.mark.anyio
+async def test_scripted_runs_put_per_node_seconds_in_the_summary(truth):
+    rows = await evaluate(truth, Scripted(faithful_from_prompt), ["Loyd638", "Denis399"], repeat=2)
+    summary = summarize("anthropic:m", "anthropic", "m", rows)
+    seconds = summary["seconds"]
+    assert set(seconds) == {"extract", "assemble", "gap_packet", "verify"}
+    assert {n: s["runs"] for n, s in seconds.items()} == {"extract": 4, "verify": 4, "assemble": 2, "gap_packet": 2}
+    for node, stats in seconds.items():
+        laps = [c["seconds"][node] for c in summary["cases"] if node in c["seconds"]]
+        assert stats["max"] == max(laps) and min(laps) <= stats["p50"] <= stats["max"]
+    json.dumps(summary)  # it goes into the summary file as is
