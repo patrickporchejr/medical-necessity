@@ -5,8 +5,15 @@ the branches disagree.
 
 ## Now
 
-**G1: in progress** on `g1/ground-truth`. G1.1, G1.2 and G1.7 dispatched 2026-10-25. No live spend until G1.4's
-estimate and your yes. Scope trimmed by D15 ([TRIMMED_ROADMAP.md](../TRIMMED_ROADMAP.md)): G1, M3, Q1, D1.
+**G1: in progress** on `g1/ground-truth` (local, not pushed). Resume here:
+1. G1.6b (D21 in the agreement report, as-of guard) is done on branch `worktree-agent-a02c98f99ab58b7dd` at
+   4fa604b, **not yet merged**: G1.9 QA was running on it when the session ended. Re-run G1.9 (QA 4fa604b,
+   milestone checks, CPG1 packet), then merge it.
+2. After merging, re-export the review page (`uv run --project api python evals/label.py --export
+   web/public/labels.json`): the committed export predates D21 (977def3e still shows pending-CPG1).
+3. Update HUMAN_QA's CPG1 outline (the "joint pain" call is now D21), then stop for CPG1. Push and PR only on
+   your yes.
+Live spend so far: $16.59 of the $18 approved (G1.5).
 
 ## Milestones
 
@@ -39,7 +46,7 @@ States: `not started`, `planning`, `in progress`, `awaiting CP<N>`, `passed`, `c
 |---|---|---|---|---|
 | G1.2b `targeted` field | data | accepted | 2026-10-25 | D20; 29 targeted, bundles byte-identical (614dcb0) |
 | G1.5 Labeling run | orchestrator | accepted | 2026-10-25 | Live, $16.56 (+$0.03 smoke), cap $18 approved. Held-out 21/94/10 unlabeled; hard 32/87/1. Runs agreed on 115 of 120 held-out and 119 of 120 hard labels both runs gave. b8a1ffa3 (largest chart, ~870k tokens) unlabeled: every reply mistyped a record id (6469669) |
-| G1.6b D21 report, as-of guard | evals | dispatched | 2026-10-25 | 29→30 test, agreement regenerated for D21, scoring pinned to the labels' as-of |
+| G1.6b D21 report, as-of guard | evals | handed back (4fa604b), QA not finished | 2026-10-25 | 29→30 test, agreement regenerated for D21, scoring pinned to the labels' as-of |
 | G1.2c D21 answers | data | accepted | 2026-10-25 | pending-CPG1 resolved; 380d32c7 ra_diagnosis targeted |
 | G1.6 + G1.8 Agreement report, scoring | evals | accepted | 2026-10-25 | Worktree; no live calls |
 | G1.3 Labeler | evals | accepted | 2026-10-25 | `evals/label.py` (f334fba), Batch API, two runs, scripted only; 257 passed, 17 skipped |
@@ -120,3 +127,4 @@ proposed. Evidence for the workflow write-up in D1. A few lines per milestone, a
 - 2026-10-25: G1.5 run live after a smoke test; chars/4 undercounted tokens about 2x (long record ids), so the cap went from $12 to $18 with your yes. $16.56. G1.6 and G1.8 dispatched.
 - 2026-10-25: D21 decided ahead of CPG1 (injected keyword not evidence; 380d32c7 ra_diagnosis targeted; free text counts; positive TB a gap with a next step for Q1; resolved RA denies via ra_diagnosis). G1.2c dispatched.
 - 2026-10-25: G1.6/G1.8 accepted (QA; minor: as-of falls back to today) and merged with G1.2c. G1.6b dispatched.
+- 2026-10-25: session ended during G1.9 QA. G1.6b unmerged at 4fa604b; review export to redo after merge.
