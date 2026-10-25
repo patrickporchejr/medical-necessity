@@ -1,0 +1,65 @@
+"""The hard split's spec and build.
+
+    cd api && uv run pytest -q ../data/hard
+
+The spec tests need nothing generated. The build test needs the cohort: it reads HARD_BASE_FHIR,
+else data/synthea/fhir/, and is skipped when neither has bundles.
+"""
+
+import copy
+import os
+import sys
+import uuid
+from pathlib import Path
+
+import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import build  # noqa: E402
+
+FHIR_DIR = Path(os.environ.get("HARD_BASE_FHIR") or build.DEFAULT_FHIR)
+
+
+@pytest.fixture(scope="module")
+def cases():
+    return build.load_cases()
+
+
+def test_spec_passes(cases):
+    assert build.check_spec(cases) == []
+
+
+def test_every_kind_and_both_sparse_situations(cases):
+    kinds = {c["kind"] for c in cases}
+    assert kinds == set(build.KINDS)
+    situations = [c["situation"] for c in cases if c["kind"] == "sparse-situation"]
+    assert situations.count("ra-active/trial-not-shown/no-active-notes") >= build.SPARSE_MIN
+    assert situations.count("ra-not-active/trial-not-shown/active-notes") >= build.SPARSE_MIN
+
+
+def test_exactly_one_call_left_for_cpg1(cases):
+    pending = [(c["name"], cid) for c in cases for cid, a in c["criteria"].items() if a["expected"] == "pending-CPG1"]
+    assert pending == [("injection-keyword-line", "active_disease")]
+
+
+def test_ids_follow_the_contract():
+    assert build.patient_id("negation-denies") == str(uuid.uuid5(uuid.NAMESPACE_URL, "hard/negation-denies"))
+    assert build.record_id("negation-denies", 0) == str(uuid.uuid5(uuid.NAMESPACE_URL, "hard/negation-denies/0"))
+
+
+@pytest.mark.parametrize("breakage, message", [
+    (lambda c: c.__setitem__("base", sorted(build.held_out_keys())[0]), "held_out"),
+    (lambda c: c.__setitem__("key", "00000000"), "is not uuid5"),
+    (lambda c: c["criteria"].pop("tb_screening"), "criteria"),
+    (lambda c: c["criteria"]["ra_diagnosis"].__setitem__("expected", "maybe"), "not in"),
+    (lambda c: c["edits"][0].__setitem__("date", "2026-12-01"), "on or before"),
+])
+def test_spec_catches(cases, breakage, message):
+    broken = copy.deepcopy(cases)
+    breakage(broken[0])
+    assert any(message in f for f in build.check_spec(broken))
+
+
+@pytest.mark.skipif(not any(FHIR_DIR.glob("*.json")), reason=f"no cohort bundles in {FHIR_DIR}")
+def test_build_check_passes():
+    assert build.check(FHIR_DIR) == []
