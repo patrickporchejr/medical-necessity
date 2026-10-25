@@ -17,7 +17,7 @@ Before a request is built into a batch, the whole prompt goes through the pipeli
 stops that case: it is recorded as unlabeled and never sent.
 
 Requests go through the Message Batches API. Each reply is checked: the schema, all five criteria, and every
-cited record present in that chart. An invalid reply is retried once in a follow-up batch, then recorded as
+cited record present in that chart. An `evidence` label must cite at least one record. An invalid reply is retried once in a follow-up batch, then recorded as
 unlabeled. An errored, canceled or expired result, a refusal and a reply cut off at max_tokens are recorded
 as unlabeled with the reason, without a retry.
 
@@ -244,6 +244,10 @@ def validate(text: str, policy: Policy, refs: frozenset[str]) -> dict[str, dict[
             raise ValueError(f"{cid}: records is not a list of strings")
         if not isinstance(label["reason"], str) or not label["reason"].strip():
             raise ValueError(f"{cid}: no reason")
+        if label["status"] == "evidence" and not label["records"]:
+            # Enforced here, not in the schema: minItems would have to depend on status, and the
+            # structured-output schema has no conditional (if/then) to say so.
+            raise ValueError(f"{cid}: evidence with no records cited")
         unknown = [r for r in label["records"] if r not in refs]
         if unknown:
             raise ValueError(f"{cid}: cites records not in the chart: {unknown[:3]}")
@@ -462,13 +466,18 @@ def _expected(spec: dict[str, Any] | None) -> str | None:
     return spec.get("expected")
 
 
+def hard_expected(key: str, criterion: str, cases: list[dict[str, Any]] | None = None) -> str | None:
+    spec = next((c.get("criteria", {}).get(criterion) for c in (cases or hard_cases()) if c["key"] == key), None)
+    return _expected(spec)
+
+
 def export(labels_dir: Path, dirs: dict[str, Path], policy: Policy) -> dict[str, Any]:
     files = {split: yaml.safe_load((labels_dir / f"{split}.yaml").read_text())
              for split in SPLITS if (labels_dir / f"{split}.yaml").exists()}
     if not files:
         raise SystemExit(f"no label files in {labels_dir}")
     first = next(iter(files.values()))
-    answers = {c["key"]: c.get("criteria", {}) for c in hard_cases()}
+    answers = hard_cases()
     out_cases = []
     for split, body in files.items():
         store = FhirStore(dirs[split])
@@ -478,7 +487,7 @@ def export(labels_dir: Path, dirs: dict[str, Path], policy: Policy) -> dict[str,
                       for r in records[section]}
             out_cases.append({"key": key, "split": split, "labels": [
                 {"criterion": cid, "status": label["status"], "reason": label["reason"],
-                 "expected": _expected(answers.get(key, {}).get(cid)) if split == "hard" else None,
+                 "expected": hard_expected(key, cid, answers) if split == "hard" else None,
                  "records": [{"ref": ref, "date": by_ref[ref]["date"], "summary": by_ref[ref]["summary"],
                               "text": excerpt(by_ref[ref]["text"])} for ref in label["records"]]}
                 for cid, label in labels.items()]})

@@ -128,6 +128,7 @@ def test_a_retry_that_comes_back_valid_is_used(case):
     reply(ra_diagnosis={"status": "maybe", "records": [], "reason": "x"}),
     json.dumps({cid: {"status": "gap", "records": [], "reason": "x"} for cid in POLICY.ids[:4]}),
     reply(ra_diagnosis={"status": "gap", "records": [], "reason": " "}),
+    reply(ra_diagnosis=ev()),  # evidence must cite a record, so it can be checked against the chart
 ])
 def test_schema_failures_are_invalid(case, bad):
     client = scripted({(1, 1): succeeded(bad), (1, 2): succeeded(bad),
@@ -266,3 +267,22 @@ def test_live_needs_the_flag_and_a_key(monkeypatch, fhir_dir, tmp_path, capsys):
     assert label.main([*argv, "--out", str(tmp_path / "scripted")]) == 0
     body = yaml.safe_load((tmp_path / "scripted" / "held_out.yaml").read_text())
     assert body["scripted"] is True and body["cases"][KEY]["ra_diagnosis"]["records"] == [RA]
+
+
+def test_evidence_with_no_records_is_retried_once_then_unlabeled(case):
+    client = scripted({(1, 1): succeeded(reply(ra_diagnosis=ev())), (1, 2): succeeded(reply(ra_diagnosis=ev())),
+                       (2, 1): succeeded(reply(ra_diagnosis=ev(RA)))})
+    labeling = run_labeling(client, [case], POLICY, poll_seconds=0, sleep=lambda _: None)
+    assert len(client.batches) == 2
+    run1, _ = labeling.outcomes[("held_out", KEY)]
+    assert run1.labels is None and "evidence with no records" in run1.failure
+    assert combine(labeling.outcomes[("held_out", KEY)], POLICY)["ra_diagnosis"]["status"] == "unlabeled"
+
+
+def test_exactly_the_targeted_hard_criteria_carry_expected():
+    cases = label.hard_cases()
+    expected = [label.hard_expected(c["key"], cid, cases) for c in cases for cid in POLICY.ids]
+    assert len(expected) == len(cases) * len(POLICY.ids)
+    assert sum(e is not None for e in expected) == 29
+    targeted = [c["criteria"][cid]["targeted"] for c in cases for cid in POLICY.ids]
+    assert [e is not None for e in expected] == targeted
