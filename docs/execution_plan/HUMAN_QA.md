@@ -191,10 +191,10 @@ A denied case round-trips: denial in, cited appeal draft out, your decision logg
 
 ## CP13: the demo (outline)
 
-Approve the storyboard before anything is built for it. Then: reset brings back the starting state every time;
+Approve the storyboard (buyer story and technical deep-dive) before anything is built for it. Read the solution
+brief as a hospital's prior-auth lead would, and check every number against its source. Then: reset brings back the starting state every time;
 each scenario plays the same way twice in recorded mode with no model spend; the guided tour walks both
-stories at desktop width; you capture the click-through in the D14 tool yourself, publish it, and see your own
-test views in its analytics; the hosted demo opens behind the password in recorded mode.
+stories at desktop width; you capture the click-through in Arcade yourself and export the LinkedIn video; the hosted demo opens behind the password in recorded mode.
 
 ## CP12a / CP12b: deploy (outline)
 

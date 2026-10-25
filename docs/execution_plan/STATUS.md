@@ -55,7 +55,7 @@ Task states: `dispatched`, `handed back`, `in QA`, `QA failed (n)`, `accepted`, 
 | CP0 | D11 | Per-criterion subagent fan-out | An eval-gated experiment (X1), kept only if it beats the baseline | 2026-10-24 |
 | CP0 | D12 | Demo code in the repo | Yes, demo mode is product code; one-off recording helpers stay local | 2026-10-24 |
 | CP0 | D13 | Demo layers | In-app demo mode and a click-through in a demo tool; no enterprise platforms | 2026-10-24 |
-| CP0 | D14 | Click-through tool | Arcade, Supademo or Storylane: open | |
+| CP0 | D14 | Click-through tool | Arcade: for LinkedIn video and GIF, not funnel analytics | 2026-10-24 |
 
 ## Checkpoint results
 
@@ -67,4 +67,5 @@ Task states: `dispatched`, `handed back`, `in QA`, `QA failed (n)`, `accepted`, 
 
 - 2026-10-24: plan drafted (M0).
 - 2026-10-24: D9–D11 decided in discussion; X1 added, M5 and M7 rewritten for interrupts and the sealed vault.
-- 2026-10-24: D12–D13 decided; M13 (the demo) and the demo agent added; D14 open.
+- 2026-10-24: D12–D13 decided; M13 (the demo) and the demo agent added.
+- 2026-10-24: D14 Arcade; M13 re-aimed at buyer and technical audiences, solution brief added.

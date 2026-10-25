@@ -44,7 +44,7 @@ Each milestone ends at a checkpoint (CP). Work does not move past a checkpoint u
 | M10 | [Learning from reviewers](milestones/M10_learning_from_reviewers.md) | Phase 3 | improver, evals | **CP10** merge or reject the improver's PR |
 | M11 | [Denials and appeals](milestones/M11_denials_and_appeals.md) | Phase 4 | api, evals, web | **CP11** a denied case round-trips |
 | M12 | [Deploy on AWS](milestones/M12_deploy.md) | Phase 6 | infra | **CP12a** approve cost and design; **CP12b** a stranger runs a batch |
-| M13 | [The demo](milestones/M13_demo.md) | New | demo, api, web | **CP13** storyboard, demo mode, the click-through and the hosted demo |
+| M13 | [The demo](milestones/M13_demo.md) | New | demo, api, web | **CP13** storyboard, solution brief, demo mode, the Arcade click-through, the hosted demo |
 
 Why this order:
 
