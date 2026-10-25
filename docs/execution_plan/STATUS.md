@@ -5,12 +5,8 @@ the branches disagree.
 
 ## Now
 
-**G1: awaiting CPG1** on `g1/ground-truth`, draft PR #56. G1.9 QA passed; G1.6b merged; review export redone for
-D21; HUMAN_QA's CPG1 outline updated with runnable commands. Local commits not yet pushed (CI on the pushed
-b7593bb fails 2 tests that G1.6b fixes). CPG1 decisions, recommendation first:
-1. Accept the labels as written, incl. 10 held-out unlabeled (5 where the runs disagreed, 5 = all of b8a1ffa3): accept, say so in the write-up.
-2. Confirm D21's five calls as the answers carry them: confirm.
-3. Merge PR #56 after the push turns CI green: yes.
+**CPG1 passed** (2026-10-25). Next: you mark draft PR #56 ready and merge it into `main` (CI green at 00621b9);
+then the orchestrator opens M3 (`m3/baseline`) from `main` and reviews its plan against G1's labels.
 Live spend so far: $16.59 of the $18 approved (G1.5).
 
 ## Milestones
@@ -19,7 +15,7 @@ Live spend so far: $16.59 of the $18 approved (G1.5).
 |---|---|---|---|---|
 | M0 | The plan | passed | — | CP0 |
 | M1 | Bigger cohort, eval hygiene | passed | `m1/cohort` | CP1 |
-| G1 | Independent reference labels and hard cases | awaiting CPG1 | `g1/ground-truth` | CPG1 |
+| G1 | Independent reference labels and hard cases | passed | `g1/ground-truth` | CPG1 |
 | M3 | Baseline run (Run 4), on G1's labels | not started | `m3/baseline` | CP3 |
 | Q1 | Faithful wording and fixes (Run 5) | not started | `q1/faithfulness` | CPQ1 |
 | D1 | The demo, hosted | not started | `d1/demo` | CPD1 |
@@ -88,6 +84,8 @@ Task states: `dispatched`, `handed back`, `in QA`, `QA failed (n)`, `accepted`, 
 | G1 | D19 | Who labels G1's held-out split | Sonnet 5.5 reads the chart and the policy's wording, never the pipeline's code, and its labels are accepted as written, with no human review. Two runs; where they disagree the label is `unlabeled`. A `/labels` review page shows how a client's team would vet them. The hard split is scored against answers we wrote. Said plainly: reference labels, not clinical ground truth | 2026-10-25 |
 | G1 | D20 | What the hard split is scored on | Only the criteria each case targets (`targeted: true` in `data/hard/cases.yaml`, 29 of 120; every criterion an injected note asks to flip counts). The rest copy the rule's answer on the base chart, so they are reported apart as a wiring check | 2026-10-25 |
 | G1 | D21 | The hard split's judgment calls | (1) A keyword inside an injected instruction is not evidence: injection-keyword-line's `active_disease` takes the chart's answer without the injected line. (2) conflict-remission-last's `ra_diagnosis` is targeted (its remission note bears on "currently active"). (3) Free text counts as evidence. (4) A positive TB result is a gap, and the packet should say what clears it (a negative retest, or documented latent-TB treatment): a Q1 gap-packet change, not a label. (5) Resolved RA is a denial through `ra_diagnosis` = gap; `dmard_trial` stays gap | 2026-10-25 |
+| CPG1 | D22 | The labels as written | Accepted, incl. the 10 held-out unlabeled (5 where the runs disagreed, all 5 of b8a1ffa3's); the write-up states the count | 2026-10-25 |
+| CPG1 | D23 | D21's judgment calls | Confirmed as the hard split's answers carry them | 2026-10-25 |
 
 ## Workflow
 
@@ -105,6 +103,7 @@ proposed. Evidence for the workflow write-up in D1. A few lines per milestone, a
 |---|---|---|---|
 | CP0 | Passed (PR #53 merged) | 2026-10-24 | — |
 | CP1 | Passed | 2026-10-25 | Optional: delete the stray LangSmith run from M1.7's dry run. QA dry runs blank the LangSmith key |
+| CPG1 | Passed (PR #56 to merge) | 2026-10-25 | D21(4), the positive-TB next step, goes to Q1's gap packet. No "list hard cases" command; read `data/hard/cases.yaml` |
 
 ## Log
 
@@ -130,3 +129,4 @@ proposed. Evidence for the workflow write-up in D1. A few lines per milestone, a
 - 2026-10-25: session ended during G1.9 QA. G1.6b unmerged at 4fa604b; review export to redo after merge.
 - 2026-10-25: PR #56 was already open as a draft at b7593bb (STATUS said not pushed; git wins). Its CI failed 2 tests: the D21 29→30 count, fixed by G1.6b.
 - 2026-10-25: G1.9 QA passed on 4fa604b. G1.6b merged; `web/public/labels.json` re-exported (2 `expected` values); CPG1 outline and milestone file updated for D21. G1 awaiting CPG1.
+- 2026-10-25: PR #56 CI green at 00621b9. CPG1 passed; D22, D23 recorded. PR #56 to merge.
