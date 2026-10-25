@@ -38,7 +38,8 @@ States: `not started`, `planning`, `in progress`, `awaiting CP<N>`, `passed`, `c
 | Task | Agent | State | Since | Notes |
 |---|---|---|---|---|
 | G1.2b `targeted` field | data | accepted | 2026-10-25 | D20; 29 targeted, bundles byte-identical (614dcb0) |
-| G1.3 Labeler | evals | dispatched | 2026-10-25 | Worktree; scripted models only |
+| G1.3 Labeler | evals | accepted | 2026-10-25 | `evals/label.py` (f334fba), Batch API, two runs, scripted only; 257 passed, 17 skipped |
+| G1.4 Estimate | evals | accepted | 2026-10-25 | $9.30 at batch rates, $11.62 with 25% margin (98 requests, one batch). Waits for your yes |
 | G1.1 Chart viewer | evals | accepted | 2026-10-25 | `evals/chart.py` (09f3d2f): 8 tests + 1 cohort test. Held-out estimate 3.05M tokens (15k–438k per chart). Patient name in notes replaced by `[patient]`. Waits for QA |
 | G1.2 Hard cases | data | accepted | 2026-10-25 | 24 cases (6e0f49b): the 14 kinds plus 5 per sparse situation. `--check` passes, cohort unchanged; built in `data/synthea/hard/`. 8 of 120 answers differ from the rule. Judgment calls to confirm at CPG1. Waits for QA |
 | G1.7 Review page | web | accepted | 2026-10-25 | `/labels` built, `npm run build` and tsc pass (8c96ed5). QA: download, mismatch, unlabeled and storage work; page scrolls sideways at 375px (summary table). Back to web |
@@ -110,3 +111,4 @@ proposed. Evidence for the workflow write-up in D1. A few lines per milestone, a
 - 2026-10-25: M1 merged (PR #55). G1 planned (D19: model-written labels, review page, two batch runs); G1.1, G1.2, G1.7 dispatched.
 - 2026-10-25: QA batch 1: G1.1 and G1.2 accepted and merged (228 passed, 16 skipped); G1.7 failed on 375px width, back to web.
 - 2026-10-25: D20: hard split scored on targeted criteria only. G1.2b and G1.3 dispatched; G1.7 fix in QA.
+- 2026-10-25: G1.3 and G1.4 accepted (QA 9 of 9). G1.5 estimate $9.30–$11.62, waiting for approval.
