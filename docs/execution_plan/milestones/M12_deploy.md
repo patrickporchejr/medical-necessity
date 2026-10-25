@@ -10,4 +10,6 @@ Planned to the outcome; tasks written at CP7.
 - Access gate or shared passcode, rate limits, a hard monthly model spend cap; provider zero retention stated.
 - **CP12a:** architecture, monthly cost of leaving it up, cap, gate, checked against current AWS pricing. Nothing
   is provisioned before your yes.
+- The public deployment is the M13 demo version: password protected, recorded model output by default, and the
+  live switch behind its own cap. Always on unless the CP12a cost says otherwise.
 - **CP12b:** a stranger opens the demo and runs a batch within the cap; the cost figure is in the repo.

@@ -44,6 +44,7 @@ Each milestone ends at a checkpoint (CP). Work does not move past a checkpoint u
 | M10 | [Learning from reviewers](milestones/M10_learning_from_reviewers.md) | Phase 3 | improver, evals | **CP10** merge or reject the improver's PR |
 | M11 | [Denials and appeals](milestones/M11_denials_and_appeals.md) | Phase 4 | api, evals, web | **CP11** a denied case round-trips |
 | M12 | [Deploy on AWS](milestones/M12_deploy.md) | Phase 6 | infra | **CP12a** approve cost and design; **CP12b** a stranger runs a batch |
+| M13 | [The demo](milestones/M13_demo.md) | New | demo, api, web | **CP13** storyboard, demo mode, the click-through and the hosted demo |
 
 Why this order:
 
@@ -68,6 +69,9 @@ Why this order:
   new criteria are scored against it. The roadmap calls it cheap and says to interleave it.
 - **Learning from reviewers (M10) comes after M9**, because it needs reviewer decisions to learn from. The
   decisions you make during CP5–CP9 are that data (one reviewer, synthetic cases; HUMAN_QA.md says so).
+- **The demo (M13) starts after CP7**, when the worklist, decisions and durable state exist to show, and runs
+  alongside M12, whose hosting it uses. It is a real feature: a demo mode with reset, scenarios and recorded
+  model output, plus a click-through made in a demo tool.
 - **M11 is the first to cut** (the roadmap's call). **M12 may start in parallel after CP7**, since the state
   store shapes the deployment; it still waits for its own cost approval at CP12a.
 
@@ -89,9 +93,10 @@ learned is known. Each detailed plan is reviewed at that checkpoint.
 | criteria | [agents/CRITERIA.md](agents/CRITERIA.md) | Criteria ingestion and the second service line (M9) |
 | improver | [agents/IMPROVER.md](agents/IMPROVER.md) | Proposed prompt and criteria changes from reviewer data (M10). Never sees the held-out set |
 | infra | [agents/INFRA.md](agents/INFRA.md) | Postgres, containers, AWS (M7, M12) |
+| demo | [agents/DEMO.md](agents/DEMO.md) | Storyboard, scenarios and click-through copy (M13) |
 
 Agents are added when a milestone needs them, in line with the roadmap's first rule: security, criteria,
-improver and infra have no work before M7.
+improver, infra and demo have no work before M7.
 
 ## Rules every agent follows
 
@@ -102,7 +107,8 @@ From the roadmap, and from how this repo has been run:
 3. **Humans approve consequential changes.** Agents open PRs; you merge. Nothing past a checkpoint without you.
 4. **No live model spend or cloud resource without an estimate and a yes.** Scripted models by default.
 5. **No README or existing doc edits unless a task names them**, and then only as a proposed diff at a checkpoint.
-6. **Demo-only code stays local.** It is never committed or pushed.
+6. **One-off recording helpers stay local.** The demo mode in M13 is product code and is committed; a throwaway
+   script for recording a single take is not.
 7. **Never weaken `verify` or ground truth to make a number move.** They share rules (`api/app/graph/support.py`);
    a change to one is a change to both, and is called out at the checkpoint.
 8. **The PHI vault stays.** Graph state holds only placeholders and shifted dates; a checkpoint guard refuses any

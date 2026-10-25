@@ -189,6 +189,13 @@ The packet says how many reviewer decisions it learned from, and that they are s
 
 A denied case round-trips: denial in, cited appeal draft out, your decision logged.
 
+## CP13: the demo (outline)
+
+Approve the storyboard before anything is built for it. Then: reset brings back the starting state every time;
+each scenario plays the same way twice in recorded mode with no model spend; the guided tour walks both
+stories at desktop width; you capture the click-through in the D14 tool yourself, publish it, and see your own
+test views in its analytics; the hosted demo opens behind the password in recorded mode.
+
 ## CP12a / CP12b: deploy (outline)
 
 12a, before anything is provisioned: the architecture, the monthly cost of leaving it up, the spend cap, and the
