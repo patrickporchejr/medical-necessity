@@ -72,13 +72,20 @@ patient, so the data agent runs it before the checkpoint).
 
 ## CPG1: independent reference labels and hard cases (outline)
 
-Open the chart viewer on one held-out case and read its model labels on the review page; the reasons should
-cite records that exist and say what they show. Read the agreement report: every disagreement between computed
-ground truth and the model labels, and between the model labels and the hard split's answers, is a rule
-finding, a suspected labeler error or a recorded ambiguity, and no label was edited. Read the hard split's list
-and its expected outcomes. Decide whether "joint pain" inside an injected line counts as evidence. Check that the
-caveats say no human reviewed the labels. Confirm no rule changed. **Live spend:** the labeling run, approved
-before it runs, not at the checkpoint.
+Run these from the main checkout, which has the cohort (`data/synthea` is gitignored, so a fresh checkout of
+the branch has no charts); docker compose is not needed.
+
+Open the chart viewer on one held-out case (`uv run --project api python evals/chart.py 53a6be67`) and read its
+model labels on the review page (`cd web && npm run dev`, then `/labels`); the reasons should cite records that
+exist and say what they show. Read the agreement report (`uv run --project api python evals/agreement.py`):
+every disagreement between computed ground truth and the model labels, and between the model labels and the
+hard split's answers, is a rule finding, a suspected labeler error or a recorded ambiguity, and no label was
+edited. Read the hard split's cases and expected outcomes in `data/hard/cases.yaml` (hard charts open with
+`evals/chart.py <key> --fhir-dir data/synthea/hard`, such as 977def3e). Confirm D21's five judgment calls as the
+answers now carry them (977def3e's `active_disease` is gap: the injected "joint pain" line is not evidence).
+Check that the caveats say no human reviewed the labels. Confirm no rule changed
+(`git diff main..g1/ground-truth -- api/app/graph/` is empty). **Live spend:** the labeling run, approved before
+it runs, not at the checkpoint.
 
 ---
 

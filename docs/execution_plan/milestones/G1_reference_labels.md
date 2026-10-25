@@ -59,8 +59,8 @@ notes as the pipeline.
   `edits` (what was added, by record id), and per criterion `expected` (`evidence` or `gap`) with `records`,
   a one-line `reason` and `targeted` (true when the case's edits are about that criterion; false when the
   answer is the base chart's under the current rule). The hard split is scored on targeted criteria only
-  (D20); the rest are reported apart as a wiring check. The "joint pain inside an injected line" call is `expected: pending-CPG1` until you
-  decide it. Dates are judged at the cohort's as-of date, 2026-09-20.
+  (D20); the rest are reported apart as a wiring check. D21 settled the judgment calls (a keyword inside an
+  injected instruction is not evidence), so 30 criteria are targeted. Dates are judged at the cohort's as-of date, 2026-09-20.
 - **Label files (G1.3, G1.5).** `evals/labels/held_out.yaml` and `evals/labels/hard.yaml` hold the model's
   labels: per case key, per criterion: `status` (`evidence`, `gap` or `unlabeled`), `records` (list of
   `Type/id`), `reason` (one line). At the top: `labeler` (model id), `prompt_sha256`, `date`, `runs: 2`. The
@@ -108,5 +108,5 @@ reported, so the labeler's consistency is a number, not a guess.
   split is the guard against it.
 - Long charts. The held-out split has about 3,000 notes. If a chart is too long for one call, the labeler
   labels one criterion per call. G1.4's estimate covers whichever is chosen.
-- The judgment call left for you: whether "joint pain" inside an injected line still counts as evidence.
+- The hard split's judgment calls were settled ahead of CPG1 (D21); you confirm them at the checkpoint.
 - The splits are small. A difference of one or two cases is not a finding.
