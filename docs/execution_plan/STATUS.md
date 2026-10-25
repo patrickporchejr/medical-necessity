@@ -37,9 +37,11 @@ States: `not started`, `planning`, `in progress`, `awaiting CP<N>`, `passed`, `c
 
 | Task | Agent | State | Since | Notes |
 |---|---|---|---|---|
+| G1.2b `targeted` field | data | dispatched | 2026-10-25 | D20 |
+| G1.3 Labeler | evals | dispatched | 2026-10-25 | Worktree; scripted models only |
 | G1.1 Chart viewer | evals | accepted | 2026-10-25 | `evals/chart.py` (09f3d2f): 8 tests + 1 cohort test. Held-out estimate 3.05M tokens (15k–438k per chart). Patient name in notes replaced by `[patient]`. Waits for QA |
 | G1.2 Hard cases | data | accepted | 2026-10-25 | 24 cases (6e0f49b): the 14 kinds plus 5 per sparse situation. `--check` passes, cohort unchanged; built in `data/synthea/hard/`. 8 of 120 answers differ from the rule. Judgment calls to confirm at CPG1. Waits for QA |
-| G1.7 Review page | web | QA failed (1) | 2026-10-25 | `/labels` built, `npm run build` and tsc pass (8c96ed5). QA: download, mismatch, unlabeled and storage work; page scrolls sideways at 375px (summary table). Back to web |
+| G1.7 Review page | web | in QA | 2026-10-25 | `/labels` built, `npm run build` and tsc pass (8c96ed5). QA: download, mismatch, unlabeled and storage work; page scrolls sideways at 375px (summary table). Back to web |
 | M1.1 Size the cohort | data | accepted | 2026-10-24 | 228 RA patients, 102 batches, ~29 s per RA patient; `OUT` and `END_DATE` added to generate.sh; fingerprint `2477aa35…` |
 | M1.2 Generate the cohort | orchestrator | accepted | 2026-10-24 | 228 RA patients installed, fingerprint `2477aa35…`; generate.sh defaults reproduce it (`END_DATE=20260920`). Cohort-wide tests marked `cohort`, skipped by default (25.5 → 2.5 min). `-m cohort` on the updated tests: 4 passed |
 | M1.5 Held-out split | evals | accepted | 2026-10-25 | `evals/held_out.txt`, 25 cases, frozen; `evals/split.py` checks it. Situations under 10 not split (D16); cases from Runs 0–3 kept out |
@@ -73,6 +75,7 @@ Task states: `dispatched`, `handed back`, `in QA`, `QA failed (n)`, `accepted`, 
 | CP1 | D17 | Cohort size and the sparse situations | Accept 228 RA patients and the two 1-case situations as documented under D16 | 2026-10-25 |
 | CP1 | D18 | Held-out design | 25 cases, frozen in `evals/held_out.txt`; situations under 10 not split; max(3, 10%) per split situation; smallest and largest chart and the Runs 0–3 cases stay in work. Small situations get held-out coverage only from G1's hard split | 2026-10-25 |
 | G1 | D19 | Who labels G1's held-out split | Sonnet 5.5 reads the chart and the policy's wording, never the pipeline's code, and its labels are accepted as written, with no human review. Two runs; where they disagree the label is `unlabeled`. A `/labels` review page shows how a client's team would vet them. The hard split is scored against answers we wrote. Said plainly: reference labels, not clinical ground truth | 2026-10-25 |
+| G1 | D20 | What the hard split is scored on | Only the criteria each case targets (`targeted: true` in `data/hard/cases.yaml`, 21 of 120). The rest copy the rule's answer on the base chart, so they are reported apart as a wiring check | 2026-10-25 |
 
 ## Workflow
 
@@ -106,3 +109,4 @@ proposed. Evidence for the workflow write-up in D1. A few lines per milestone, a
 - 2026-10-25: M1.7 accepted. CP1 passed; D17 and D18 recorded. PR #55 to merge.
 - 2026-10-25: M1 merged (PR #55). G1 planned (D19: model-written labels, review page, two batch runs); G1.1, G1.2, G1.7 dispatched.
 - 2026-10-25: QA batch 1: G1.1 and G1.2 accepted and merged (228 passed, 16 skipped); G1.7 failed on 375px width, back to web.
+- 2026-10-25: D20: hard split scored on targeted criteria only. G1.2b and G1.3 dispatched; G1.7 fix in QA.

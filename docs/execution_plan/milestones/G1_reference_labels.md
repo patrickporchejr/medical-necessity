@@ -26,7 +26,7 @@ review page is built to show how a client's team would vet them, but no one fill
 | G1.5 Labeling run | evals | your yes | The labeler runs on held-out and hard. `evals/labels/held_out.yaml` and the hard-split model labels are committed with the model id, prompt hash and date. Labels are not edited after the run |
 | G1.6 Agreement report | evals | G1.5 | A command lists, with counts: model labels against computed ground truth on held-out, and model labels against `data/hard/cases.yaml` on hard. The second one measures the labeler. Every disagreement gets a line saying it is a rule finding, a suspected labeler error or a real ambiguity. The label stays as written either way |
 | G1.7 Review page | web | G1.1, G1.3 (format only) | A `/labels` route in `web/`. Per case and criterion it shows the label, its reason and the cited records' text, with agree, disagree and unsure buttons and a note. It reads a committed JSON export (no API call), so it survives D1's static export. Decisions stay in browser storage and download as JSON. It shows "not reviewed" by default. Works on the scripted labels before G1.5 |
-| G1.8 Scoring | evals | G1.5 | `evals/experiment.py` scores held-out against the model labels and hard against `data/hard/cases.yaml`, reporting counts beside rates ("19 of 20"). The working split keeps computed ground truth as a wiring check |
+| G1.8 Scoring | evals | G1.5 | `evals/experiment.py` scores held-out against the model labels and hard against `data/hard/cases.yaml` on its targeted criteria (D20), reporting counts beside rates ("19 of 20"). The working split keeps computed ground truth as a wiring check |
 | G1.9 QA and packet | qa | all | Full suite passes; the review page builds and renders the real labels; the agreement report runs; no rule in `api/app/graph/` changed; CPG1 packet assembled |
 
 G1.1, G1.2 and G1.7's layout run in parallel. G1.3 waits for the viewer, and G1.5 waits for your yes.
@@ -56,8 +56,10 @@ notes as the pipeline.
   patient id, `uuid5(NAMESPACE_URL, "hard/" + case name)`, so its 8-character key differs from its base.
   `data/hard/cases.yaml` is the spec and the answers: per case, `name`, `kind` (negation, conflict,
   undetermined-date, free-text-only, screening, injection, sparse-situation), `base` (base case key), `key`,
-  `edits` (what was added, by record id), and per criterion `expected` (`evidence` or `gap`) with `records`
-  and a one-line `reason`. The "joint pain inside an injected line" call is `expected: pending-CPG1` until you
+  `edits` (what was added, by record id), and per criterion `expected` (`evidence` or `gap`) with `records`,
+  a one-line `reason` and `targeted` (true when the case's edits are about that criterion; false when the
+  answer is the base chart's under the current rule). The hard split is scored on targeted criteria only
+  (D20); the rest are reported apart as a wiring check. The "joint pain inside an injected line" call is `expected: pending-CPG1` until you
   decide it. Dates are judged at the cohort's as-of date, 2026-09-20.
 - **Label files (G1.3, G1.5).** `evals/labels/held_out.yaml` and `evals/labels/hard.yaml` hold the model's
   labels: per case key, per criterion: `status` (`evidence`, `gap` or `unlabeled`), `records` (list of
