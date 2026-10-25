@@ -20,13 +20,13 @@ review page is built to show how a client's team would vet them, but no one fill
 | Task | Agent | Depends on | Done when |
 |---|---|---|---|
 | G1.1 Chart viewer | evals | — | `uv run --project api python evals/chart.py <key>` prints one chart: conditions, medication requests, observations and every note, with record ids, dates and status. No patient demographics, nothing from packets or ground truth, and no keyword filtering. `--json` prints the same for G1.3 and G1.7. `--sizes` prints the token count per held-out chart (input for G1.4) |
-| G1.2 Hard cases | data, evals | — | A seeded, committed post-step edits copies of generated charts into a `hard` split (list below). Each case's expected outcome per criterion is in `evals/labels/hard.yaml`, written when the case is built, with `labeler: by-construction` and a one-line reason. The cohort's own bundles are not changed |
+| G1.2 Hard cases | data, evals | — | A seeded, committed post-step edits copies of generated charts into a `hard` split (list below). Each case's expected outcome per criterion is in `data/hard/cases.yaml`, written when the case is built, with a one-line reason. The cohort's own bundles are not changed |
 | G1.3 Labeler | evals | G1.1 | `evals/label.py` with its own prompt (nothing imported from `api/app/llm/prompts` or `app.graph`). For each case and criterion it gets the criterion `description` and the service line, with no codes or keywords, plus the G1.1 chart. It returns `evidence` or `gap`, the record ids, and a one-line reason. Requests go through the Message Batches API (half price; labeling needs no fast reply), with prompts checked by the same PHI guard as the pipeline's. Every cited id must exist in the chart, and a reply that fails is retried once and then recorded as `unlabeled`. Tested with scripted models only |
 | G1.4 Estimate | evals | G1.1, G1.2, G1.3 | Tokens per chart × cases (held-out and hard) × 2 runs × the Sonnet 5.5 batch price (half of list), plus a margin, in the handoff. The orchestrator asks you before G1.5 |
 | G1.5 Labeling run | evals | your yes | The labeler runs on held-out and hard. `evals/labels/held_out.yaml` and the hard-split model labels are committed with the model id, prompt hash and date. Labels are not edited after the run |
-| G1.6 Agreement report | evals | G1.5 | A command lists, with counts: model labels against computed ground truth on held-out, and model labels against the by-construction answers on hard. The second one measures the labeler. Every disagreement gets a line saying it is a rule finding, a suspected labeler error or a real ambiguity. The label stays as written either way |
+| G1.6 Agreement report | evals | G1.5 | A command lists, with counts: model labels against computed ground truth on held-out, and model labels against `data/hard/cases.yaml` on hard. The second one measures the labeler. Every disagreement gets a line saying it is a rule finding, a suspected labeler error or a real ambiguity. The label stays as written either way |
 | G1.7 Review page | web | G1.1, G1.3 (format only) | A `/labels` route in `web/`. Per case and criterion it shows the label, its reason and the cited records' text, with agree, disagree and unsure buttons and a note. It reads a committed JSON export (no API call), so it survives D1's static export. Decisions stay in browser storage and download as JSON. It shows "not reviewed" by default. Works on the scripted labels before G1.5 |
-| G1.8 Scoring | evals | G1.5 | `evals/experiment.py` scores held-out against the model labels and hard against the by-construction answers, reporting counts beside rates ("19 of 20"). The working split keeps computed ground truth as a wiring check |
+| G1.8 Scoring | evals | G1.5 | `evals/experiment.py` scores held-out against the model labels and hard against `data/hard/cases.yaml`, reporting counts beside rates ("19 of 20"). The working split keeps computed ground truth as a wiring check |
 | G1.9 QA and packet | qa | all | Full suite passes; the review page builds and renders the real labels; the agreement report runs; no rule in `api/app/graph/` changed; CPG1 packet assembled |
 
 G1.1, G1.2 and G1.7's layout run in parallel. G1.3 waits for the viewer, and G1.5 waits for your yes.
@@ -50,9 +50,36 @@ notes as the pipeline.
 
 ## Contracts
 
-- `evals/labels/held_out.yaml` and `evals/labels/hard.yaml`: per case key, per criterion: `status`
-  (`evidence`, `gap` or `unlabeled`), `records` (list of `Type/id`), `reason` (one line) and `labeler` (a model id
-  or `by-construction`). The evals agent owns the format; G1.7 reads its JSON export.
+- **Hard split, data side (G1.2).** `data/hard/build.py` (seeded, committed) copies base charts from
+  `data/synthea/fhir/` into `data/synthea/hard/` (gitignored, like the cohort), editing each one. It never
+  changes `data/synthea/fhir/`. Base charts come from outside `evals/held_out.txt`. Each copy gets a new
+  patient id, `uuid5(NAMESPACE_URL, "hard/" + case name)`, so its 8-character key differs from its base.
+  `data/hard/cases.yaml` is the spec and the answers: per case, `name`, `kind` (negation, conflict,
+  undetermined-date, free-text-only, screening, injection, sparse-situation), `base` (base case key), `key`,
+  `edits` (what was added, by record id), and per criterion `expected` (`evidence` or `gap`) with `records`
+  and a one-line `reason`. The "joint pain inside an injected line" call is `expected: pending-CPG1` until you
+  decide it. Dates are judged at the cohort's as-of date, 2026-09-20.
+- **Label files (G1.3, G1.5).** `evals/labels/held_out.yaml` and `evals/labels/hard.yaml` hold the model's
+  labels: per case key, per criterion: `status` (`evidence`, `gap` or `unlabeled`), `records` (list of
+  `Type/id`), `reason` (one line). At the top: `labeler` (model id), `prompt_sha256`, `date`, `runs: 2`. The
+  evals agent owns the format.
+- **Review page export (G1.3 writes, G1.7 reads).** `web/public/labels.json`, written by an evals command and
+  committed. It is the only file evals writes under `web/`. Shape:
+
+  ```json
+  {"labeler": "claude-sonnet-5-5", "date": "2026-10-25", "scripted": true,
+   "criteria": [{"id": "ra_diagnosis", "description": "..."}],
+   "cases": [{"key": "1a2b3c4d", "split": "held_out",
+     "labels": [{"criterion": "ra_diagnosis", "status": "evidence", "reason": "...",
+       "expected": null,
+       "records": [{"ref": "Condition/abc", "date": "2019-03-02", "summary": "Rheumatoid arthritis (active)",
+                    "text": "excerpt, notes only, or null"}]}]}]}
+  ```
+
+  `expected` is the by-construction answer on the hard split and `null` on held-out. Until G1.5, the web agent
+  builds against `web/public/labels.sample.json`, a scripted fixture of 3 cases in this shape that it writes.
+  Review decisions are kept in browser storage under `labels-review-v1` and download as
+  `{"case", "criterion", "verdict": "agree"|"disagree"|"unsure", "note"}` rows.
 - The labeler's prompt lives in `evals/`, apart from the pipeline's prompts, and its hash is recorded with the
   labels.
 - No rule changes in G1. The rules stay as they are, so M3 measures them honestly.

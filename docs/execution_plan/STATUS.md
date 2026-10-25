@@ -5,8 +5,8 @@ the branches disagree.
 
 ## Now
 
-**G1: planning** on `g1/ground-truth`. M1 merged (PR #55), 2026-10-25. The G1 milestone file waits for your
-review; no agents started. Scope trimmed by D15 ([TRIMMED_ROADMAP.md](../TRIMMED_ROADMAP.md)): G1, M3, Q1, D1.
+**G1: in progress** on `g1/ground-truth`. G1.1, G1.2 and G1.7 dispatched 2026-10-25. No live spend until G1.4's
+estimate and your yes. Scope trimmed by D15 ([TRIMMED_ROADMAP.md](../TRIMMED_ROADMAP.md)): G1, M3, Q1, D1.
 
 ## Milestones
 
@@ -14,7 +14,7 @@ review; no agents started. Scope trimmed by D15 ([TRIMMED_ROADMAP.md](../TRIMMED
 |---|---|---|---|---|
 | M0 | The plan | passed | — | CP0 |
 | M1 | Bigger cohort, eval hygiene | passed | `m1/cohort` | CP1 |
-| G1 | Independent reference labels and hard cases | planning | `g1/ground-truth` | CPG1 |
+| G1 | Independent reference labels and hard cases | in progress | `g1/ground-truth` | CPG1 |
 | M3 | Baseline run (Run 4), on G1's labels | not started | `m3/baseline` | CP3 |
 | Q1 | Faithful wording and fixes (Run 5) | not started | `q1/faithfulness` | CPQ1 |
 | D1 | The demo, hosted | not started | `d1/demo` | CPD1 |
@@ -37,6 +37,9 @@ States: `not started`, `planning`, `in progress`, `awaiting CP<N>`, `passed`, `c
 
 | Task | Agent | State | Since | Notes |
 |---|---|---|---|---|
+| G1.1 Chart viewer | evals | dispatched | 2026-10-25 | Worktree |
+| G1.2 Hard cases | data | dispatched | 2026-10-25 | Worktree; answers in `data/hard/cases.yaml` |
+| G1.7 Review page | web | dispatched | 2026-10-25 | Worktree; against the sample fixture until G1.5 |
 | M1.1 Size the cohort | data | accepted | 2026-10-24 | 228 RA patients, 102 batches, ~29 s per RA patient; `OUT` and `END_DATE` added to generate.sh; fingerprint `2477aa35…` |
 | M1.2 Generate the cohort | orchestrator | accepted | 2026-10-24 | 228 RA patients installed, fingerprint `2477aa35…`; generate.sh defaults reproduce it (`END_DATE=20260920`). Cohort-wide tests marked `cohort`, skipped by default (25.5 → 2.5 min). `-m cohort` on the updated tests: 4 passed |
 | M1.5 Held-out split | evals | accepted | 2026-10-25 | `evals/held_out.txt`, 25 cases, frozen; `evals/split.py` checks it. Situations under 10 not split (D16); cases from Runs 0–3 kept out |
@@ -101,3 +104,4 @@ proposed. Evidence for the workflow write-up in D1. A few lines per milestone, a
 - 2026-10-24: M1.2: 228-patient cohort installed (34-patient one backed up locally; it cannot be regenerated). 12 cohort-wide tests marked `cohort` and skipped by default; 3 tests updated for 228. Everyday suite 198 passed.
 - 2026-10-25: M1.2 confirmed (`-m cohort`, 4 passed). M1.5 and M1.6 accepted (210 passed); held-out split frozen at 25. M1.7 dispatched.
 - 2026-10-25: M1.7 accepted. CP1 passed; D17 and D18 recorded. PR #55 to merge.
+- 2026-10-25: M1 merged (PR #55). G1 planned (D19: model-written labels, review page, two batch runs); G1.1, G1.2, G1.7 dispatched.
