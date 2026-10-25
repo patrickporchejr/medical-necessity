@@ -56,12 +56,12 @@ edits, sets up the agents, and opens M1.
 **Setup:** no compose needed. The cohort is already generated in `data/synthea/fhir/` (it takes about a minute per
 patient, so the data agent runs it before the checkpoint).
 
-1. Run the strata report from the packet (`uv run python -m evals.experiment --report-strata`, or as given).
-   Every situation should have at least 5 cases, or the packet should explain which can't and why.
+1. Run the strata report: `uv run --project api python evals/strata.py`. Every situation should have at least
+   5 cases, or the packet should explain which can't and why.
 2. Open the held-out file the packet names. Check that it lists case keys only, is committed, and that the
    packet states how it was picked (fixed seed, stratified).
-3. Open a dry experiment summary from the scripted model. It should carry per-node `seconds` (p50 and max per
-   node) next to the scores.
+3. Open the dry experiment summaries the packet names (one per split, from the scripted model, made by the qa
+   agent). Each should carry per-node `seconds` (p50 and max per node) next to the scores.
 4. Run the full test suite: `cd api && uv run pytest -q ../api ../evals`, then the cohort sweep the packet
    reports (`-m cohort`, about 20 minutes), or read its result in the packet.
 
