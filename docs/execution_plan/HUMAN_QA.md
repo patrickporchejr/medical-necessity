@@ -70,14 +70,15 @@ patient, so the data agent runs it before the checkpoint).
 
 ---
 
-## CPG1: independent ground truth and hard cases (outline)
+## CPG1: independent reference labels and hard cases (outline)
 
-Open the chart viewer on two held-out cases and label one criterion yourself before reading the committed label;
-they should agree, or the label's reason should convince you. Read the agreement report: every disagreement
-between computed ground truth and hand labels is a rule finding, a fixed labeling mistake, or a recorded
-ambiguity. Read the hard split's list (negation, conflicting notes, undetermined dates, free-text-only, screening
-results with one positive, prompt injection) and its expected outcomes. Decide whether "joint pain" inside an
-injected line counts as evidence. Confirm no rule changed. No live model spend.
+Open the chart viewer on one held-out case and read its model labels on the review page; the reasons should
+cite records that exist and say what they show. Read the agreement report: every disagreement between computed
+ground truth and the model labels, and between the model labels and the hard split's answers, is a rule
+finding, a suspected labeler error or a recorded ambiguity, and no label was edited. Read the hard split's list
+and its expected outcomes. Decide whether "joint pain" inside an injected line counts as evidence. Check that the
+caveats say no human reviewed the labels. Confirm no rule changed. **Live spend:** the labeling run, approved
+before it runs, not at the checkpoint.
 
 ---
 
@@ -91,7 +92,7 @@ at the checkpoint.
    resolution, cost and latency per model, with **the working, held-out and hard splits in separate tables**,
    counts beside rates.
 2. Check that it says this is a new baseline on independent labels, not a comparison with Run 3, and that the
-   labels have one author.
+   labels were written by a model and not reviewed by a human (D19).
 3. Read the list of hard cases the rules got wrong. That list is Q1's input.
 4. Check whether Haiku's first-draft misses on the "no order" cases recur (the roadmap's question).
 5. Pick two cases from the packet and open their run files; confirm the reported citation resolution matches.

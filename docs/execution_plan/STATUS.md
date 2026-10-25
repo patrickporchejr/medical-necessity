@@ -5,16 +5,16 @@ the branches disagree.
 
 ## Now
 
-**M1: CP1 passed** on `m1/cohort`, 2026-10-25. PR #55 waits for your merge; G1 is planned next. No live model
-spend in M1. Scope trimmed by D15 ([TRIMMED_ROADMAP.md](../TRIMMED_ROADMAP.md)): after M1 come G1, M3, Q1, D1.
+**G1: planning** on `g1/ground-truth`. M1 merged (PR #55), 2026-10-25. The G1 milestone file waits for your
+review; no agents started. Scope trimmed by D15 ([TRIMMED_ROADMAP.md](../TRIMMED_ROADMAP.md)): G1, M3, Q1, D1.
 
 ## Milestones
 
 | # | Milestone | State | Branch | Checkpoint |
 |---|---|---|---|---|
 | M0 | The plan | passed | — | CP0 |
-| M1 | Bigger cohort, eval hygiene | CP1 passed; PR #55 to merge | `m1/cohort` | CP1 |
-| G1 | Independent ground truth and hard cases | not started | `g1/ground-truth` | CPG1 |
+| M1 | Bigger cohort, eval hygiene | passed | `m1/cohort` | CP1 |
+| G1 | Independent reference labels and hard cases | planning | `g1/ground-truth` | CPG1 |
 | M3 | Baseline run (Run 4), on G1's labels | not started | `m3/baseline` | CP3 |
 | Q1 | Faithful wording and fixes (Run 5) | not started | `q1/faithfulness` | CPQ1 |
 | D1 | The demo, hosted | not started | `d1/demo` | CPD1 |
@@ -69,6 +69,7 @@ Task states: `dispatched`, `handed back`, `in QA`, `QA failed (n)`, `accepted`, 
 | M1 | D16 | Situations Synthea writes too rarely | Stop generating at 228 RA patients (102 batches); don't chase 5 per situation. Build the sparse ones by editing charts in G1's hard split, and say so plainly everywhere results are reported: what Synthea gave, where it was too sparse to be statistically meaningful, what we edited and why | 2026-10-24 |
 | CP1 | D17 | Cohort size and the sparse situations | Accept 228 RA patients and the two 1-case situations as documented under D16 | 2026-10-25 |
 | CP1 | D18 | Held-out design | 25 cases, frozen in `evals/held_out.txt`; situations under 10 not split; max(3, 10%) per split situation; smallest and largest chart and the Runs 0–3 cases stay in work. Small situations get held-out coverage only from G1's hard split | 2026-10-25 |
+| G1 | D19 | Who labels G1's held-out split | Sonnet 5.5 reads the chart and the policy's wording, never the pipeline's code, and its labels are accepted as written, with no human review. Two runs; where they disagree the label is `unlabeled`. A `/labels` review page shows how a client's team would vet them. The hard split is scored against answers we wrote. Said plainly: reference labels, not clinical ground truth | 2026-10-25 |
 
 ## Workflow
 

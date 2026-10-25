@@ -32,7 +32,7 @@ Each milestone ends at a checkpoint (CP). Work does not move past a checkpoint u
 |---|---|---|---|---|
 | M0 | [This plan](milestones/M00_plan.md) | — | orchestrator | **CP0** review the plan, answer the open decisions |
 | M1 | [Bigger cohort, eval hygiene](milestones/M01_cohort_and_eval_hygiene.md) | Roadmap Phase 0 | data, evals | **CP1** strata counts, held-out split frozen |
-| G1 | Independent ground truth and hard cases | New | evals, data | **CPG1** hand labels, hard split, every disagreement explained |
+| G1 | Independent reference labels and hard cases | New | evals, data, web | **CPG1** model labels, review page, hard split, every disagreement explained |
 | M3 | [Baseline run (Run 4)](milestones/M03_baseline_run.md) | Roadmap Phase 0 | evals | **CP3** accept the new baseline numbers |
 | Q1 | Faithful wording and the fixes Run 4 calls for (Run 5) | New, metric from M10 | api, evals | **CPQ1** Run 5 beside Run 4, every fix linked to a failed case |
 | D1 | The demo, hosted | M4–M6, M12, M13, cut down | web, api, demo | **CPD1** a stranger opens the link; brief and workflow write-up in the README |
@@ -52,7 +52,7 @@ Why this order:
 - **G1 changes no rules**, so Run 4 measures today's pipeline honestly, on the hard cases too (negation,
   conflicting notes, screening results, prompt injection).
 - **Q1 comes after Run 4** because its fixes are chosen from what Run 4 got wrong, each justified by a failed
-  case and scored against hand labels. Its quote check changes `assemble` and `verify`, so it cannot go before
+  case and scored against G1's labels. Its quote check changes `assemble` and `verify`, so it cannot go before
   the baseline either.
 - **The demo (D1) comes last** so it shows Run 5's numbers, and records output from the pipeline as it will
   stay. It is recorded only, so hosting it costs nothing per visit.
@@ -95,7 +95,7 @@ From the roadmap, and from how this repo has been run:
    script for recording a single take is not.
 7. **Never weaken `verify` or ground truth to make a number move.** They share rules (`api/app/graph/support.py`);
    a change to one is a change to both, and is called out at the checkpoint. From G1, held-out and hard cases
-   are scored against hand labels, which no rule change touches.
+   are scored against G1's model labels and hard-case answers, which no rule change touches.
 8. **The PHI vault stays.** Graph state holds only placeholders and shifted dates, and the vault is never
    written to disk.
 
