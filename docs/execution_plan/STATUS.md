@@ -5,8 +5,7 @@ the branches disagree.
 
 ## Now
 
-**M3: in progress** on `m3/baseline` (from `main` at 489614e, G1 merged). Milestone file updated for what G1
-settled. M3.2 (Run 4) done: $1.11 of the $1.50 approved. Results in `evals/results/run-4/`. Next: M3.3 write-up (evals).
+**M3** on `m3/baseline` (from `main` at 489614e). **M3: awaiting CP3.** Run 4 done ($1.11 of $1.50); write-up in `evals/RESULTS.md`; M3.5 QA passed; README diff (D6) proposed, not applied.
 Live spend so far: $16.59 of the $18 approved (G1.5); $1.11 of the $1.50 approved (M3.2).
 
 ## Milestones
@@ -16,7 +15,7 @@ Live spend so far: $16.59 of the $18 approved (G1.5); $1.11 of the $1.50 approve
 | M0 | The plan | passed | — | CP0 |
 | M1 | Bigger cohort, eval hygiene | passed | `m1/cohort` | CP1 |
 | G1 | Independent reference labels and hard cases | passed | `g1/ground-truth` | CPG1 |
-| M3 | Baseline run (Run 4), on G1's labels | in progress | `m3/baseline` | CP3 |
+| M3 | Baseline run (Run 4), on G1's labels | awaiting CP3 | `m3/baseline` | CP3 |
 | Q1 | Faithful wording and fixes (Run 5) | not started | `q1/faithfulness` | CPQ1 |
 | D1 | The demo, hosted | not started | `d1/demo` | CPD1 |
 | M2 | Reference lab | cut (D15) | — | — |
@@ -38,7 +37,11 @@ States: `not started`, `planning`, `in progress`, `awaiting CP<N>`, `passed`, `c
 
 | Task | Agent | State | Since | Notes |
 |---|---|---|---|---|
-| M3.2 Run 4 | orchestrator | accepted | 2026-10-25 | Live, $1.11 (smoke $0.017 + work $0.194 + held-out $0.415 + hard $0.484), cap $1.50 approved. Run locally, no LangSmith upload: `sync_dataset` (evals/experiment.py:273) crashes on a 404 for new held-out/hard datasets; follow-up for evals. 0 task failures. Work: Haiku 159/160, Flash 160/160. Held-out vs labels: 314/345, 315/345. Hard targeted: both 66/90, wiring 270/270; repairs 6 and 8, and they lower decisions (first pass 54/72, final 48/72) |
+| M3.5 QA and CP3 packet | qa | accepted | 2026-10-25 | M3.2b, M3.3 pass; every Run 4 figure recomputed from the JSON, no mismatch; `api/app/` unchanged; no PHI in results. CP3 step 5 reworded (no run files committed). Minor: RESULTS.md intro (lines 3-5) still says ground truth from raw bundles |
+| M3.4 README diff | orchestrator | proposed | 2026-10-25 | Results, Evaluation, tree, commands; not applied (D6) |
+| M3.3 Write-up | evals | accepted | 2026-10-25 | c39d294. Finding: repairs pull the model to the rule's answer (hard first pass 54/72 → 48/72); final decisions equal computed ground truth in 144/144 hard and 149/150 held-out packets, so Run 4 cannot rank the models on decisions |
+| M3.2b LangSmith 404 | evals | accepted | 2026-10-25 | f31876a; 262 passed, 18 skipped |
+| M3.2 Run 4 | orchestrator | accepted | 2026-10-25 | Live, $1.11 (smoke $0.017 + work $0.194 + held-out $0.415 + hard $0.484), cap $1.50 approved. Run locally, no LangSmith upload: `sync_dataset` crashed on a 404 for new held-out/hard datasets; fixed in M3.2b. 0 task failures. Work: Haiku 159/160, Flash 160/160. Held-out vs labels: 314/345, 315/345. Hard targeted: both 66/90, wiring 270/270; repairs 6 and 8, and they lower decisions (first pass 54/72, final 48/72) |
 | M3.1 Estimate | evals | accepted | 2026-10-25 | $1.04 (Haiku $0.46, Flash $0.58), 262 model runs of 358 (gap-packet route needs no model); $1.30 with 25%; cap $1.50 recommended. Chart size never reaches the prompt (extract caps it, ids are placeholders): b8a1ffa3 sends 1,517 chars; largest is hard 741ebb47 (4,335). Ratio method on scripted prompts vs Run 3, no tokenizer offline. Smoke: b8a1ffa3 + 741ebb47, ~$0.023, stop over $0.04. Waits for your yes |
 | G1.2b `targeted` field | data | accepted | 2026-10-25 | D20; 29 targeted, bundles byte-identical (614dcb0) |
 | G1.5 Labeling run | orchestrator | accepted | 2026-10-25 | Live, $16.56 (+$0.03 smoke), cap $18 approved. Held-out 21/94/10 unlabeled; hard 32/87/1. Runs agreed on 115 of 120 held-out and 119 of 120 hard labels both runs gave. b8a1ffa3 (largest chart, ~870k tokens) unlabeled: every reply mistyped a record id (6469669) |
@@ -135,3 +138,4 @@ proposed. Evidence for the workflow write-up in D1. A few lines per milestone, a
 - 2026-10-25: PR #56 merged (489614e); G1 passed. M3 opened on `m3/baseline`; milestone file updated (splits, D20/D22, as-of guard, token lesson, smoke run). M3.1 dispatched.
 - 2026-10-25: M3.1 accepted: Run 4 estimate $1.04, cap $1.50 recommended (worst case, every run repaired, ~$2.60). Waiting for approval.
 - 2026-10-25: M3.2 Run 4 approved ($1.50 cap) and run: smoke passed ($0.017), then work, held-out, hard; $1.11 total. LangSmith sync bug found (no spend), run kept local. Results committed.
+- 2026-10-25: M3.3 and M3.2b accepted; M3.5 QA passed; README diff proposed. M3 awaiting CP3.
