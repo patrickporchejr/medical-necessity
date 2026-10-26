@@ -102,7 +102,11 @@ at the checkpoint.
    labels were written by a model and not reviewed by a human (D19).
 3. Read the list of hard cases the rules got wrong. That list is Q1's input.
 4. Check whether Haiku's first-draft misses on the "no order" cases recur (the roadmap's question).
-5. Pick two cases from the packet and open their run files; confirm the reported citation resolution matches.
+5. Pick two cases from the packet and read their rows in the summary files (per-case run files are not
+   committed); confirm the reported citation resolution matches. For example, held-out 681b83bb (Haiku is
+   `experiments[0]`, Flash `[1]`):
+   `jq -c '.experiments[0].cases[] | select(.name|endswith("681b83bb")) | [.name,.scores.first_pass_citation_resolution_rate,.scores.citation_resolution_rate,.scores.gap_accuracy,.scores.repaired]' evals/results/run-4/experiment_20261026T000151Z_held_out.json`,
+   and hard 7c0d5d13 in `experiment_20261026T000648Z_hard.json`.
 6. Review the proposed README diff (D6).
 
 **Pass when:** you accept the numbers as the baseline every later milestone is compared with.

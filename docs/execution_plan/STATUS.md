@@ -5,9 +5,11 @@ the branches disagree.
 
 ## Now
 
-**CPG1 passed** (2026-10-25). Next: you mark draft PR #56 ready and merge it into `main` (CI green at 00621b9);
-then the orchestrator opens M3 (`m3/baseline`) from `main` and reviews its plan against G1's labels.
-Live spend so far: $16.59 of the $18 approved (G1.5).
+**Closed (2026-10-25).** You closed the project after M3 (D24): Q1 and D1 are cut, and the plan stops here. Run 4
+(PR #57) is merged without a formal CP3. The README is unchanged; the proposed README diff (D6) was not applied.
+If this restarts, begin with Q1's design: the repair step should fix citations only and leave the model's
+decision to the reviewer (Run 4, finding (a) in `evals/RESULTS.md`).
+Live spend so far: $16.59 of the $18 approved (G1.5); $1.11 of the $1.50 approved (M3.2).
 
 ## Milestones
 
@@ -16,9 +18,9 @@ Live spend so far: $16.59 of the $18 approved (G1.5).
 | M0 | The plan | passed | — | CP0 |
 | M1 | Bigger cohort, eval hygiene | passed | `m1/cohort` | CP1 |
 | G1 | Independent reference labels and hard cases | passed | `g1/ground-truth` | CPG1 |
-| M3 | Baseline run (Run 4), on G1's labels | not started | `m3/baseline` | CP3 |
-| Q1 | Faithful wording and fixes (Run 5) | not started | `q1/faithfulness` | CPQ1 |
-| D1 | The demo, hosted | not started | `d1/demo` | CPD1 |
+| M3 | Baseline run (Run 4), on G1's labels | merged at close, CP3 not held | `m3/baseline` | CP3 |
+| Q1 | Faithful wording and fixes (Run 5) | cut (D24) | `q1/faithfulness` | CPQ1 |
+| D1 | The demo, hosted | cut (D24) | `d1/demo` | CPD1 |
 | M2 | Reference lab | cut (D15) | — | — |
 | M4 | Run the worklist | cut (D15), slice kept in D1 | — | — |
 | X1 | Per-criterion fan-out (experiment) | cut (D15) | — | — |
@@ -38,6 +40,12 @@ States: `not started`, `planning`, `in progress`, `awaiting CP<N>`, `passed`, `c
 
 | Task | Agent | State | Since | Notes |
 |---|---|---|---|---|
+| M3.5 QA and CP3 packet | qa | accepted | 2026-10-25 | M3.2b, M3.3 pass; every Run 4 figure recomputed from the JSON, no mismatch; `api/app/` unchanged; no PHI in results. CP3 step 5 reworded (no run files committed). Minor: RESULTS.md intro (lines 3-5) still says ground truth from raw bundles |
+| M3.4 README diff | orchestrator | not applied (D24) | 2026-10-25 | Results, Evaluation, tree, commands; not applied (D6) |
+| M3.3 Write-up | evals | accepted | 2026-10-25 | c39d294. Finding: repairs pull the model to the rule's answer (hard first pass 54/72 → 48/72); final decisions equal computed ground truth in 144/144 hard and 149/150 held-out packets, so Run 4 cannot rank the models on decisions |
+| M3.2b LangSmith 404 | evals | accepted | 2026-10-25 | f31876a; 262 passed, 18 skipped |
+| M3.2 Run 4 | orchestrator | accepted | 2026-10-25 | Live, $1.11 (smoke $0.017 + work $0.194 + held-out $0.415 + hard $0.484), cap $1.50 approved. Run locally, no LangSmith upload: `sync_dataset` crashed on a 404 for new held-out/hard datasets; fixed in M3.2b. 0 task failures. Work: Haiku 159/160, Flash 160/160. Held-out vs labels: 314/345, 315/345. Hard targeted: both 66/90, wiring 270/270; repairs 6 and 8, and they lower decisions (first pass 54/72, final 48/72) |
+| M3.1 Estimate | evals | accepted | 2026-10-25 | $1.04 (Haiku $0.46, Flash $0.58), 262 model runs of 358 (gap-packet route needs no model); $1.30 with 25%; cap $1.50 recommended. Chart size never reaches the prompt (extract caps it, ids are placeholders): b8a1ffa3 sends 1,517 chars; largest is hard 741ebb47 (4,335). Ratio method on scripted prompts vs Run 3, no tokenizer offline. Smoke: b8a1ffa3 + 741ebb47, ~$0.023, stop over $0.04. Waits for your yes |
 | G1.2b `targeted` field | data | accepted | 2026-10-25 | D20; 29 targeted, bundles byte-identical (614dcb0) |
 | G1.5 Labeling run | orchestrator | accepted | 2026-10-25 | Live, $16.56 (+$0.03 smoke), cap $18 approved. Held-out 21/94/10 unlabeled; hard 32/87/1. Runs agreed on 115 of 120 held-out and 119 of 120 hard labels both runs gave. b8a1ffa3 (largest chart, ~870k tokens) unlabeled: every reply mistyped a record id (6469669) |
 | G1.9 QA and CPG1 packet | qa | accepted | 2026-10-25 | Suite 260 passed, 18 skipped (cohort present); web build passes; agreement `--check` up to date; `api/app/graph/` unchanged. Cohort sweep not run (nothing it covers changed). Found the stale export and CPG1 outline, both fixed by the orchestrator |
@@ -86,6 +94,7 @@ Task states: `dispatched`, `handed back`, `in QA`, `QA failed (n)`, `accepted`, 
 | G1 | D21 | The hard split's judgment calls | (1) A keyword inside an injected instruction is not evidence: injection-keyword-line's `active_disease` takes the chart's answer without the injected line. (2) conflict-remission-last's `ra_diagnosis` is targeted (its remission note bears on "currently active"). (3) Free text counts as evidence. (4) A positive TB result is a gap, and the packet should say what clears it (a negative retest, or documented latent-TB treatment): a Q1 gap-packet change, not a label. (5) Resolved RA is a denial through `ra_diagnosis` = gap; `dmard_trial` stays gap | 2026-10-25 |
 | CPG1 | D22 | The labels as written | Accepted, incl. the 10 held-out unlabeled (5 where the runs disagreed, all 5 of b8a1ffa3's); the write-up states the count | 2026-10-25 |
 | CPG1 | D23 | D21's judgment calls | Confirmed as the hard split's answers carry them | 2026-10-25 |
+| — | D24 | Continue past M3 | No: project closed after Run 4. Q1 and D1 cut; PR #57 merged; README diff not applied | 2026-10-25 |
 
 ## Workflow
 
@@ -103,7 +112,7 @@ proposed. Evidence for the workflow write-up in D1. A few lines per milestone, a
 |---|---|---|---|
 | CP0 | Passed (PR #53 merged) | 2026-10-24 | — |
 | CP1 | Passed | 2026-10-25 | Optional: delete the stray LangSmith run from M1.7's dry run. QA dry runs blank the LangSmith key |
-| CPG1 | Passed (PR #56 to merge) | 2026-10-25 | D21(4), the positive-TB next step, goes to Q1's gap packet. No "list hard cases" command; read `data/hard/cases.yaml` |
+| CPG1 | Passed (PR #56 merged) | 2026-10-25 | D21(4), the positive-TB next step, goes to Q1's gap packet. No "list hard cases" command; read `data/hard/cases.yaml` |
 
 ## Log
 
@@ -130,3 +139,8 @@ proposed. Evidence for the workflow write-up in D1. A few lines per milestone, a
 - 2026-10-25: PR #56 was already open as a draft at b7593bb (STATUS said not pushed; git wins). Its CI failed 2 tests: the D21 29→30 count, fixed by G1.6b.
 - 2026-10-25: G1.9 QA passed on 4fa604b. G1.6b merged; `web/public/labels.json` re-exported (2 `expected` values); CPG1 outline and milestone file updated for D21. G1 awaiting CPG1.
 - 2026-10-25: PR #56 CI green at 00621b9. CPG1 passed; D22, D23 recorded. PR #56 to merge.
+- 2026-10-25: PR #56 merged (489614e); G1 passed. M3 opened on `m3/baseline`; milestone file updated (splits, D20/D22, as-of guard, token lesson, smoke run). M3.1 dispatched.
+- 2026-10-25: M3.1 accepted: Run 4 estimate $1.04, cap $1.50 recommended (worst case, every run repaired, ~$2.60). Waiting for approval.
+- 2026-10-25: M3.2 Run 4 approved ($1.50 cap) and run: smoke passed ($0.017), then work, held-out, hard; $1.11 total. LangSmith sync bug found (no spend), run kept local. Results committed.
+- 2026-10-25: M3.3 and M3.2b accepted; M3.5 QA passed; README diff proposed. M3 awaiting CP3.
+- 2026-10-25: PR #57 opened, CI green. Project closed (D24): Q1 and D1 cut, PR #57 merged, agent worktrees removed.

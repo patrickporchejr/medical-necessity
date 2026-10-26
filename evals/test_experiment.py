@@ -9,6 +9,8 @@ from types import SimpleNamespace
 
 import pytest
 import yaml
+from langsmith import schemas
+from langsmith.utils import LangSmithAuthError, LangSmithNotFoundError
 
 from dataset import HARD_DIR, labels_as_of, open_ground_truth, pinned_as_of
 from experiment import (
@@ -258,6 +260,42 @@ def test_syncing_updates_existing_examples_creates_new_ones_and_survives_a_rerun
     client.calls.clear()
     sync_dataset(client, rest)  # a rerun with everything present must only update
     assert client.calls == [("update", [e.id for e in examples])]
+
+
+class FakeLangSmithNotFound(FakeLangSmith):
+    """LangSmith's real answer when none of the requested ids exist: a 404, not an empty list."""
+
+    def list_examples(self, dataset_id, example_ids):
+        found = [SimpleNamespace(id=i) for i in example_ids if i in self.stored]
+        if not found:
+            raise LangSmithNotFoundError("Resource not found for /examples. Examples not found")
+        yield from found
+
+
+def split_examples(n, split="hard"):
+    return [schemas.Example(id=example_id(f"{i:08d}", split), dataset_id=uuid.uuid4(),
+                            inputs={"patient_key": f"{i:08d}"}, outputs={}, metadata={})
+            for i in range(n)]
+
+
+def test_syncing_a_new_dataset_treats_examples_not_found_as_none_existing():
+    examples = split_examples(3)
+    client = FakeLangSmithNotFound(existing_ids=[])
+    synced = sync_dataset(client, examples, name=dataset_name("hard"))
+    assert client.calls == [("create", [e.id for e in examples])]
+    assert [e.id for e in synced] == [e.id for e in examples]
+    client.calls.clear()
+    sync_dataset(client, examples, name=dataset_name("hard"))  # once they exist, a rerun only updates
+    assert client.calls == [("update", [e.id for e in examples])]
+
+
+def test_syncing_does_not_swallow_other_langsmith_errors():
+    class Broken(FakeLangSmith):
+        def list_examples(self, dataset_id, example_ids):
+            raise LangSmithAuthError("401")
+
+    with pytest.raises(LangSmithAuthError):
+        sync_dataset(Broken(existing_ids=[]), split_examples(1))
 
 
 # --- scoring ------------------------------------------------------------------------------------

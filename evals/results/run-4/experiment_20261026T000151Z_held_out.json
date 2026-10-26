@@ -1,0 +1,4724 @@
+{
+  "dataset": "prior-auth-adalimumab-ra-held-out",
+  "split": "held_out",
+  "as_of": "2026-09-20",
+  "written_at": "2026-10-26T00:01:51+00:00",
+  "experiments": [
+    {
+      "experiment": "anthropic:claude-haiku-4-5-20251001",
+      "split": "held_out",
+      "config": {
+        "provider": "anthropic",
+        "model": "claude-haiku-4-5-20251001",
+        "as_of": "2026-09-20",
+        "repeat": 3,
+        "split": "held_out",
+        "dataset": "prior-auth-adalimumab-ra-held-out",
+        "case_keys": [
+          "029f78a6",
+          "34ec7ede",
+          "3c28d8a5",
+          "3d543b39",
+          "46de5e4d",
+          "53a6be67",
+          "58ab636d",
+          "5d2de37d",
+          "681b83bb",
+          "6db76cb4",
+          "81e741fe",
+          "95948be8",
+          "9c082f0b",
+          "b0ddc938",
+          "b8a1ffa3",
+          "c2f8868b",
+          "c7e0284b",
+          "ca33e01a",
+          "dcca53e2",
+          "dd0dbbf0",
+          "dd8ba504",
+          "e56ecaa5",
+          "e8171e8f",
+          "e876038f",
+          "f95447e5"
+        ],
+        "cohort": {
+          "patients": 228,
+          "sha256": "2477aa3576de454ab542951ae6d23090654983abeaa7a94ea9a741687c880dab"
+        },
+        "prompts_sha256": "7342a0b2561f9eff586f1c9bef1e9078c5f2424d776e23d5ffd0fb1f11452eec",
+        "criteria_sha256": "4b1d99c26c90644f81466e7565f41712afd5b49daeb2a85b9c734760ab906daa",
+        "reference": "reference labels (evals/labels/held_out.yaml)",
+        "reference_sha256": "0110ca5d5c31640c7a21c8b0bde313990c0e44787282aa89a55aad823d0a2e14",
+        "git_commit": "b83c37fc4778241a92872e7dd3b0f5b69287c312",
+        "genai_prices": "0.1.7"
+      },
+      "runs": 75,
+      "task_failures": 0,
+      "repaired_runs": 1,
+      "repair_failures": 0,
+      "schema_retries": 0,
+      "averages": {
+        "citation_level_rate": 1.0,
+        "citation_resolution_rate": 1.0,
+        "completed": 1.0,
+        "decision:active_disease": 0.714,
+        "decision:dmard_trial": 0.87,
+        "decision:hepatitis_b_screening": 1.0,
+        "decision:ra_diagnosis": 0.944,
+        "decision:tb_screening": 1.0,
+        "decisions_correct": 0.667,
+        "first_pass_citation_level_rate": 0.981,
+        "first_pass_citation_resolution_rate": 0.981,
+        "first_pass_decisions_correct": 0.68,
+        "first_pass_gap_accuracy": 1.0,
+        "gap_accuracy": 0.997,
+        "ids_well_formed": 0.987,
+        "repaired": 0.013,
+        "schema_valid_first_try": 1.0,
+        "verify_matches_truth": 1.0
+      },
+      "tallies": {
+        "completed": "75 of 75",
+        "decision:active_disease": "45 of 63",
+        "decision:dmard_trial": "60 of 69",
+        "decision:hepatitis_b_screening": "69 of 69",
+        "decision:ra_diagnosis": "68 of 72",
+        "decision:tb_screening": "72 of 72",
+        "decisions_correct": "50 of 75",
+        "first_pass_decisions_correct": "51 of 75",
+        "ids_well_formed": "74 of 75",
+        "schema_valid_first_try": "75 of 75",
+        "verify_matches_truth": "75 of 75"
+      },
+      "scoring": {
+        "against": "reference labels (evals/labels/held_out.yaml)",
+        "cases": 25,
+        "completed_runs": "75 of 75",
+        "criteria_scored": 115,
+        "criteria_excluded": {
+          "unlabeled: no valid reply": 5,
+          "unlabeled: runs disagreed": 5
+        },
+        "decisions": {
+          "all": "314 of 345",
+          "rate": 0.91,
+          "per_criterion": {
+            "active_disease": "45 of 63",
+            "dmard_trial": "60 of 69",
+            "hepatitis_b_screening": "69 of 69",
+            "ra_diagnosis": "68 of 72",
+            "tb_screening": "72 of 72"
+          }
+        },
+        "citations_scored_against": "computed ground truth"
+      },
+      "seconds": {
+        "assemble": {
+          "runs": 54,
+          "p50": 4.63,
+          "max": 5.97
+        },
+        "extract": {
+          "runs": 75,
+          "p50": 1.42,
+          "max": 8.87
+        },
+        "gap_packet": {
+          "runs": 21,
+          "p50": 0.15,
+          "max": 0.32
+        },
+        "verify": {
+          "runs": 75,
+          "p50": 0.37,
+          "max": 2.53
+        }
+      },
+      "tokens": {
+        "input": 80326,
+        "output": 20538
+      },
+      "estimated_cost_usd": 0.183,
+      "routes": {
+        "assemble": {
+          "runs": 54,
+          "estimated_cost_usd": 0.183
+        },
+        "gap_packet": {
+          "runs": 21,
+          "estimated_cost_usd": 0.0
+        }
+      },
+      "cases": [
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 3d543b39",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:tb_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0033,
+          "seconds": {
+            "extract": 1.42,
+            "assemble": 4.28,
+            "verify": 0.58
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 dcca53e2",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0034,
+          "seconds": {
+            "extract": 1.42,
+            "assemble": 4.29,
+            "verify": 0.58
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 f95447e5",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0034,
+          "seconds": {
+            "extract": 1.41,
+            "assemble": 4.91,
+            "verify": 1.34
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 c2f8868b",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0036,
+          "seconds": {
+            "extract": 1.41,
+            "assemble": 4.91,
+            "verify": 1.42
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 b8a1ffa3",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0033,
+          "seconds": {
+            "extract": 1.79,
+            "assemble": 4.25,
+            "verify": 0.47
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 6db76cb4",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0036,
+          "seconds": {
+            "extract": 2.23,
+            "assemble": 5.12,
+            "verify": 0.69
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 dd8ba504",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0033,
+          "seconds": {
+            "extract": 0.88,
+            "assemble": 4.64,
+            "verify": 1.56
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 ca33e01a",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0035,
+          "seconds": {
+            "extract": 1.18,
+            "assemble": 4.66,
+            "verify": 1.57
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 681b83bb",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0025,
+          "seconds": {
+            "extract": 5.63,
+            "assemble": 3.52,
+            "verify": 0.03
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 46de5e4d",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0025,
+          "seconds": {
+            "extract": 5.03,
+            "assemble": 3.12,
+            "verify": 0.31
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 34ec7ede",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": false,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0025,
+          "seconds": {
+            "extract": 3.72,
+            "assemble": 3.75,
+            "verify": 0.36
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 58ab636d",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0036,
+          "seconds": {
+            "extract": 1.81,
+            "assemble": 5.52,
+            "verify": 0.81
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 e8171e8f",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0035,
+          "seconds": {
+            "extract": 0.9,
+            "assemble": 4.51,
+            "verify": 0.48
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 3c28d8a5",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0035,
+          "seconds": {
+            "extract": 0.68,
+            "assemble": 3.79,
+            "verify": 0.33
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 c7e0284b",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0035,
+          "seconds": {
+            "extract": 0.85,
+            "assemble": 4.89,
+            "verify": 0.63
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 e56ecaa5",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0037,
+          "seconds": {
+            "extract": 0.72,
+            "assemble": 5.46,
+            "verify": 0.74
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 81e741fe",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 3.37,
+            "gap_packet": 0.12,
+            "verify": 0.12
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 5d2de37d",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": false,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0037,
+          "seconds": {
+            "extract": 0.34,
+            "assemble": 5.11,
+            "verify": 0.8
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 9c082f0b",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 3.86,
+            "gap_packet": 0.1,
+            "verify": 0.36
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 53a6be67",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": false,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0037,
+          "seconds": {
+            "extract": 1.17,
+            "assemble": 5.57,
+            "verify": 2.28
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 029f78a6",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 7.77,
+            "gap_packet": 0.32,
+            "verify": 0.45
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 dd0dbbf0",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 8.71,
+            "gap_packet": 0.14,
+            "verify": 0.41
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 b0ddc938",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 8.87,
+            "gap_packet": 0.27,
+            "verify": 0.36
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 95948be8",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 8.04,
+            "gap_packet": 0.12,
+            "verify": 0.29
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 e876038f",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 5.41,
+            "gap_packet": 0.0,
+            "verify": 0.0
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 dcca53e2",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0035,
+          "seconds": {
+            "extract": 2.19,
+            "assemble": 4.95,
+            "verify": 0.26
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 f95447e5",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0035,
+          "seconds": {
+            "extract": 1.6,
+            "assemble": 4.63,
+            "verify": 0.29
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 3d543b39",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:tb_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0036,
+          "seconds": {
+            "extract": 1.23,
+            "assemble": 4.9,
+            "verify": 0.37
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 c2f8868b",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0035,
+          "seconds": {
+            "extract": 0.33,
+            "assemble": 4.8,
+            "verify": 0.65
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 6db76cb4",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0033,
+          "seconds": {
+            "extract": 0.28,
+            "assemble": 4.06,
+            "verify": 0.29
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 b8a1ffa3",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0034,
+          "seconds": {
+            "extract": 0.49,
+            "assemble": 5.0,
+            "verify": 0.45
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 ca33e01a",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0032,
+          "seconds": {
+            "extract": 0.87,
+            "assemble": 4.15,
+            "verify": 0.79
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 dd8ba504",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0035,
+          "seconds": {
+            "extract": 0.47,
+            "assemble": 4.74,
+            "verify": 1.01
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 681b83bb",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0026,
+          "seconds": {
+            "extract": 1.71,
+            "assemble": 4.08,
+            "verify": 0.47
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 46de5e4d",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0026,
+          "seconds": {
+            "extract": 4.07,
+            "assemble": 3.38,
+            "verify": 0.05
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 34ec7ede",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": false,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0027,
+          "seconds": {
+            "extract": 3.95,
+            "assemble": 3.49,
+            "verify": 0.04
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 58ab636d",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0037,
+          "seconds": {
+            "extract": 1.31,
+            "assemble": 5.08,
+            "verify": 0.28
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 e8171e8f",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0036,
+          "seconds": {
+            "extract": 1.1,
+            "assemble": 4.75,
+            "verify": 0.45
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 c7e0284b",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0033,
+          "seconds": {
+            "extract": 0.43,
+            "assemble": 4.11,
+            "verify": 0.26
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 e56ecaa5",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0038,
+          "seconds": {
+            "extract": 0.37,
+            "assemble": 4.53,
+            "verify": 0.38
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 3c28d8a5",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0037,
+          "seconds": {
+            "extract": 0.33,
+            "assemble": 5.42,
+            "verify": 0.89
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 81e741fe",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 2.41,
+            "gap_packet": 0.2,
+            "verify": 0.26
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 5d2de37d",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": false,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.004,
+          "seconds": {
+            "extract": 0.34,
+            "assemble": 5.52,
+            "verify": 0.88
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 53a6be67",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": false,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0038,
+          "seconds": {
+            "extract": 0.41,
+            "assemble": 4.73,
+            "verify": 2.53
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 9c082f0b",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 7.27,
+            "gap_packet": 0.28,
+            "verify": 0.4
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 029f78a6",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 8.4,
+            "gap_packet": 0.23,
+            "verify": 0.31
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 dd0dbbf0",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 8.58,
+            "gap_packet": 0.14,
+            "verify": 0.35
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 b0ddc938",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 8.16,
+            "gap_packet": 0.21,
+            "verify": 0.32
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 95948be8",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 6.79,
+            "gap_packet": 0.18,
+            "verify": 0.18
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 e876038f",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 5.88,
+            "gap_packet": 0.07,
+            "verify": 0.13
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 dcca53e2",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0036,
+          "seconds": {
+            "extract": 2.44,
+            "assemble": 5.28,
+            "verify": 0.28
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 f95447e5",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0035,
+          "seconds": {
+            "extract": 1.79,
+            "assemble": 4.27,
+            "verify": 0.27
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 3d543b39",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:tb_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0033,
+          "seconds": {
+            "extract": 0.72,
+            "assemble": 4.32,
+            "verify": 0.33
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 c2f8868b",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0036,
+          "seconds": {
+            "extract": 0.31,
+            "assemble": 4.97,
+            "verify": 0.53
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 6db76cb4",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0034,
+          "seconds": {
+            "extract": 0.28,
+            "assemble": 3.31,
+            "verify": 0.61
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 b8a1ffa3",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0034,
+          "seconds": {
+            "extract": 0.49,
+            "assemble": 4.1,
+            "verify": 0.44
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 ca33e01a",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0034,
+          "seconds": {
+            "extract": 0.55,
+            "assemble": 4.66,
+            "verify": 0.69
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 dd8ba504",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0032,
+          "seconds": {
+            "extract": 1.1,
+            "assemble": 4.47,
+            "verify": 0.78
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 681b83bb",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 0.8,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 0.0,
+            "first_pass_citation_level_rate": 0.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": false,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 1.0,
+            "ids_well_formed": false,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0041,
+          "seconds": {
+            "extract": 2.12,
+            "assemble": 5.97,
+            "verify": 0.16
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 46de5e4d",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0025,
+          "seconds": {
+            "extract": 2.21,
+            "assemble": 3.46,
+            "verify": 0.12
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 34ec7ede",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": false,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0026,
+          "seconds": {
+            "extract": 2.39,
+            "assemble": 3.44,
+            "verify": 0.05
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 58ab636d",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0035,
+          "seconds": {
+            "extract": 0.84,
+            "assemble": 4.56,
+            "verify": 0.33
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 e8171e8f",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0035,
+          "seconds": {
+            "extract": 0.53,
+            "assemble": 3.79,
+            "verify": 0.45
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 c7e0284b",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0033,
+          "seconds": {
+            "extract": 0.43,
+            "assemble": 4.0,
+            "verify": 0.25
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 e56ecaa5",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0035,
+          "seconds": {
+            "extract": 0.36,
+            "assemble": 4.22,
+            "verify": 0.23
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 81e741fe",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 1.81,
+            "gap_packet": 0.06,
+            "verify": 0.13
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 3c28d8a5",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0038,
+          "seconds": {
+            "extract": 0.35,
+            "assemble": 5.01,
+            "verify": 0.4
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 5d2de37d",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": false,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0039,
+          "seconds": {
+            "extract": 0.34,
+            "assemble": 5.8,
+            "verify": 1.52
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 53a6be67",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": false,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0035,
+          "seconds": {
+            "extract": 0.42,
+            "assemble": 5.83,
+            "verify": 1.95
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 9c082f0b",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 6.3,
+            "gap_packet": 0.26,
+            "verify": 0.34
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 029f78a6",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 6.69,
+            "gap_packet": 0.15,
+            "verify": 0.33
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 dd0dbbf0",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 8.8,
+            "gap_packet": 0.3,
+            "verify": 0.42
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 b0ddc938",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 8.56,
+            "gap_packet": 0.16,
+            "verify": 0.33
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 95948be8",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 7.98,
+            "gap_packet": 0.0,
+            "verify": 0.0
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 e876038f",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 7.33,
+            "gap_packet": 0.0,
+            "verify": 0.19
+          },
+          "error": null
+        }
+      ]
+    },
+    {
+      "experiment": "gemini:gemini-3.8-flash",
+      "split": "held_out",
+      "config": {
+        "provider": "gemini",
+        "model": "gemini-3.8-flash",
+        "as_of": "2026-09-20",
+        "repeat": 3,
+        "split": "held_out",
+        "dataset": "prior-auth-adalimumab-ra-held-out",
+        "case_keys": [
+          "029f78a6",
+          "34ec7ede",
+          "3c28d8a5",
+          "3d543b39",
+          "46de5e4d",
+          "53a6be67",
+          "58ab636d",
+          "5d2de37d",
+          "681b83bb",
+          "6db76cb4",
+          "81e741fe",
+          "95948be8",
+          "9c082f0b",
+          "b0ddc938",
+          "b8a1ffa3",
+          "c2f8868b",
+          "c7e0284b",
+          "ca33e01a",
+          "dcca53e2",
+          "dd0dbbf0",
+          "dd8ba504",
+          "e56ecaa5",
+          "e8171e8f",
+          "e876038f",
+          "f95447e5"
+        ],
+        "cohort": {
+          "patients": 228,
+          "sha256": "2477aa3576de454ab542951ae6d23090654983abeaa7a94ea9a741687c880dab"
+        },
+        "prompts_sha256": "7342a0b2561f9eff586f1c9bef1e9078c5f2424d776e23d5ffd0fb1f11452eec",
+        "criteria_sha256": "4b1d99c26c90644f81466e7565f41712afd5b49daeb2a85b9c734760ab906daa",
+        "reference": "reference labels (evals/labels/held_out.yaml)",
+        "reference_sha256": "0110ca5d5c31640c7a21c8b0bde313990c0e44787282aa89a55aad823d0a2e14",
+        "git_commit": "b83c37fc4778241a92872e7dd3b0f5b69287c312",
+        "genai_prices": "0.1.7"
+      },
+      "runs": 75,
+      "task_failures": 0,
+      "repaired_runs": 0,
+      "repair_failures": 0,
+      "schema_retries": 0,
+      "averages": {
+        "citation_level_rate": 1.0,
+        "citation_resolution_rate": 1.0,
+        "completed": 1.0,
+        "decision:active_disease": 0.714,
+        "decision:dmard_trial": 0.87,
+        "decision:hepatitis_b_screening": 1.0,
+        "decision:ra_diagnosis": 0.958,
+        "decision:tb_screening": 1.0,
+        "decisions_correct": 0.68,
+        "first_pass_citation_level_rate": 1.0,
+        "first_pass_citation_resolution_rate": 1.0,
+        "first_pass_decisions_correct": 0.68,
+        "first_pass_gap_accuracy": 1.0,
+        "gap_accuracy": 1.0,
+        "ids_well_formed": 1.0,
+        "repaired": 0.0,
+        "schema_valid_first_try": 1.0,
+        "verify_matches_truth": 1.0
+      },
+      "tallies": {
+        "completed": "75 of 75",
+        "decision:active_disease": "45 of 63",
+        "decision:dmard_trial": "60 of 69",
+        "decision:hepatitis_b_screening": "69 of 69",
+        "decision:ra_diagnosis": "69 of 72",
+        "decision:tb_screening": "72 of 72",
+        "decisions_correct": "51 of 75",
+        "first_pass_decisions_correct": "51 of 75",
+        "ids_well_formed": "75 of 75",
+        "schema_valid_first_try": "75 of 75",
+        "verify_matches_truth": "75 of 75"
+      },
+      "scoring": {
+        "against": "reference labels (evals/labels/held_out.yaml)",
+        "cases": 25,
+        "completed_runs": "75 of 75",
+        "criteria_scored": 115,
+        "criteria_excluded": {
+          "unlabeled: no valid reply": 5,
+          "unlabeled: runs disagreed": 5
+        },
+        "decisions": {
+          "all": "315 of 345",
+          "rate": 0.913,
+          "per_criterion": {
+            "active_disease": "45 of 63",
+            "dmard_trial": "60 of 69",
+            "hepatitis_b_screening": "69 of 69",
+            "ra_diagnosis": "69 of 72",
+            "tb_screening": "72 of 72"
+          }
+        },
+        "citations_scored_against": "computed ground truth"
+      },
+      "seconds": {
+        "assemble": {
+          "runs": 54,
+          "p50": 7.75,
+          "max": 59.28
+        },
+        "extract": {
+          "runs": 75,
+          "p50": 1.19,
+          "max": 8.25
+        },
+        "gap_packet": {
+          "runs": 21,
+          "p50": 0.15,
+          "max": 0.27
+        },
+        "verify": {
+          "runs": 75,
+          "p50": 0.34,
+          "max": 2.53
+        }
+      },
+      "tokens": {
+        "input": 41220,
+        "output": 53551
+      },
+      "estimated_cost_usd": 0.2317,
+      "routes": {
+        "assemble": {
+          "runs": 54,
+          "estimated_cost_usd": 0.2317
+        },
+        "gap_packet": {
+          "runs": 21,
+          "estimated_cost_usd": 0.0
+        }
+      },
+      "cases": [
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 dcca53e2",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0033,
+          "seconds": {
+            "extract": 1.23,
+            "assemble": 5.43,
+            "verify": 0.26
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 3d543b39",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:tb_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0033,
+          "seconds": {
+            "extract": 1.22,
+            "assemble": 5.99,
+            "verify": 0.6
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 c2f8868b",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0034,
+          "seconds": {
+            "extract": 1.19,
+            "assemble": 6.01,
+            "verify": 0.78
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 6db76cb4",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0051,
+          "seconds": {
+            "extract": 0.29,
+            "assemble": 8.07,
+            "verify": 0.28
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 b8a1ffa3",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0047,
+          "seconds": {
+            "extract": 1.21,
+            "assemble": 9.2,
+            "verify": 0.46
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 ca33e01a",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0061,
+          "seconds": {
+            "extract": 0.86,
+            "assemble": 11.43,
+            "verify": 0.75
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 dd8ba504",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0037,
+          "seconds": {
+            "extract": 0.43,
+            "assemble": 6.19,
+            "verify": 0.73
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 681b83bb",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0026,
+          "seconds": {
+            "extract": 2.62,
+            "assemble": 5.01,
+            "verify": 0.05
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 46de5e4d",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0027,
+          "seconds": {
+            "extract": 2.93,
+            "assemble": 5.31,
+            "verify": 0.03
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 34ec7ede",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": false,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0039,
+          "seconds": {
+            "extract": 2.22,
+            "assemble": 7.04,
+            "verify": 0.04
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 58ab636d",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0041,
+          "seconds": {
+            "extract": 0.33,
+            "assemble": 7.26,
+            "verify": 0.31
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 e56ecaa5",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0038,
+          "seconds": {
+            "extract": 0.36,
+            "assemble": 6.64,
+            "verify": 0.4
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 c7e0284b",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0055,
+          "seconds": {
+            "extract": 0.44,
+            "assemble": 11.88,
+            "verify": 0.4
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 3c28d8a5",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0049,
+          "seconds": {
+            "extract": 0.33,
+            "assemble": 8.51,
+            "verify": 0.37
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 5d2de37d",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": false,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0065,
+          "seconds": {
+            "extract": 0.34,
+            "assemble": 9.6,
+            "verify": 0.36
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 81e741fe",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 1.75,
+            "gap_packet": 0.0,
+            "verify": 0.0
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 9c082f0b",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 2.02,
+            "gap_packet": 0.04,
+            "verify": 0.11
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 f95447e5",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.005,
+          "seconds": {
+            "extract": 1.19,
+            "assemble": 59.28,
+            "verify": 0.28
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 53a6be67",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": false,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0063,
+          "seconds": {
+            "extract": 0.42,
+            "assemble": 12.2,
+            "verify": 1.54
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 029f78a6",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 5.44,
+            "gap_packet": 0.12,
+            "verify": 0.2
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 e8171e8f",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0062,
+          "seconds": {
+            "extract": 0.53,
+            "assemble": 34.79,
+            "verify": 0.92
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 dd0dbbf0",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 5.59,
+            "gap_packet": 0.1,
+            "verify": 0.19
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 b0ddc938",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 7.68,
+            "gap_packet": 0.16,
+            "verify": 0.02
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 95948be8",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 7.63,
+            "gap_packet": 0.09,
+            "verify": 0.0
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 e876038f",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 7.27,
+            "gap_packet": 0.0,
+            "verify": 0.34
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 dcca53e2",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0033,
+          "seconds": {
+            "extract": 2.73,
+            "assemble": 6.09,
+            "verify": 0.25
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 f95447e5",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0038,
+          "seconds": {
+            "extract": 1.03,
+            "assemble": 7.63,
+            "verify": 0.27
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 c2f8868b",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0038,
+          "seconds": {
+            "extract": 0.84,
+            "assemble": 8.53,
+            "verify": 0.72
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 6db76cb4",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0041,
+          "seconds": {
+            "extract": 0.27,
+            "assemble": 7.79,
+            "verify": 0.72
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 3d543b39",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:tb_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0052,
+          "seconds": {
+            "extract": 0.9,
+            "assemble": 10.54,
+            "verify": 0.49
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 b8a1ffa3",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0033,
+          "seconds": {
+            "extract": 0.78,
+            "assemble": 7.44,
+            "verify": 0.47
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 dd8ba504",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0031,
+          "seconds": {
+            "extract": 1.0,
+            "assemble": 6.66,
+            "verify": 0.56
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 ca33e01a",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0052,
+          "seconds": {
+            "extract": 1.24,
+            "assemble": 9.17,
+            "verify": 0.94
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 681b83bb",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0038,
+          "seconds": {
+            "extract": 1.69,
+            "assemble": 8.59,
+            "verify": 0.19
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 46de5e4d",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0028,
+          "seconds": {
+            "extract": 3.73,
+            "assemble": 5.02,
+            "verify": 0.05
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 34ec7ede",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": false,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0027,
+          "seconds": {
+            "extract": 3.52,
+            "assemble": 5.89,
+            "verify": 0.05
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 58ab636d",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.003,
+          "seconds": {
+            "extract": 0.81,
+            "assemble": 6.22,
+            "verify": 0.3
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 e8171e8f",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0044,
+          "seconds": {
+            "extract": 0.66,
+            "assemble": 7.76,
+            "verify": 0.47
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 c7e0284b",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0047,
+          "seconds": {
+            "extract": 0.55,
+            "assemble": 7.98,
+            "verify": 0.39
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 e56ecaa5",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0041,
+          "seconds": {
+            "extract": 0.37,
+            "assemble": 7.58,
+            "verify": 0.68
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 3c28d8a5",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0047,
+          "seconds": {
+            "extract": 0.34,
+            "assemble": 7.47,
+            "verify": 0.79
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 5d2de37d",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": false,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0048,
+          "seconds": {
+            "extract": 0.33,
+            "assemble": 8.18,
+            "verify": 1.16
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 81e741fe",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 3.82,
+            "gap_packet": 0.14,
+            "verify": 0.18
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 9c082f0b",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 4.32,
+            "gap_packet": 0.27,
+            "verify": 0.32
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 53a6be67",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": false,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0035,
+          "seconds": {
+            "extract": 0.73,
+            "assemble": 7.43,
+            "verify": 2.44
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 029f78a6",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 7.17,
+            "gap_packet": 0.23,
+            "verify": 0.3
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 dd0dbbf0",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 7.45,
+            "gap_packet": 0.2,
+            "verify": 0.46
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 b0ddc938",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 8.25,
+            "gap_packet": 0.24,
+            "verify": 0.32
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 95948be8",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 6.79,
+            "gap_packet": 0.18,
+            "verify": 0.17
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 e876038f",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 5.91,
+            "gap_packet": 0.07,
+            "verify": 0.13
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 dcca53e2",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0037,
+          "seconds": {
+            "extract": 2.52,
+            "assemble": 6.33,
+            "verify": 0.26
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 f95447e5",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0045,
+          "seconds": {
+            "extract": 1.76,
+            "assemble": 8.2,
+            "verify": 0.27
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 c2f8868b",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0036,
+          "seconds": {
+            "extract": 0.31,
+            "assemble": 7.39,
+            "verify": 0.47
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 3d543b39",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:tb_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0053,
+          "seconds": {
+            "extract": 0.89,
+            "assemble": 9.38,
+            "verify": 0.37
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 6db76cb4",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0046,
+          "seconds": {
+            "extract": 0.27,
+            "assemble": 8.14,
+            "verify": 0.28
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 681b83bb",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0025,
+          "seconds": {
+            "extract": 1.8,
+            "assemble": 4.65,
+            "verify": 0.04
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 ca33e01a",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0063,
+          "seconds": {
+            "extract": 0.38,
+            "assemble": 10.55,
+            "verify": 0.68
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 b8a1ffa3",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0071,
+          "seconds": {
+            "extract": 0.63,
+            "assemble": 13.22,
+            "verify": 1.26
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/active-notes \u00b7 dd8ba504",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0069,
+          "seconds": {
+            "extract": 0.43,
+            "assemble": 12.96,
+            "verify": 0.61
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 46de5e4d",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0024,
+          "seconds": {
+            "extract": 1.95,
+            "assemble": 5.44,
+            "verify": 0.05
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/no-order/no-active-notes \u00b7 34ec7ede",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": false,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0042,
+          "seconds": {
+            "extract": 2.89,
+            "assemble": 7.81,
+            "verify": 0.04
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 e8171e8f",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0034,
+          "seconds": {
+            "extract": 0.47,
+            "assemble": 7.0,
+            "verify": 0.44
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 58ab636d",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0044,
+          "seconds": {
+            "extract": 0.79,
+            "assemble": 8.98,
+            "verify": 0.31
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-not-shown/active-notes \u00b7 c7e0284b",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.005,
+          "seconds": {
+            "extract": 0.42,
+            "assemble": 8.14,
+            "verify": 0.4
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 3c28d8a5",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0035,
+          "seconds": {
+            "extract": 0.34,
+            "assemble": 6.31,
+            "verify": 0.35
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 81e741fe",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 1.74,
+            "gap_packet": 0.07,
+            "verify": 0.16
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 53a6be67",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": false,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0028,
+          "seconds": {
+            "extract": 0.42,
+            "assemble": 4.76,
+            "verify": 0.46
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 5d2de37d",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": false,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": false,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": false,
+            "decision:active_disease": false,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0042,
+          "seconds": {
+            "extract": 0.33,
+            "assemble": 7.75,
+            "verify": 0.97
+          },
+          "error": null
+        },
+        {
+          "name": "ra-active/trial-shown/active-notes \u00b7 e56ecaa5",
+          "route": "assemble",
+          "scores": {
+            "completed": true,
+            "citation_resolution_rate": 1.0,
+            "citation_level_rate": 1.0,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_citation_resolution_rate": 1.0,
+            "first_pass_citation_level_rate": 1.0,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0061,
+          "seconds": {
+            "extract": 0.36,
+            "assemble": 12.9,
+            "verify": 2.53
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 9c082f0b",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 7.04,
+            "gap_packet": 0.21,
+            "verify": 0.27
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 029f78a6",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 7.39,
+            "gap_packet": 0.2,
+            "verify": 0.44
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 dd0dbbf0",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 7.85,
+            "gap_packet": 0.25,
+            "verify": 0.5
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 b0ddc938",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 7.36,
+            "gap_packet": 0.24,
+            "verify": 0.28
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 95948be8",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 7.16,
+            "gap_packet": 0.01,
+            "verify": 0.0
+          },
+          "error": null
+        },
+        {
+          "name": "ra-not-active/trial-not-shown/no-active-notes \u00b7 e876038f",
+          "route": "gap_packet",
+          "scores": {
+            "completed": true,
+            "gap_accuracy": 1.0,
+            "decisions_correct": true,
+            "first_pass_gap_accuracy": 1.0,
+            "first_pass_decisions_correct": true,
+            "decision:ra_diagnosis": true,
+            "decision:dmard_trial": true,
+            "decision:active_disease": true,
+            "decision:tb_screening": true,
+            "decision:hepatitis_b_screening": true,
+            "repaired": 0.0,
+            "ids_well_formed": true,
+            "schema_valid_first_try": true,
+            "verify_matches_truth": true
+          },
+          "estimated_cost_usd": 0.0,
+          "seconds": {
+            "extract": 6.52,
+            "gap_packet": 0.15,
+            "verify": 0.0
+          },
+          "error": null
+        }
+      ]
+    }
+  ]
+}
