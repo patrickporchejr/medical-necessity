@@ -6,8 +6,8 @@ the branches disagree.
 ## Now
 
 **M3: in progress** on `m3/baseline` (from `main` at 489614e, G1 merged). Milestone file updated for what G1
-settled. M3.1 estimate accepted: $1.04, cap $1.50 recommended. M3.2 (the paid Run 4) waits for your yes.
-Live spend so far: $16.59 of the $18 approved (G1.5).
+settled. M3.2 (Run 4) done: $1.11 of the $1.50 approved. Results in `evals/results/run-4/`. Next: M3.3 write-up (evals).
+Live spend so far: $16.59 of the $18 approved (G1.5); $1.11 of the $1.50 approved (M3.2).
 
 ## Milestones
 
@@ -38,6 +38,7 @@ States: `not started`, `planning`, `in progress`, `awaiting CP<N>`, `passed`, `c
 
 | Task | Agent | State | Since | Notes |
 |---|---|---|---|---|
+| M3.2 Run 4 | orchestrator | accepted | 2026-10-25 | Live, $1.11 (smoke $0.017 + work $0.194 + held-out $0.415 + hard $0.484), cap $1.50 approved. Run locally, no LangSmith upload: `sync_dataset` (evals/experiment.py:273) crashes on a 404 for new held-out/hard datasets; follow-up for evals. 0 task failures. Work: Haiku 159/160, Flash 160/160. Held-out vs labels: 314/345, 315/345. Hard targeted: both 66/90, wiring 270/270; repairs 6 and 8, and they lower decisions (first pass 54/72, final 48/72) |
 | M3.1 Estimate | evals | accepted | 2026-10-25 | $1.04 (Haiku $0.46, Flash $0.58), 262 model runs of 358 (gap-packet route needs no model); $1.30 with 25%; cap $1.50 recommended. Chart size never reaches the prompt (extract caps it, ids are placeholders): b8a1ffa3 sends 1,517 chars; largest is hard 741ebb47 (4,335). Ratio method on scripted prompts vs Run 3, no tokenizer offline. Smoke: b8a1ffa3 + 741ebb47, ~$0.023, stop over $0.04. Waits for your yes |
 | G1.2b `targeted` field | data | accepted | 2026-10-25 | D20; 29 targeted, bundles byte-identical (614dcb0) |
 | G1.5 Labeling run | orchestrator | accepted | 2026-10-25 | Live, $16.56 (+$0.03 smoke), cap $18 approved. Held-out 21/94/10 unlabeled; hard 32/87/1. Runs agreed on 115 of 120 held-out and 119 of 120 hard labels both runs gave. b8a1ffa3 (largest chart, ~870k tokens) unlabeled: every reply mistyped a record id (6469669) |
@@ -133,3 +134,4 @@ proposed. Evidence for the workflow write-up in D1. A few lines per milestone, a
 - 2026-10-25: PR #56 CI green at 00621b9. CPG1 passed; D22, D23 recorded. PR #56 to merge.
 - 2026-10-25: PR #56 merged (489614e); G1 passed. M3 opened on `m3/baseline`; milestone file updated (splits, D20/D22, as-of guard, token lesson, smoke run). M3.1 dispatched.
 - 2026-10-25: M3.1 accepted: Run 4 estimate $1.04, cap $1.50 recommended (worst case, every run repaired, ~$2.60). Waiting for approval.
+- 2026-10-25: M3.2 Run 4 approved ($1.50 cap) and run: smoke passed ($0.017), then work, held-out, hard; $1.11 total. LangSmith sync bug found (no spend), run kept local. Results committed.
