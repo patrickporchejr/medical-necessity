@@ -59,6 +59,7 @@ from statistics import mean, median
 
 import yaml
 from langsmith import Client, aevaluate, schemas
+from langsmith.utils import LangSmithNotFoundError
 
 import app.llm.prompts
 from app.config import settings
@@ -270,7 +271,12 @@ def sync_dataset(client: Client, examples: list[schemas.Example],
     # `upsert_examples_multipart` rejects an id that already exists (409), so updates and
     # creates go through separate calls.
     ids = [e.id for e in examples]
-    existing = {e.id for e in client.list_examples(dataset_id=dataset.id, example_ids=ids)}
+    try:
+        existing = {e.id for e in client.list_examples(dataset_id=dataset.id, example_ids=ids)}
+    except LangSmithNotFoundError:
+        # LangSmith answers 404 "Examples not found" when none of the ids exist yet (a new
+        # dataset, or a new split's first sync), rather than an empty list.
+        existing = set()
     fields = lambda e: dict(id=e.id, inputs=e.inputs, outputs=e.outputs, metadata=e.metadata)
     if updated := [schemas.ExampleUpdate(**fields(e)) for e in examples if e.id in existing]:
         client.update_examples_multipart(dataset_id=dataset.id, updates=updated)
