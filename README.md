@@ -19,13 +19,22 @@ When the patient's diagnosis is not established, there is nothing for a model to
 
 ## Results
 
-Scored against ground truth on 11 synthetic patient cases, each run 3 times on two models (66 runs):
+Run 4, the current baseline, scores two models (Claude Haiku 4.5 and Gemini 3.8 Flash) on 81 synthetic cases,
+358 runs, against answers the pipeline's code did not write:
 
-- **Every final packet was fully correct** on both models, and every citation resolved to a real, supporting chart record.
-- **The repair step fired once in 66 runs** and fixed what it was sent.
-- **Under half a cent per case** in model cost ($0.003 average), and $0 for cases that skip the model.
+- **Held-out split, 25 cases:** 314 and 315 of 345 criterion decisions agree with reference labels a separate
+  model wrote from the chart and the policy wording. No human reviewed those labels.
+- **Hard split, 24 edited charts** (negation, conflicting notes, free-text-only evidence, a positive TB result,
+  prompt injection): 66 of 90 targeted decisions right on both models. All 8 misses end on the answer the
+  pipeline's rules give. In 6, the model never sees the evidence that would change it; in 2, the model gets it
+  right and the repair step pulls it back to the rule's answer. These are known limits; the project stopped
+  before fixing them.
+- **Every citation in the final packets resolved** to a real chart record, on every split.
+- **Under a cent per model run** ($0.003 to $0.006), $1.11 for the whole run, and $0 for cases that skip the model.
 
-These are results on synthetic data with one payer policy, not a clinical validation. Full numbers and caveats are in [evals/RESULTS.md](evals/RESULTS.md).
+These are results on synthetic data with one payer policy, not a clinical validation. Earlier runs scored the
+pipeline against its own rules and were all correct; Run 4 is lower because it asks a different question. Full
+numbers and caveats are in [evals/RESULTS.md](evals/RESULTS.md).
 
 ## Built for trust
 
@@ -67,7 +76,7 @@ flowchart LR
 
 ## Key Features
 - **Stateful Routing:** the graph is a LangGraph `StateGraph` with typed state and two conditional edges. After `extract`, a case whose RA diagnosis is not established (absent, or resolved rather than active) skips the model: code writes the packet, so the case costs no tokens. After `verify`, a model-drafted packet with flagged or unaddressed criteria goes back to `assemble` once with verify's reasons (the repair loop); the first draft is kept, and evals score it alongside the final packet. The route taken and any repair are recorded in the state, in the run's events and in LangSmith.
-- **Observability & Evals:** With a LangSmith key set, every run is traced, and the evals score each model as an experiment: citation resolution against ground truth, decision accuracy, tokens and estimated cost. Per-node timings are captured, and `evals/run.py` prints them, but experiment summaries do not report latency yet.
+- **Observability & Evals:** With a LangSmith key set, every run is traced, and the evals score each model as an experiment: citation resolution against ground truth, decision accuracy, tokens and estimated cost. Per-node timings are captured, printed by `evals/run.py` and reported in experiment summaries.
 - **Deterministic Guardrails:** they fail closed. A model reply (the draft, or a repair) that does not match the schema is retried once, with the scrubbed validation error fed back (`schema_retries` in the run's usage and eval summaries); a second invalid reply stops the run, and a refusal or a PHI-guard hit is never retried. A tool error in `extract` stops the run. In `verify`, a citation that cannot be fetched counts as not found and its assertion is flagged. Besides that retry, the one fallback is the provider's: on Claude Opus 5 and Fable, a refusal is re-run server-side on another model.
 
 **Data.** All patient data is Synthea-generated synthetic FHIR R4 (a fixed-seed cohort of adults with rheumatoid arthritis). No PHI touches this repo, which means no BAA, and no de-identification review.
@@ -89,6 +98,8 @@ Built:
 - Anthropic and Gemini clients on LangChain chat models (`api/app/llm/langchain_client.py`)
 - Metadata-only LangSmith tracing (`api/app/observability.py`)
 - Evals: one-patient runs, LangSmith experiments, the citation resolution metric and recorded results (`evals/`)
+- Independent eval answers: reference labels written by a separate model from each chart (`evals/label.py`, `evals/labels/`), a hard split of 24 edited charts with answers written by hand (`data/hard/`), and an agreement report between them and the pipeline's rules (`evals/agreement.py`)
+- A reference-label review page in the dashboard (`/labels`), showing how a client's team would vet the labels
 - CI on every PR and push to main: the API and eval-harness tests against scripted models, with no keys and no cohort (cohort tests skip), and the dashboard build (`.github/workflows/evals.yml`)
 
 - Case API: list patients, create a case, run it in the background, fetch it with its node events, the rehydrated packet, verify's verdicts and each cited record (`api/app/routes/cases.py`). Cases are kept in memory.
@@ -98,8 +109,9 @@ Not built (the project stopped here):
 - Approve · edit · reject, and an audit trail of reviewer decisions
 - Persistent cases (a database) and a live SSE stream; the dashboard polls instead
 - An eval gate on PRs: CI runs the test suite against scripted models (see below), but no live-model eval with score thresholds
-- Latency and run-to-run variance in experiment summaries
-- Negation handling in the active-disease check: "denies joint pain" still counts as evidence (see [Evaluation](#evaluation))
+- Run-to-run variance in experiment summaries
+- Negation handling in the active-disease check: "denies joint pain" still counts as evidence. The hard split now measures it (see [Evaluation](#evaluation))
+- The fixes Run 4 points to: a repair step that fixes citations without overriding the model's decision, notes and result values shown to the model for the DMARD and TB criteria, and the rule fixes (negation, conflicting notes, a positive TB result) ([evals/RESULTS.md](evals/RESULTS.md))
 
 ### The PHI boundary
 
@@ -140,7 +152,7 @@ The repair loop is the conditional edge after `verify` (`route_after_verify`). T
 
 ### Evaluation
 
-The eval dataset runs as LangSmith experiments (`evals/experiment.py`), one per model, scored against Synthea ground truth. There is no LLM-judged faithfulness metric in the MVP: it would add a model call (and cost) to every run, and `verify` already checks what a payer would reject. Known limits: nothing checks that an assertion's *wording* is faithful to the source it cites, only that the citation exists and bears on the criterion. And the active-disease check matches keywords without negation, so a note line such as "denies joint pain" counts as evidence; the eval's ground truth shares that rule, so the evals cannot catch it.
+The eval dataset runs as LangSmith experiments (`evals/experiment.py`), one per model and split. The working split is scored against ground truth computed from the Synthea bundles, as a wiring check. The held-out split is scored against reference labels a separate model (Sonnet 5.5) wrote from each chart and the policy wording, without the pipeline's code (`evals/label.py`, reviewable at `/labels` in the dashboard). The hard split is edited charts with answers we wrote (`data/hard/cases.yaml`). There is no LLM-judged faithfulness metric in the MVP: it would add a model call (and cost) to every run, and `verify` already checks what a payer would reject. Known limits: nothing checks that an assertion's *wording* is faithful to the source it cites, only that the citation exists and bears on the criterion. And the active-disease check matches keywords without negation, so a note line such as "denies joint pain" counts as evidence; computed ground truth shares that rule, which is why the held-out labels and the hard split exist, and the hard split's negation cases catch it.
 
 The metric that matters here is **citation resolution rate**: of the assertions the agent makes in a packet, what fraction point at a record that exists _and_ actually supports the claim. It's domain-specific, it's the thing a payer would reject the packet over, and it's scored against Synthea ground truth rather than an LLM judge.
 
@@ -202,7 +214,11 @@ medical-necessity/
 ├── evals/
 │   ├── dataset.py                 # cases + ground truth from Synthea
 │   ├── run.py                     # one patient, end to end, scored
-│   ├── experiment.py              # the dataset as LangSmith experiments, one per model
+│   ├── experiment.py              # the dataset as LangSmith experiments, one per model and split
+│   ├── chart.py                   # prints one chart, for the labeler and for reading
+│   ├── label.py                   # the reference labeler (Batch API)
+│   ├── agreement.py               # labels vs computed ground truth vs the hard split's answers
+│   ├── labels/                    # the committed reference labels and the agreement report
 │   ├── metrics/
 │   │   └── citation_resolution.py
 │   ├── test_*.py                  # harness tests against scripted models
@@ -246,7 +262,8 @@ The evals run on the host, from the repo root, with the API package installed:
 
 ```bash
 pip install -e 'api[dev]'
-python evals/experiment.py                       # the eval: the dataset on both configured models, as LangSmith experiments
+python evals/experiment.py                       # the eval: the working split on both configured models, as LangSmith experiments
+AS_OF_DATE=2026-09-20 python evals/experiment.py --split all   # all three splits, as Run 4 ran them
 python evals/run.py --patient Loyd638 --provider both   # one patient, end to end
 cd evals && pytest                               # harness tests against scripted models; no model calls
 ```
