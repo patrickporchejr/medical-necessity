@@ -18,7 +18,7 @@ Live spend so far: $16.59 of the $18 approved (G1.5); $1.11 of the $1.50 approve
 | M0 | The plan | passed | — | CP0 |
 | M1 | Bigger cohort, eval hygiene | passed | `m1/cohort` | CP1 |
 | G1 | Independent reference labels and hard cases | passed | `g1/ground-truth` | CPG1 |
-| M3 | Baseline run (Run 4), on G1's labels | passed (merged at close, CP3 not held) | `m3/baseline` | CP3 |
+| M3 | Baseline run (Run 4), on G1's labels | merged at close, CP3 not held | `m3/baseline` | CP3 |
 | Q1 | Faithful wording and fixes (Run 5) | cut (D24) | `q1/faithfulness` | CPQ1 |
 | D1 | The demo, hosted | cut (D24) | `d1/demo` | CPD1 |
 | M2 | Reference lab | cut (D15) | — | — |
