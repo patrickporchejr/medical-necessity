@@ -5,7 +5,7 @@ the branches disagree.
 
 ## Now
 
-**M3** on `m3/baseline` (from `main` at 489614e). **M3: awaiting CP3.** Run 4 done ($1.11 of $1.50); write-up in `evals/RESULTS.md`; M3.5 QA passed; README diff (D6) proposed, not applied.
+**M3: awaiting CP3** on `m3/baseline` (from `main` at 489614e, not pushed). Run 4 done ($1.11 of $1.50); write-up in `evals/RESULTS.md`; M3.5 QA passed; README diff (D6) proposed, not applied.
 Live spend so far: $16.59 of the $18 approved (G1.5); $1.11 of the $1.50 approved (M3.2).
 
 ## Milestones
